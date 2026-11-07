@@ -221,3 +221,9 @@
 @media (prefers-reduced-motion: reduce) {
   .cqa-root .cq-list-skeleton span { animation: none; opacity: .65; }
 }
+
+/* W10: visible at both normal and projector sizes; never a font glyph. */
+.cqa-root .cq-list-diamond { display:inline-flex; vertical-align:middle; margin-right:4px; }
+.cqa-root .cq-list-diamond svg { display:block; width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; }
+.cqa-root .cq-list-score.is-previous strong { color:var(--muted); font-size:.9375em; }
+.cqa-root.projector .cq-list-score.is-previous strong { font-size:1em; }

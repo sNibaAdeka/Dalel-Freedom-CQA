@@ -37,6 +37,14 @@ export function isEditable(target) {
   return !!target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])');
 }
 
+export function resetPanelScroll(root, panel) {
+  const workspace = root.querySelector('.cqa-workspace');
+  for (const node of [workspace, panel, ...(panel?.querySelectorAll('*') || [])]) {
+    if (node) { node.scrollTop = 0; node.scrollLeft = 0; }
+  }
+  if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+}
+
 export function boot() {
   if (bootPromise) return bootPromise;
   bootPromise = initialize();
@@ -91,6 +99,7 @@ async function initialize() {
     CQA.state.tab = tab;
     root.querySelectorAll('[data-tab]').forEach(button => { const active = button.dataset.tab === tab; button.setAttribute('aria-selected', String(active)); button.tabIndex = active ? 0 : -1; if (active && focus) button.focus(); });
     TAB_NAMES.forEach(name => { byId(`cqa-panel-${name}`).hidden = name !== tab; });
+    resetPanelScroll(root, byId(`cqa-panel-${tab}`));
     if (updateHash) history.replaceState(null, '', `#${tab}`);
     CQA.bus.emit('tab:changed', tab);
     announce(`${byId(`cqa-tab-${tab}`).textContent.trim()}: раздел открыт`);

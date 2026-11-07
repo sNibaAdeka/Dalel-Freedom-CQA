@@ -1916,9 +1916,16 @@ export function mount(CQA = typeof window !== 'undefined' ? window.CQA : undefin
   async function apply() {
     const version = state.view;
     if (!Number.isInteger(version) || state.busy || state.groupsLoading || state.groupsError) return;
+    if (CQA.state?.modules?.board === true) {
+      CQA.bus.emit('board:prepare', { version, group: state.group });
+      CQA.bus.emit('nav:open', 'board');
+      return;
+    }
     state.busy = 'apply'; state.applyError = ''; updateBar();
     try {
       const group = state.groups?.find(item => item.id === state.group);
+      const count = group?.ids.length ?? state.conversationRows.length;
+      if (CQA.config?.mock === false && count > 1 && !await confirmAction({ title: 'Запустить массовую оценку?', message: `Диалогов: ${count}. Вызовы модели, стоимость и время: прогноза нет. Кэш может отсутствовать.`, confirm: 'Запустить', cancel: 'Отмена' })) { state.busy = ''; updateBar(); return; }
       // Let the run preserve the old active version as its before/after baseline.
       // Activation is reported only after the server confirms a successful run.
       const body = group ? { version, activate: true, conv_ids: group.ids.slice() } : { version, activate: true };

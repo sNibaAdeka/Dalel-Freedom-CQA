@@ -1,5 +1,5 @@
 /* Evaluation workspace. Network access is exclusively through CQA.api. */
-import { profileSettings, profileChoice, modelHint, profileGuide } from './model-profiles.js';
+import { profileSettings, profileChoice, modelHint, profileGuide, runForecast, forecastText } from './model-profiles.js';
 const mounts = new WeakMap();
 const finishedStatuses = new Set(['complete', 'completed', 'done', 'finished', 'failed', 'error', 'cancelled', 'incomplete']);
 const failedStatuses = new Set(['failed', 'error', 'cancelled', 'incomplete']);
@@ -50,10 +50,11 @@ export function createRunController(api, { onChange = () => {}, onProgress = () 
         return response;
       } catch (error) { if (active(token)) emit({ phase: 'error', error }); return null; }
     },
-    watch(run) {
+    watch(run, { restore = false } = {}) {
       if (destroyed) return;
       const snapshot = typeof run === 'string' ? { run_id: run } : run;
       if (!snapshot?.run_id) return;
+      if (restore && finishedStatuses.has(snapshot.status)) announced.add(snapshot.run_id);
       clear(); const token = ++epoch;
       emit({ phase: 'running', run: { ...snapshot }, error: null });
       void poll(token);
@@ -62,6 +63,12 @@ export function createRunController(api, { onChange = () => {}, onProgress = () 
     reset() { if (destroyed) return; clear(); ++epoch; announced.clear(); emit({ phase: 'idle', run: null, error: null }); },
     destroy() { destroyed = true; clear(); ++epoch; },
   };
+}
+
+export function latestRun(runs) {
+  // API orders newest first; preserve that order when timestamps are equal/absent.
+  return (Array.isArray(runs) ? runs : []).filter(r => r?.run_id && !r.preview)
+    .sort((a, b) => (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0))[0] || null;
 }
 
 export function runSummary(run = {}) {
@@ -84,11 +91,11 @@ function rowIssue(row) {
 function serverPlanText(run) {
   const total = run.pairs_total, evaluate = run.pairs_to_evaluate;
   if (!Number.isSafeInteger(total) || !Number.isSafeInteger(evaluate) || total < 0 || evaluate < 0 || evaluate > total) {
-    return 'Сервер не передал числовой план этого прогона. Число пар и прогноз времени и стоимости недоступны.';
+    return 'Сервер не передал числовой план этого прогона. Число пар недоступно.';
   }
   return `${run.is_mock ? 'Демонстрационный план' : 'План сервера'} при запуске: к оценке ${number(evaluate, 0)} пар; ` +
     `без новой оценки — ${number(total - evaluate, 0)} пар. Пара — диалог и критерий, а не вызов модели. ` +
-    'Это исходный план, фактическое выполнение показано ниже. Прогноза времени и стоимости нет.';
+    'Это исходный план; фактические выполнение, время и стоимость показаны ниже.';
 }
 function histogram(rows, key) {
   const bins = [0, 0, 0, 0, 0];
@@ -138,13 +145,13 @@ export function mount(CQA = globalThis.window?.CQA) {
   const dataContext = () => JSON.stringify([CQA.config.mock !== false, CQA.config.apiBase || './api']);
   let selectedContext = dataContext(), contextEpoch = 0, wasOffline = CQA.config.offline === true;
   let rows = [], versions = [], serverConfig = null;
-  let budgetController = null, guideEpoch = 0;
+  let budgetController = null, guideEpoch = 0, qualityData = null, recoveryEpoch = 0;
   const cleanup = [], tiles = new Map();
   const on = (name, fn) => { const off = CQA.bus.on(name, fn); if (typeof off === 'function') cleanup.push(off); };
 
   const head = node('header', 'cqa-board__head'), heading = node('div');
   heading.append(node('h1', '', 'Оценка диалогов'), node('p', 'cqa-board__intro', 'Загрузите разговоры и примените выбранный чек-лист.'));
-  const refreshButton = button('Обновить наборы', () => void refresh()); head.append(heading, refreshButton);
+  const refreshButton = button('Обновить наборы', () => { void refresh(); void restoreRun(); void refreshSpend(); }); head.append(heading, refreshButton);
   const demo = node('p', 'cqa-board__demo', 'Демонстрация: оценки условные, модель не вызывается. Загруженные данные хранятся только в этой сессии.');
   demo.hidden = CQA.config.mock === false;
   const notice = node('p', 'cqa-board__notice'); notice.hidden = true; notice.setAttribute('role', 'status');
@@ -152,6 +159,7 @@ export function mount(CQA = globalThis.window?.CQA) {
   const budgetHost = node('div', 'cqa-board__budget');
   const group = select([['', 'Все загруженные наборы']]);
   const scope = select([['all', 'Все диалоги набора'], ['pending', 'Без итоговой оценки'], ['active', 'Открытый диалог']]);
+  scope.value = CQA.state.activeConversationId ? 'active' : 'all';
   const version = select([]);
   const mode = select([['fast', 'Быстрый'], ['accurate', 'Точный (не замерен; в облачном профиле ≈8× токенов)']]);
   const location = select([['cloud', 'Облако'], ['cascade', 'Каскад: Haiku → Gemini при сомнении'], ['routing', 'Маршрутизация: звонки и рискованные чаты → Gemini'], ['local', 'Локальная модель']]);
@@ -172,6 +180,8 @@ export function mount(CQA = globalThis.window?.CQA) {
       const payload = typeof CQA.api.modelGuide === 'function' ? await CQA.api.modelGuide() : null;
       const content = profileGuide(payload);
       if (destroyed || token !== guideEpoch) return;
+      qualityData = payload;
+      syncControls();
       if (payload && typeof CQA.economics?.mountBudget === 'function') {
         budgetController?.destroy();
         budgetController = CQA.economics.mountBudget(budgetHost, { quality: payload, ...budgetContext(), onSwitchCascade: () => {
@@ -194,7 +204,7 @@ export function mount(CQA = globalThis.window?.CQA) {
   };
   const live = node('input'); live.type = 'checkbox'; live.checked = false; live.dataset.boardLive = '';
   const liveLabel = node('label', 'cqa-board__check'); liveLabel.append(live, node('span', '', 'Не использовать LLM-кэш для недостающих оценок'));
-  const activate = node('input'); activate.type = 'checkbox'; activate.checked = true; activate.dataset.boardActivate = '';
+  const activate = node('input'); activate.type = 'checkbox'; activate.checked = scope.value !== 'active'; activate.dataset.boardActivate = '';
   const activateLabel = node('label', 'cqa-board__check'); activateLabel.append(activate, node('span', '', 'Сделать эту версию активной после расчёта'));
   const selection = node('p', 'cqa-board__selection');
   const startButton = node('button', 'cqa-board__button cqa-board__button--primary', 'Оценить диалоги'); startButton.type = 'submit';
@@ -203,7 +213,7 @@ export function mount(CQA = globalThis.window?.CQA) {
   const actions = node('div', 'cqa-board__actions'); actions.append(selection, startButton);
   const plan = node('div', 'cqa-board__plan');
   const planPolicy = node('p', 'cqa-board__plan-policy'); planPolicy.id = 'cqa-board-plan-policy';
-  const planHint = node('p', 'cqa-board__hint cqa-board__plan-hint', 'Число пар до запуска недоступно: сервер сообщает план только после старта. Оценок времени и стоимости нет.');
+  const planHint = node('p', 'cqa-board__hint cqa-board__plan-hint');
   plan.append(node('h2', '', 'Перед запуском'), planPolicy, planHint);
   live.setAttribute('aria-describedby', planPolicy.id);
   const rerun = node('details', 'cqa-board__rerun'); rerun.append(node('summary', '', 'Полный повторный расчёт'));
@@ -211,7 +221,8 @@ export function mount(CQA = globalThis.window?.CQA) {
   rerunHint.id = 'cqa-board-rerun-hint';
   const rerunButton = button('Пересчитать всё заново', event => void start(event, true));
   rerunButton.setAttribute('aria-describedby', rerunHint.id); rerun.append(rerunHint, rerunButton);
-  form.append(fields, model, guide, liveLabel, plan, activateLabel, budgetHost, actions, rerun);
+  const databaseSpend = node('p', 'cqa-board__hint', 'Всего потрачено в этой базе: нет данных.');
+  form.append(fields, model, guide, liveLabel, plan, activateLabel, budgetHost, databaseSpend, actions, rerun);
 
   const importer = node('details', 'cqa-board__import'); importer.append(node('summary', '', 'Загрузить новые диалоги'));
   const importForm = node('div', 'cqa-board__import-form');
@@ -261,6 +272,7 @@ export function mount(CQA = globalThis.window?.CQA) {
     if (descendant || fresh) live.checked = false;
     planPolicy.textContent = `${fresh ? 'Новые диалоги считаются моделью сейчас, не из кэша. Недостающие ответы также запрашиваются без LLM-кэша. ' : ''}` +
       'Неизменённые критерии с совместимыми сохранёнными ответами переиспользуются. При наличии таких ответов смена только весов не вызывает модель; замена одного критерия оценивает его и ранее недостающие ответы. Смена модели, режима или промпта может потребовать дополнительные оценки.';
+    planHint.textContent = forecastText(currentForecast(ids.length));
     selection.textContent = `${ids.length} ${ids.length === 1 ? 'диалог выбран' : 'диалогов выбрано'}`;
     startButton.disabled = busy || loading || !ids.length || !version.value;
     rerunButton.disabled = startButton.disabled;
@@ -279,6 +291,29 @@ export function mount(CQA = globalThis.window?.CQA) {
     exportHint.textContent = CQA.config.mock !== false || CQA.config.offline === true ? 'Экспорт прогона доступен только при подключении к серверу.' :
       canExport ? `${exportRequest ? 'Готовим файл' : 'Сохранённый снимок'}: ${run.run_id}${run.version != null ? ` · чек-лист v${run.version}` : ''} · ${failedStatuses.has(run.status) || runSummary(run).errors ? 'с ошибками; нерассчитанные оценки отсутствуют' : 'завершён'}.` :
       'Экспорт появится после завершения прогона.';
+  }
+  function currentForecast(count) {
+    return runForecast({ quality: qualityData, profile: location.value === 'configured' ? serverConfig?.profile : location.value,
+      mode: mode.value, dialogues: count, criteria: versions.find(v => Number(v.version) === Number(version.value))?.criteria?.length || 8,
+      votes: serverConfig?.model?.votes });
+  }
+  async function refreshSpend() {
+    const context = dataContext(), token = contextEpoch;
+    try {
+      const metrics = await CQA.api.metrics?.();
+      if (destroyed || token !== contextEpoch || context !== dataContext()) return;
+      databaseSpend.textContent = `Всего потрачено в этой базе: накопленный расход недоступен. Стоимость сохранённых оценок активной версии: ${finite(metrics?.cost_kzt) ? `${number(metrics.cost_kzt, 2)} ₸` : 'нет данных'}. Это не стоимость этого прогона.`;
+    } catch { if (!destroyed && token === contextEpoch) databaseSpend.textContent = 'Всего потрачено в этой базе: данные недоступны.'; }
+  }
+  async function restoreRun() {
+    if (typeof CQA.api.runs !== 'function' || controller.state.phase !== 'idle') return;
+    const token = ++recoveryEpoch, context = dataContext();
+    try {
+      const saved = await CQA.api.runs();
+      if (destroyed || token !== recoveryEpoch || dataContext() !== context || controller.state.phase !== 'idle' || preparing) return;
+      const latest = latestRun(saved);
+      if (latest) controller.watch(latest, { restore: true });
+    } catch { if (!destroyed && token === recoveryEpoch) message('Последний прогон не удалось загрузить. Обновите наборы, чтобы повторить.'); }
   }
   function budgetContext() {
     const ids = new Set(conversationSelection(rows, group.value, scope.value, CQA.state.activeConversationId));
@@ -345,7 +380,9 @@ export function mount(CQA = globalThis.window?.CQA) {
         CQA.api.conversations(), CQA.api.checklists(), typeof CQA.api.config === 'function' ? CQA.api.config() : Promise.resolve(null),
       ]);
       if (destroyed || token !== refreshEpoch) return;
-      rows = Array.isArray(nextRows) ? nextRows : []; versions = Array.isArray(nextVersions) ? nextVersions : [];
+      rows = Array.isArray(nextRows) ? nextRows : [];
+      if (scope.value === 'active' && !rows.some(row => row.id === CQA.state.activeConversationId)) scope.value = 'all';
+      versions = Array.isArray(nextVersions) ? nextVersions : [];
       serverConfig = config;
       showModel(config); fillChoices(); message(rows.length ? '' : 'Загрузите JSON или получите набор с сервера.'); return true;
     } catch (error) { if (!destroyed && token === refreshEpoch) message(errorText(error), true); return false; }
@@ -381,6 +418,10 @@ export function mount(CQA = globalThis.window?.CQA) {
     if (destroyed || preparing || importing || loading || ['starting', 'running'].includes(controller.state.phase)) return;
     const ids = conversationSelection(rows, group.value, scope.value, CQA.state.activeConversationId);
     if (!ids.length || !version.value) { message('Выберите диалоги и сохранённую версию чек-листа.', true); return; }
+    // live:false only permits cache use; it does not guarantee a cache hit.
+    if (CQA.config.mock === false && (location.value === 'configured' ? serverConfig?.profile : location.value) !== 'mock' && ids.length > 1 &&
+        !globalThis.confirm?.(`${forecastText(currentForecast(ids.length))}\n\nЗапустить расчёт для ${ids.length} диалогов?`)) return;
+    ++recoveryEpoch;
     const { descendant, fresh } = selectionPolicy(ids);
     const body = { version: Number(version.value), conv_ids: ids, mode: mode.value,
       live: fullRerun || fresh || (!descendant && live.checked), force: fullRerun,
@@ -474,7 +515,7 @@ export function mount(CQA = globalThis.window?.CQA) {
       if (run.activated === true && !failedStatuses.has(run.status) && !runSummary(run).errors && run.version != null) CQA.bus.emit('checklist:activated', { version: run.version });
       CQA.bus.emit('run:finished', run); CQA.bus.emit('run:completed', run);
       CQA.bus.emit('conversations:refresh', { run_id: run.run_id });
-      void refresh();
+      void refresh(); void refreshSpend();
       const id = CQA.state.activeConversationId, token = ++detailEpoch;
       if (id && runSummary(run).rows.some(row => row.id === id && ['done', 'complete', 'completed'].includes(row.status))) {
         void CQA.api.conversation(id, run.version).then(detail => {
@@ -484,7 +525,7 @@ export function mount(CQA = globalThis.window?.CQA) {
     },
   });
   form.addEventListener('submit', start);
-  group.addEventListener('change', syncControls); scope.addEventListener('change', syncControls);
+  group.addEventListener('change', syncControls); scope.addEventListener('change', () => { if (scope.value === 'active') activate.checked = false; syncControls(); });
   version.addEventListener('change', syncControls);
   activate.addEventListener('change', syncControls);
   for (const control of [mode, location]) control.addEventListener('change', () => {
@@ -494,12 +535,22 @@ export function mount(CQA = globalThis.window?.CQA) {
       : location.value === 'routing' ? 'Звонки сразу на Gemini. Чаты начинает Haiku; при сомнении или C3 Да/Нет — перепроверка Gemini. Настройки применятся при запуске.'
       : 'Выбранные настройки модели будут применены при запуске.';
   });
-  on('conv:open', syncControls);
+  on('conv:open', () => { scope.value = 'active'; group.value = ''; activate.checked = false; syncControls(); });
+  on('board:prepare', async request => {
+    ++recoveryEpoch;
+    const prepared = await refresh();
+    if (destroyed || !prepared) return;
+    version.value = String(request.version); group.value = request.group || '';
+    scope.value = CQA.state.activeConversationId ? 'active' : 'all';
+    if (scope.value === 'active') group.value = '';
+    activate.checked = scope.value !== 'active'; syncControls();
+    CQA.bus.emit('nav:open', 'board');
+  });
   on('checklist:selected', value => { if (versions.some(v => v.version === Number(value))) { version.value = String(value); syncControls(); } });
   on('checklist:saved', () => void refresh());
   on('run:started', run => {
     if (!run?.run_id || destroyed) return;
-    message(''); CQA.bus.emit('nav:open', 'board'); controller.watch(run);
+    ++recoveryEpoch; message(''); CQA.bus.emit('nav:open', 'board'); controller.watch(run);
   });
   on('api:mode', () => {
     const context = dataContext(), offline = CQA.config.offline === true;
@@ -507,9 +558,9 @@ export function mount(CQA = globalThis.window?.CQA) {
     if (sourceChanged) exportRequest = null;
     if (context !== selectedContext) { selectedContext = context; ++contextEpoch; controller.reset(); }
     wasOffline = offline; demo.hidden = CQA.config.mock === false; syncControls();
-    if (sourceChanged) void loadGuide();
+    if (sourceChanged) { qualityData = null; ++recoveryEpoch; void loadGuide(); void refresh(); void restoreRun(); void refreshSpend(); }
   });
-  void refresh(); void loadGuide();
+  void refresh(); void loadGuide(); void restoreRun(); void refreshSpend();
   const destroy = () => {
     budgetController?.destroy();
     destroyed = true; exportRequest = null; ++guideEpoch; ++refreshEpoch; ++detailEpoch; controller.destroy(); cleanup.forEach(off => off());

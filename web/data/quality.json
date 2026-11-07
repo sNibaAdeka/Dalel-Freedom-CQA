@@ -7644,6 +7644,703 @@
       ]
     },
     {
+      "id": "local-qwen25-7b-m4-holdout",
+      "run_id": "local-m4-qwen25-7b-hold-g9",
+      "measured_at": "2026-11-08T02:10:13+05:00",
+      "source": {
+        "kind": "cli",
+        "label": "Локально: qwen2.5 7B (ноутбук M4, офлайн)",
+        "artifact": "local-m4-qwen25-7b-hold-g9.jsonl",
+        "sha256": "5bd34cc33a0d69ffa9483d57530fbee2ae1f3e7f5ac3cb9b5713614f3836db37"
+      },
+      "model": {
+        "requested": "ollama:qwen2.5:7b-instruct",
+        "resolved": null
+      },
+      "mode": "fast",
+      "guidance_version": "m1-g9",
+      "checklist_version": "1",
+      "cache": "unknown",
+      "cache_provenance": "Inferred from cost_kzt=0<cost_kzt_full (cached), 0<cost_kzt<cost_kzt_full (mixed), equal positive costs (fresh); zero/zero is unknown. Semantics from llm.py cache branch; slim log has no explicit cache flag.",
+      "reference": {
+        "id": "silver",
+        "type": "machine",
+        "cells": 497,
+        "sha256": "888d9b67ea75cd44cd6c9946a786c45229159ad078741f707529744b6102d476",
+        "description": "Машинный эталон DEV; независимость от настройки модели не установлена."
+      },
+      "sample": {
+        "dataset": "DEV",
+        "split": "holdout",
+        "dialogues": 21,
+        "dev_reused": true,
+        "used_for_tuning": true,
+        "untouched": false,
+        "source_dialogues": 21
+      },
+      "denominator": "all_cells",
+      "counts": {
+        "matched": 99,
+        "total": 168,
+        "missing": 0,
+        "errors": 0,
+        "unlabelled": 9
+      },
+      "agreement_ci": {
+        "lower": 0.56096396,
+        "upper": 0.68789809,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "all_cells_ci": {
+        "lower": 0.52380952,
+        "upper": 0.66071429,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "score_mae": {
+        "value": 27.205714,
+        "count": 14
+      },
+      "latency": {
+        "p50_seconds": 337.75,
+        "p95_seconds": 419.55,
+        "mean_seconds": 341.50047619,
+        "note": "Время записанного CLI-прогона; при cached это время повтора кэша, живое время не измерено.",
+        "count": 21,
+        "scope": "cli_wall",
+        "method": "nearest_rank"
+      },
+      "cost": {
+        "amount": 0.0,
+        "currency": "USD",
+        "count": 21,
+        "basis": "reported"
+      },
+      "cost_audit": {
+        "known_dialogues": 21,
+        "unknown_dialogues": 0,
+        "total_dialogues": 21,
+        "reasons": [
+          "historical_price_key_unverified"
+        ],
+        "reason_counts": {
+          "historical_price_key_unverified": 21
+        },
+        "lower_bound_usd": null,
+        "upper_bound_usd": null,
+        "method": "stored_full_cost",
+        "recorded_total_kzt": 0.0,
+        "recorded_charged_total_kzt": 0.0,
+        "zero_charged_positive_full_dialogues": 0,
+        "pricing_complete": null,
+        "comparable": false,
+        "zero_cost_paid_usage_dialogues": 0,
+        "combined_stage_dialogues": 0,
+        "repriced_single_model_entries": 0,
+        "repriced_replayed_strong_stage_dialogues": [],
+        "lower_bound": false,
+        "basis": "стоимость — по ценам моделей в каждом вызове; токены по моделям не разделены",
+        "allocation_note": "Sum per-evaluation cost_kzt_full once; row total is checked, not added. _cascade already sums stage costs.",
+        "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+        "currency_conversion_assumed": true,
+        "currency_conversion": {
+          "usd_kzt": 500.0,
+          "source": "config/models.json:usd_kzt",
+          "assumption": true
+        },
+        "token_price_estimate": {
+          "amount": null,
+          "currency": null,
+          "count": 0,
+          "basis": "unknown"
+        },
+        "token_price_note": "Separate current-price scenario; only unambiguous single-model tokens. Never compare it to another profile's historical reported cost as a verified saving."
+      },
+      "economics": {
+        "dialogues": 21,
+        "criteria_per_dialogue": 8,
+        "cost_per_dialogue_kzt": 0.0,
+        "cost_per_dialogue_usd": 0.0,
+        "cost_per_pair_kzt": 0.0,
+        "cost_per_pair_usd": 0.0,
+        "mean_seconds_per_dialogue": null,
+        "mean_seconds_per_pair": null,
+        "recorded_mean_seconds_per_dialogue": 341.50047619,
+        "latency_provenance": {
+          "cache_state": "unknown",
+          "projection_allowed": false,
+          "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+          "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+        },
+        "p50_seconds": 337.75,
+        "p95_seconds": 419.55,
+        "timed_dialogues": 21,
+        "review_count": 8,
+        "review_known_dialogues": 21,
+        "review_fraction": 0.38095238,
+        "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+        "currency_fx": {
+          "usd_kzt": 500.0,
+          "source": "config/models.json:usd_kzt",
+          "assumption": true
+        },
+        "cost_provenance": {
+          "method": "stored_full_cost",
+          "comparable": false,
+          "pricing_complete": null,
+          "zero_cost_paid_usage_dialogues": 0,
+          "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+          "currency_conversion_assumed": true,
+          "lower_bound": false
+        },
+        "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist.",
+        "channels": {
+          "call": {
+            "dialogues": 2,
+            "criteria_per_dialogue": 8,
+            "cost_per_dialogue_kzt": 0.0,
+            "cost_per_dialogue_usd": 0.0,
+            "cost_per_pair_kzt": 0.0,
+            "cost_per_pair_usd": 0.0,
+            "mean_seconds_per_dialogue": null,
+            "mean_seconds_per_pair": null,
+            "recorded_mean_seconds_per_dialogue": 394.555,
+            "latency_provenance": {
+              "cache_state": "unknown",
+              "projection_allowed": false,
+              "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+            },
+            "p50_seconds": 372.51,
+            "p95_seconds": 416.6,
+            "timed_dialogues": 2,
+            "review_count": 1,
+            "review_known_dialogues": 2,
+            "review_fraction": 0.5,
+            "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+            "currency_fx": {
+              "usd_kzt": 500.0,
+              "source": "config/models.json:usd_kzt",
+              "assumption": true
+            },
+            "cost_provenance": {
+              "method": "stored_full_cost",
+              "comparable": false,
+              "pricing_complete": null,
+              "zero_cost_paid_usage_dialogues": 0,
+              "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+              "currency_conversion_assumed": true,
+              "lower_bound": false
+            },
+            "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist."
+          },
+          "chat": {
+            "dialogues": 19,
+            "criteria_per_dialogue": 8,
+            "cost_per_dialogue_kzt": 0.0,
+            "cost_per_dialogue_usd": 0.0,
+            "cost_per_pair_kzt": 0.0,
+            "cost_per_pair_usd": 0.0,
+            "mean_seconds_per_dialogue": null,
+            "mean_seconds_per_pair": null,
+            "recorded_mean_seconds_per_dialogue": 335.91578947,
+            "latency_provenance": {
+              "cache_state": "unknown",
+              "projection_allowed": false,
+              "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+            },
+            "p50_seconds": 337.1,
+            "p95_seconds": 423.17,
+            "timed_dialogues": 19,
+            "review_count": 7,
+            "review_known_dialogues": 19,
+            "review_fraction": 0.36842105,
+            "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+            "currency_fx": {
+              "usd_kzt": 500.0,
+              "source": "config/models.json:usd_kzt",
+              "assumption": true
+            },
+            "cost_provenance": {
+              "method": "stored_full_cost",
+              "comparable": false,
+              "pricing_complete": null,
+              "zero_cost_paid_usage_dialogues": 0,
+              "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+              "currency_conversion_assumed": true,
+              "lower_bound": false
+            },
+            "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist."
+          }
+        }
+      },
+      "model_usage": {
+        "gemini_dialogues": 0,
+        "escalated_dialogues": 0,
+        "direct_routed_calls": 0,
+        "known_dialogues": 21,
+        "total_dialogues": 21,
+        "basis": "Saved final evaluation model labels; not needs_review and not complete provider-call telemetry."
+      },
+      "criteria": [
+        {
+          "id": "C1",
+          "label": "Установление контакта",
+          "counts": {
+            "matched": 19,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.76190476,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.76190476,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C2",
+          "label": "Выявление потребности",
+          "counts": {
+            "matched": 3,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.0,
+            "upper": 0.28571429,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.0,
+            "upper": 0.28571429,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C3",
+          "label": "Идентификация",
+          "counts": {
+            "matched": 11,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.33333333,
+            "upper": 0.76190476,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.33333333,
+            "upper": 0.76190476,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C4",
+          "label": "Корректная и полная консультация",
+          "counts": {
+            "matched": 11,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 3
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.375,
+            "upper": 0.83333333,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 18
+          },
+          "all_cells_ci": {
+            "lower": 0.33333333,
+            "upper": 0.71428571,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C5",
+          "label": "Эмпатия и клиентоориентированность",
+          "counts": {
+            "matched": 15,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.52380952,
+            "upper": 0.9047619,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.52380952,
+            "upper": 0.9047619,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C6",
+          "label": "Управление диалогом, скорость и грамотность",
+          "counts": {
+            "matched": 10,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 5
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.375,
+            "upper": 0.86666667,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 16
+          },
+          "all_cells_ci": {
+            "lower": 0.28571429,
+            "upper": 0.71428571,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C7",
+          "label": "Завершение",
+          "counts": {
+            "matched": 10,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 1
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.28571429,
+            "upper": 0.71428571,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 20
+          },
+          "all_cells_ci": {
+            "lower": 0.28571429,
+            "upper": 0.66666667,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C8",
+          "label": "Грубые ошибки",
+          "counts": {
+            "matched": 20,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.85714286,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.85714286,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        }
+      ],
+      "languages": [
+        {
+          "id": "EN",
+          "counts": {
+            "matched": 36,
+            "total": 64,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 4
+          },
+          "dialogues": 8,
+          "agreement_ci": {
+            "lower": 0.52542373,
+            "upper": 0.67857143,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 8
+          },
+          "all_cells_ci": {
+            "lower": 0.5,
+            "upper": 0.609375,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 8
+          }
+        },
+        {
+          "id": "KZ",
+          "counts": {
+            "matched": 2,
+            "total": 8,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 2
+          },
+          "dialogues": 1,
+          "agreement_ci": {
+            "lower": null,
+            "upper": null,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 0,
+            "effective_dialogues": 1,
+            "reason": "insufficient_clusters"
+          },
+          "all_cells_ci": {
+            "lower": null,
+            "upper": null,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 0,
+            "effective_dialogues": 1,
+            "reason": "insufficient_clusters"
+          }
+        },
+        {
+          "id": "RU",
+          "counts": {
+            "matched": 61,
+            "total": 96,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 3
+          },
+          "dialogues": 12,
+          "agreement_ci": {
+            "lower": 0.57142857,
+            "upper": 0.74725275,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 12
+          },
+          "all_cells_ci": {
+            "lower": 0.55208333,
+            "upper": 0.72916667,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 12
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "agent chat",
+          "counts": {
+            "matched": 87,
+            "total": 152,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 9
+          },
+          "dialogues": 19,
+          "agreement_ci": {
+            "lower": 0.55222594,
+            "upper": 0.66423358,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 19
+          },
+          "all_cells_ci": {
+            "lower": 0.51315789,
+            "upper": 0.625,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 19
+          }
+        },
+        {
+          "id": "voice call",
+          "counts": {
+            "matched": 12,
+            "total": 16,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 2,
+          "agreement_ci": {
+            "lower": 0.5,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 2
+          },
+          "all_cells_ci": {
+            "lower": 0.5,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 2
+          }
+        }
+      ]
+    },
+    {
       "id": "gemini-4-argon-g9-holdout-gold_v2",
       "run_id": "or-hold-google-gemini-4-argon-g9",
       "measured_at": "2026-11-07T21:09:20+05:00",
@@ -15274,6 +15971,703 @@
           "all_cells_ci": {
             "lower": 0.5,
             "upper": 0.75,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "local-qwen25-7b-m4-holdout-gold_v2",
+      "run_id": "local-m4-qwen25-7b-hold-g9",
+      "measured_at": "2026-11-08T02:10:13+05:00",
+      "source": {
+        "kind": "cli",
+        "label": "Локально: qwen2.5 7B (ноутбук M4, офлайн)",
+        "artifact": "local-m4-qwen25-7b-hold-g9.jsonl",
+        "sha256": "5bd34cc33a0d69ffa9483d57530fbee2ae1f3e7f5ac3cb9b5713614f3836db37"
+      },
+      "model": {
+        "requested": "ollama:qwen2.5:7b-instruct",
+        "resolved": null
+      },
+      "mode": "fast",
+      "guidance_version": "m1-g9",
+      "checklist_version": "1",
+      "cache": "unknown",
+      "cache_provenance": "Inferred from cost_kzt=0<cost_kzt_full (cached), 0<cost_kzt<cost_kzt_full (mixed), equal positive costs (fresh); zero/zero is unknown. Semantics from llm.py cache branch; slim log has no explicit cache flag.",
+      "reference": {
+        "id": "gold_v2",
+        "type": "machine",
+        "cells": 463,
+        "sha256": "14e926481829d4c63c7671e0bec525af7f1260f4661bf27f5e57889d361a41d7",
+        "description": "Машинный эталон DEV; независимость от настройки модели не установлена."
+      },
+      "sample": {
+        "dataset": "DEV",
+        "split": "holdout",
+        "dialogues": 21,
+        "dev_reused": true,
+        "used_for_tuning": true,
+        "untouched": false,
+        "source_dialogues": 21
+      },
+      "denominator": "all_cells",
+      "counts": {
+        "matched": 93,
+        "total": 168,
+        "missing": 0,
+        "errors": 0,
+        "unlabelled": 20
+      },
+      "agreement_ci": {
+        "lower": 0.55862069,
+        "upper": 0.7027027,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "all_cells_ci": {
+        "lower": 0.48809524,
+        "upper": 0.625,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "score_mae": {
+        "value": 28.488333,
+        "count": 6
+      },
+      "latency": {
+        "p50_seconds": 337.75,
+        "p95_seconds": 419.55,
+        "mean_seconds": 341.50047619,
+        "note": "Время записанного CLI-прогона; при cached это время повтора кэша, живое время не измерено.",
+        "count": 21,
+        "scope": "cli_wall",
+        "method": "nearest_rank"
+      },
+      "cost": {
+        "amount": 0.0,
+        "currency": "USD",
+        "count": 21,
+        "basis": "reported"
+      },
+      "cost_audit": {
+        "known_dialogues": 21,
+        "unknown_dialogues": 0,
+        "total_dialogues": 21,
+        "reasons": [
+          "historical_price_key_unverified"
+        ],
+        "reason_counts": {
+          "historical_price_key_unverified": 21
+        },
+        "lower_bound_usd": null,
+        "upper_bound_usd": null,
+        "method": "stored_full_cost",
+        "recorded_total_kzt": 0.0,
+        "recorded_charged_total_kzt": 0.0,
+        "zero_charged_positive_full_dialogues": 0,
+        "pricing_complete": null,
+        "comparable": false,
+        "zero_cost_paid_usage_dialogues": 0,
+        "combined_stage_dialogues": 0,
+        "repriced_single_model_entries": 0,
+        "repriced_replayed_strong_stage_dialogues": [],
+        "lower_bound": false,
+        "basis": "стоимость — по ценам моделей в каждом вызове; токены по моделям не разделены",
+        "allocation_note": "Sum per-evaluation cost_kzt_full once; row total is checked, not added. _cascade already sums stage costs.",
+        "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+        "currency_conversion_assumed": true,
+        "currency_conversion": {
+          "usd_kzt": 500.0,
+          "source": "config/models.json:usd_kzt",
+          "assumption": true
+        },
+        "token_price_estimate": {
+          "amount": null,
+          "currency": null,
+          "count": 0,
+          "basis": "unknown"
+        },
+        "token_price_note": "Separate current-price scenario; only unambiguous single-model tokens. Never compare it to another profile's historical reported cost as a verified saving."
+      },
+      "economics": {
+        "dialogues": 21,
+        "criteria_per_dialogue": 8,
+        "cost_per_dialogue_kzt": 0.0,
+        "cost_per_dialogue_usd": 0.0,
+        "cost_per_pair_kzt": 0.0,
+        "cost_per_pair_usd": 0.0,
+        "mean_seconds_per_dialogue": null,
+        "mean_seconds_per_pair": null,
+        "recorded_mean_seconds_per_dialogue": 341.50047619,
+        "latency_provenance": {
+          "cache_state": "unknown",
+          "projection_allowed": false,
+          "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+          "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+        },
+        "p50_seconds": 337.75,
+        "p95_seconds": 419.55,
+        "timed_dialogues": 21,
+        "review_count": 8,
+        "review_known_dialogues": 21,
+        "review_fraction": 0.38095238,
+        "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+        "currency_fx": {
+          "usd_kzt": 500.0,
+          "source": "config/models.json:usd_kzt",
+          "assumption": true
+        },
+        "cost_provenance": {
+          "method": "stored_full_cost",
+          "comparable": false,
+          "pricing_complete": null,
+          "zero_cost_paid_usage_dialogues": 0,
+          "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+          "currency_conversion_assumed": true,
+          "lower_bound": false
+        },
+        "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist.",
+        "channels": {
+          "call": {
+            "dialogues": 2,
+            "criteria_per_dialogue": 8,
+            "cost_per_dialogue_kzt": 0.0,
+            "cost_per_dialogue_usd": 0.0,
+            "cost_per_pair_kzt": 0.0,
+            "cost_per_pair_usd": 0.0,
+            "mean_seconds_per_dialogue": null,
+            "mean_seconds_per_pair": null,
+            "recorded_mean_seconds_per_dialogue": 394.555,
+            "latency_provenance": {
+              "cache_state": "unknown",
+              "projection_allowed": false,
+              "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+            },
+            "p50_seconds": 372.51,
+            "p95_seconds": 416.6,
+            "timed_dialogues": 2,
+            "review_count": 1,
+            "review_known_dialogues": 2,
+            "review_fraction": 0.5,
+            "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+            "currency_fx": {
+              "usd_kzt": 500.0,
+              "source": "config/models.json:usd_kzt",
+              "assumption": true
+            },
+            "cost_provenance": {
+              "method": "stored_full_cost",
+              "comparable": false,
+              "pricing_complete": null,
+              "zero_cost_paid_usage_dialogues": 0,
+              "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+              "currency_conversion_assumed": true,
+              "lower_bound": false
+            },
+            "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist."
+          },
+          "chat": {
+            "dialogues": 19,
+            "criteria_per_dialogue": 8,
+            "cost_per_dialogue_kzt": 0.0,
+            "cost_per_dialogue_usd": 0.0,
+            "cost_per_pair_kzt": 0.0,
+            "cost_per_pair_usd": 0.0,
+            "mean_seconds_per_dialogue": null,
+            "mean_seconds_per_pair": null,
+            "recorded_mean_seconds_per_dialogue": 335.91578947,
+            "latency_provenance": {
+              "cache_state": "unknown",
+              "projection_allowed": false,
+              "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+            },
+            "p50_seconds": 337.1,
+            "p95_seconds": 423.17,
+            "timed_dialogues": 19,
+            "review_count": 7,
+            "review_known_dialogues": 19,
+            "review_fraction": 0.36842105,
+            "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+            "currency_fx": {
+              "usd_kzt": 500.0,
+              "source": "config/models.json:usd_kzt",
+              "assumption": true
+            },
+            "cost_provenance": {
+              "method": "stored_full_cost",
+              "comparable": false,
+              "pricing_complete": null,
+              "zero_cost_paid_usage_dialogues": 0,
+              "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+              "currency_conversion_assumed": true,
+              "lower_bound": false
+            },
+            "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist."
+          }
+        }
+      },
+      "model_usage": {
+        "gemini_dialogues": 0,
+        "escalated_dialogues": 0,
+        "direct_routed_calls": 0,
+        "known_dialogues": 21,
+        "total_dialogues": 21,
+        "basis": "Saved final evaluation model labels; not needs_review and not complete provider-call telemetry."
+      },
+      "criteria": [
+        {
+          "id": "C1",
+          "label": "Установление контакта",
+          "counts": {
+            "matched": 19,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.76190476,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.76190476,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C2",
+          "label": "Выявление потребности",
+          "counts": {
+            "matched": 3,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.0,
+            "upper": 0.28571429,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.0,
+            "upper": 0.28571429,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C3",
+          "label": "Идентификация",
+          "counts": {
+            "matched": 11,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.33333333,
+            "upper": 0.76190476,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.33333333,
+            "upper": 0.76190476,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C4",
+          "label": "Корректная и полная консультация",
+          "counts": {
+            "matched": 11,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 3
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.375,
+            "upper": 0.83333333,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 18
+          },
+          "all_cells_ci": {
+            "lower": 0.33333333,
+            "upper": 0.71428571,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C5",
+          "label": "Эмпатия и клиентоориентированность",
+          "counts": {
+            "matched": 15,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.52380952,
+            "upper": 0.9047619,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.52380952,
+            "upper": 0.9047619,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C6",
+          "label": "Управление диалогом, скорость и грамотность",
+          "counts": {
+            "matched": 10,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 3
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.31578947,
+            "upper": 0.78571429,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 18
+          },
+          "all_cells_ci": {
+            "lower": 0.28571429,
+            "upper": 0.71428571,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C7",
+          "label": "Завершение",
+          "counts": {
+            "matched": 4,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 14
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.16666667,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 9998,
+            "effective_dialogues": 7
+          },
+          "all_cells_ci": {
+            "lower": 0.04761905,
+            "upper": 0.38095238,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C8",
+          "label": "Грубые ошибки",
+          "counts": {
+            "matched": 20,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.85714286,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.85714286,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        }
+      ],
+      "languages": [
+        {
+          "id": "EN",
+          "counts": {
+            "matched": 33,
+            "total": 64,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 9
+          },
+          "dialogues": 8,
+          "agreement_ci": {
+            "lower": 0.51851852,
+            "upper": 0.67272727,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 8
+          },
+          "all_cells_ci": {
+            "lower": 0.453125,
+            "upper": 0.578125,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 8
+          }
+        },
+        {
+          "id": "KZ",
+          "counts": {
+            "matched": 2,
+            "total": 8,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 2
+          },
+          "dialogues": 1,
+          "agreement_ci": {
+            "lower": null,
+            "upper": null,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 0,
+            "effective_dialogues": 1,
+            "reason": "insufficient_clusters"
+          },
+          "all_cells_ci": {
+            "lower": null,
+            "upper": null,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 0,
+            "effective_dialogues": 1,
+            "reason": "insufficient_clusters"
+          }
+        },
+        {
+          "id": "RU",
+          "counts": {
+            "matched": 58,
+            "total": 96,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 9
+          },
+          "dialogues": 12,
+          "agreement_ci": {
+            "lower": 0.56666667,
+            "upper": 0.77108434,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 12
+          },
+          "all_cells_ci": {
+            "lower": 0.52083333,
+            "upper": 0.69791667,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 12
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "agent chat",
+          "counts": {
+            "matched": 81,
+            "total": 152,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 20
+          },
+          "dialogues": 19,
+          "agreement_ci": {
+            "lower": 0.54744526,
+            "upper": 0.67910448,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 19
+          },
+          "all_cells_ci": {
+            "lower": 0.47368421,
+            "upper": 0.58552632,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 19
+          }
+        },
+        {
+          "id": "voice call",
+          "counts": {
+            "matched": 12,
+            "total": 16,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 2,
+          "agreement_ci": {
+            "lower": 0.5,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 2
+          },
+          "all_cells_ci": {
+            "lower": 0.5,
+            "upper": 1.0,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -22926,6 +24320,879 @@
           }
         }
       ]
+    },
+    {
+      "id": "local-qwen25-7b-m4-holdout-gold_v2_full",
+      "run_id": "local-m4-qwen25-7b-hold-g9",
+      "measured_at": "2026-11-08T02:10:13+05:00",
+      "source": {
+        "kind": "cli",
+        "label": "Локально: qwen2.5 7B (ноутбук M4, офлайн)",
+        "artifact": "local-m4-qwen25-7b-hold-g9.jsonl",
+        "sha256": "5bd34cc33a0d69ffa9483d57530fbee2ae1f3e7f5ac3cb9b5713614f3836db37"
+      },
+      "model": {
+        "requested": "ollama:qwen2.5:7b-instruct",
+        "resolved": null
+      },
+      "mode": "fast",
+      "guidance_version": "m1-g9",
+      "checklist_version": "1",
+      "cache": "unknown",
+      "cache_provenance": "Inferred from cost_kzt=0<cost_kzt_full (cached), 0<cost_kzt<cost_kzt_full (mixed), equal positive costs (fresh); zero/zero is unknown. Semantics from llm.py cache branch; slim log has no explicit cache flag.",
+      "reference": {
+        "id": "gold_v2_full",
+        "type": "machine",
+        "cells": 517,
+        "sha256": "017109086cfaf85f6abde28b3c58dff9f711704a33e97300a84a0be0c56eff0a",
+        "description": "Машинный эталон DEV; независимость от настройки модели не установлена."
+      },
+      "sample": {
+        "dataset": "DEV",
+        "split": "holdout",
+        "dialogues": 21,
+        "dev_reused": true,
+        "used_for_tuning": true,
+        "untouched": false,
+        "source_dialogues": 21
+      },
+      "denominator": "all_cells",
+      "counts": {
+        "matched": 106,
+        "total": 168,
+        "missing": 0,
+        "errors": 0,
+        "unlabelled": 0
+      },
+      "agreement_ci": {
+        "lower": 0.56532738,
+        "upper": 0.70238095,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "all_cells_ci": {
+        "lower": 0.56532738,
+        "upper": 0.70238095,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "score_mae": {
+        "value": 28.833333,
+        "count": 21
+      },
+      "latency": {
+        "p50_seconds": 337.75,
+        "p95_seconds": 419.55,
+        "mean_seconds": 341.50047619,
+        "note": "Время записанного CLI-прогона; при cached это время повтора кэша, живое время не измерено.",
+        "count": 21,
+        "scope": "cli_wall",
+        "method": "nearest_rank"
+      },
+      "cost": {
+        "amount": 0.0,
+        "currency": "USD",
+        "count": 21,
+        "basis": "reported"
+      },
+      "cost_audit": {
+        "known_dialogues": 21,
+        "unknown_dialogues": 0,
+        "total_dialogues": 21,
+        "reasons": [
+          "historical_price_key_unverified"
+        ],
+        "reason_counts": {
+          "historical_price_key_unverified": 21
+        },
+        "lower_bound_usd": null,
+        "upper_bound_usd": null,
+        "method": "stored_full_cost",
+        "recorded_total_kzt": 0.0,
+        "recorded_charged_total_kzt": 0.0,
+        "zero_charged_positive_full_dialogues": 0,
+        "pricing_complete": null,
+        "comparable": false,
+        "zero_cost_paid_usage_dialogues": 0,
+        "combined_stage_dialogues": 0,
+        "repriced_single_model_entries": 0,
+        "repriced_replayed_strong_stage_dialogues": [],
+        "lower_bound": false,
+        "basis": "стоимость — по ценам моделей в каждом вызове; токены по моделям не разделены",
+        "allocation_note": "Sum per-evaluation cost_kzt_full once; row total is checked, not added. _cascade already sums stage costs.",
+        "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+        "currency_conversion_assumed": true,
+        "currency_conversion": {
+          "usd_kzt": 500.0,
+          "source": "config/models.json:usd_kzt",
+          "assumption": true
+        },
+        "token_price_estimate": {
+          "amount": null,
+          "currency": null,
+          "count": 0,
+          "basis": "unknown"
+        },
+        "token_price_note": "Separate current-price scenario; only unambiguous single-model tokens. Never compare it to another profile's historical reported cost as a verified saving."
+      },
+      "economics": {
+        "dialogues": 21,
+        "criteria_per_dialogue": 8,
+        "cost_per_dialogue_kzt": 0.0,
+        "cost_per_dialogue_usd": 0.0,
+        "cost_per_pair_kzt": 0.0,
+        "cost_per_pair_usd": 0.0,
+        "mean_seconds_per_dialogue": null,
+        "mean_seconds_per_pair": null,
+        "recorded_mean_seconds_per_dialogue": 341.50047619,
+        "latency_provenance": {
+          "cache_state": "unknown",
+          "projection_allowed": false,
+          "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+          "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+        },
+        "p50_seconds": 337.75,
+        "p95_seconds": 419.55,
+        "timed_dialogues": 21,
+        "review_count": 8,
+        "review_known_dialogues": 21,
+        "review_fraction": 0.38095238,
+        "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+        "currency_fx": {
+          "usd_kzt": 500.0,
+          "source": "config/models.json:usd_kzt",
+          "assumption": true
+        },
+        "cost_provenance": {
+          "method": "stored_full_cost",
+          "comparable": false,
+          "pricing_complete": null,
+          "zero_cost_paid_usage_dialogues": 0,
+          "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+          "currency_conversion_assumed": true,
+          "lower_bound": false
+        },
+        "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist.",
+        "channels": {
+          "call": {
+            "dialogues": 2,
+            "criteria_per_dialogue": 8,
+            "cost_per_dialogue_kzt": 0.0,
+            "cost_per_dialogue_usd": 0.0,
+            "cost_per_pair_kzt": 0.0,
+            "cost_per_pair_usd": 0.0,
+            "mean_seconds_per_dialogue": null,
+            "mean_seconds_per_pair": null,
+            "recorded_mean_seconds_per_dialogue": 394.555,
+            "latency_provenance": {
+              "cache_state": "unknown",
+              "projection_allowed": false,
+              "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+            },
+            "p50_seconds": 372.51,
+            "p95_seconds": 416.6,
+            "timed_dialogues": 2,
+            "review_count": 1,
+            "review_known_dialogues": 2,
+            "review_fraction": 0.5,
+            "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+            "currency_fx": {
+              "usd_kzt": 500.0,
+              "source": "config/models.json:usd_kzt",
+              "assumption": true
+            },
+            "cost_provenance": {
+              "method": "stored_full_cost",
+              "comparable": false,
+              "pricing_complete": null,
+              "zero_cost_paid_usage_dialogues": 0,
+              "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+              "currency_conversion_assumed": true,
+              "lower_bound": false
+            },
+            "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist."
+          },
+          "chat": {
+            "dialogues": 19,
+            "criteria_per_dialogue": 8,
+            "cost_per_dialogue_kzt": 0.0,
+            "cost_per_dialogue_usd": 0.0,
+            "cost_per_pair_kzt": 0.0,
+            "cost_per_pair_usd": 0.0,
+            "mean_seconds_per_dialogue": null,
+            "mean_seconds_per_pair": null,
+            "recorded_mean_seconds_per_dialogue": 335.91578947,
+            "latency_provenance": {
+              "cache_state": "unknown",
+              "projection_allowed": false,
+              "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
+              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+            },
+            "p50_seconds": 337.1,
+            "p95_seconds": 423.17,
+            "timed_dialogues": 19,
+            "review_count": 7,
+            "review_known_dialogues": 19,
+            "review_fraction": 0.36842105,
+            "review_basis": "Any final criterion needs_review=true; escalation is not a review flag.",
+            "currency_fx": {
+              "usd_kzt": 500.0,
+              "source": "config/models.json:usd_kzt",
+              "assumption": true
+            },
+            "cost_provenance": {
+              "method": "stored_full_cost",
+              "comparable": false,
+              "pricing_complete": null,
+              "zero_cost_paid_usage_dialogues": 0,
+              "coverage_note": "Сохранённая оценка usage, не счёт; исторический прайс и курс в JSONL не закреплены. Точный ценовой ключ CLI отсутствует в текущей таблице; сохранённый usage не перепрайсован догадкой.",
+              "currency_conversion_assumed": true,
+              "lower_bound": false
+            },
+            "pair_cost_note": "Amortized per planned criterion, not marginal cost: fast-mode evaluation can call the whole checklist."
+          }
+        }
+      },
+      "model_usage": {
+        "gemini_dialogues": 0,
+        "escalated_dialogues": 0,
+        "direct_routed_calls": 0,
+        "known_dialogues": 21,
+        "total_dialogues": 21,
+        "basis": "Saved final evaluation model labels; not needs_review and not complete provider-call telemetry."
+      },
+      "criteria": [
+        {
+          "id": "C1",
+          "label": "Установление контакта",
+          "counts": {
+            "matched": 19,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.76190476,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.76190476,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C2",
+          "label": "Выявление потребности",
+          "counts": {
+            "matched": 3,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.0,
+            "upper": 0.28571429,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.0,
+            "upper": 0.28571429,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C3",
+          "label": "Идентификация",
+          "counts": {
+            "matched": 11,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.33333333,
+            "upper": 0.76190476,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.33333333,
+            "upper": 0.76190476,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C4",
+          "label": "Корректная и полная консультация",
+          "counts": {
+            "matched": 13,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.42857143,
+            "upper": 0.80952381,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.42857143,
+            "upper": 0.80952381,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C5",
+          "label": "Эмпатия и клиентоориентированность",
+          "counts": {
+            "matched": 15,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.52380952,
+            "upper": 0.9047619,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.52380952,
+            "upper": 0.9047619,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C6",
+          "label": "Управление диалогом, скорость и грамотность",
+          "counts": {
+            "matched": 13,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.42857143,
+            "upper": 0.80952381,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.42857143,
+            "upper": 0.80952381,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C7",
+          "label": "Завершение",
+          "counts": {
+            "matched": 12,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.38095238,
+            "upper": 0.76190476,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.38095238,
+            "upper": 0.76190476,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        },
+        {
+          "id": "C8",
+          "label": "Грубые ошибки",
+          "counts": {
+            "matched": 20,
+            "total": 21,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 21,
+          "agreement_ci": {
+            "lower": 0.85714286,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          },
+          "all_cells_ci": {
+            "lower": 0.85714286,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 21
+          }
+        }
+      ],
+      "languages": [
+        {
+          "id": "EN",
+          "counts": {
+            "matched": 39,
+            "total": 64,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 8,
+          "agreement_ci": {
+            "lower": 0.53125,
+            "upper": 0.6875,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 8
+          },
+          "all_cells_ci": {
+            "lower": 0.53125,
+            "upper": 0.6875,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 8
+          }
+        },
+        {
+          "id": "KZ",
+          "counts": {
+            "matched": 3,
+            "total": 8,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 1,
+          "agreement_ci": {
+            "lower": null,
+            "upper": null,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 0,
+            "effective_dialogues": 1,
+            "reason": "insufficient_clusters"
+          },
+          "all_cells_ci": {
+            "lower": null,
+            "upper": null,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 0,
+            "effective_dialogues": 1,
+            "reason": "insufficient_clusters"
+          }
+        },
+        {
+          "id": "RU",
+          "counts": {
+            "matched": 64,
+            "total": 96,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 12,
+          "agreement_ci": {
+            "lower": 0.5625,
+            "upper": 0.77083333,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 12
+          },
+          "all_cells_ci": {
+            "lower": 0.5625,
+            "upper": 0.77083333,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 12
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "agent chat",
+          "counts": {
+            "matched": 94,
+            "total": 152,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 19,
+          "agreement_ci": {
+            "lower": 0.55263158,
+            "upper": 0.68421053,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 19
+          },
+          "all_cells_ci": {
+            "lower": 0.55263158,
+            "upper": 0.68421053,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 19
+          }
+        },
+        {
+          "id": "voice call",
+          "counts": {
+            "matched": 12,
+            "total": 16,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "dialogues": 2,
+          "agreement_ci": {
+            "lower": 0.5,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 2
+          },
+          "all_cells_ci": {
+            "lower": 0.5,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 2
+          }
+        }
+      ]
+    }
+  ],
+  "subsamples": [
+    {
+      "id": "kz-all",
+      "label": "Все KZ-чаты DEV",
+      "dialogues": 15,
+      "tune_dialogues": 14,
+      "model": "Gemini 4 Argon",
+      "rules": "g9",
+      "sample_kind": "tune",
+      "note": "Правила настраивали на 14 из 15 KZ-чатов (tune); Gemini на них не настраивался. Это не независимая выборка.",
+      "source": {
+        "artifacts": [
+          "or-kzcalls-gemini-g9.jsonl",
+          "or-hold-google-gemini-4-argon-g9.jsonl"
+        ],
+        "sha256": [
+          "641a83f6f92f1eb9bb65be6fcad59a9902c9d3c316478ce5a0a0d1b06fbf16cc"
+        ]
+      },
+      "references": {
+        "silver": {
+          "matched": 115,
+          "labelled": 117,
+          "counts": {
+            "matched": 115,
+            "total": 120,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 3
+          },
+          "agreement_ci": {
+            "lower": 0.95614035,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 15
+          }
+        },
+        "gold_v2": {
+          "matched": 108,
+          "labelled": 110,
+          "counts": {
+            "matched": 108,
+            "total": 120,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 10
+          },
+          "agreement_ci": {
+            "lower": 0.95412844,
+            "upper": 1.0,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 15
+          }
+        },
+        "gold_v2_full": {
+          "matched": 108,
+          "labelled": 120,
+          "counts": {
+            "matched": 108,
+            "total": 120,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 0
+          },
+          "agreement_ci": {
+            "lower": 0.85,
+            "upper": 0.94166667,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "calls-all",
+      "label": "Все звонки DEV",
+      "dialogues": 5,
+      "tune_dialogues": 3,
+      "model": "Gemini 4 Argon",
+      "rules": "g9",
+      "sample_kind": "calls",
+      "note": "Звонков мало (5); модель завышает шкалы C4/C6 → такие оценки отправляются на проверку. Вывода о точности на звонках не делаем.",
+      "source": {
+        "artifacts": [
+          "or-kzcalls-gemini-g9.jsonl",
+          "or-hold-google-gemini-4-argon-g9.jsonl"
+        ],
+        "sha256": [
+          "641a83f6f92f1eb9bb65be6fcad59a9902c9d3c316478ce5a0a0d1b06fbf16cc"
+        ]
+      },
+      "references": {
+        "silver": {
+          "matched": 29,
+          "labelled": 37,
+          "counts": {
+            "matched": 29,
+            "total": 40,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 3
+          },
+          "agreement_ci": {
+            "lower": 0.68421053,
+            "upper": 0.87179487,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 5
+          }
+        },
+        "gold_v2": {
+          "matched": 29,
+          "labelled": 37,
+          "counts": {
+            "matched": 29,
+            "total": 40,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 3
+          },
+          "agreement_ci": {
+            "lower": 0.68421053,
+            "upper": 0.87179487,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 5
+          }
+        },
+        "gold_v2_full": {
+          "matched": 29,
+          "labelled": 37,
+          "counts": {
+            "matched": 29,
+            "total": 40,
+            "missing": 0,
+            "errors": 0,
+            "unlabelled": 3
+          },
+          "agreement_ci": {
+            "lower": 0.68421053,
+            "upper": 0.87179487,
+            "level": 0.95,
+            "method": "dialogue_cluster_percentile",
+            "repetitions": 10000,
+            "seed": 20261108,
+            "unit": "dialogue",
+            "valid_repetitions": 10000,
+            "effective_dialogues": 5
+          }
+        }
+      }
     }
   ],
   "profile_catalog": {
@@ -22945,15 +25212,16 @@
       "report_id": "routing-haiku-gemini-g9-holdout"
     },
     "local": {
-      "label": "qwen3.5:9b",
-      "model": "ollama:qwen3.5:9b-q4_K_M",
+      "label": "qwen2.5:7b (ноутбук, офлайн)",
+      "report_id": "local-qwen25-7b-m4-holdout",
+      "model": "ollama:qwen2.5:7b-instruct",
       "cloud_fallback": false,
       "api_cost": {
         "amount": 0,
         "currency": "USD",
         "basis": "no_external_api",
         "scope": "local_only",
-        "source": "config/models.json local Ollama profile; hardware/electricity and latency not measured"
+        "source": "config/models.json local Ollama profile; MacBook Air M4 16 GB run local-m4-qwen25-7b-hold-g9; electricity not measured"
       }
     },
     "source": "config/models.json and frozen run metadata; no inferred measurements"
@@ -23252,6 +25520,36 @@
       "p_value": 0.2668457031,
       "significant": false,
       "conclusion": "within_noise",
+      "exploratory": true,
+      "missing_or_error_cells": {
+        "model": 0,
+        "baseline": 0
+      },
+      "caveat": "Unadjusted exact cell-level McNemar assumes independent discordances; dialogue cells are dependent. Cluster CI is primary. Non-significance is not equivalence; repeated DEV comparisons are exploratory."
+    },
+    {
+      "report_id": "local-qwen25-7b-m4-holdout",
+      "baseline_report_id": "gemini-4-argon-g9-holdout",
+      "reference_id": "silver",
+      "win": 4,
+      "loss": 57,
+      "compared": 159,
+      "dialogues": 21,
+      "delta": -0.33333333,
+      "delta_ci": {
+        "lower": -0.40880503,
+        "upper": -0.23898661,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "p_value": 0.0,
+      "significant": true,
+      "conclusion": "difference_detected",
       "exploratory": true,
       "missing_or_error_cells": {
         "model": 0,
@@ -23560,6 +25858,36 @@
       "caveat": "Unadjusted exact cell-level McNemar assumes independent discordances; dialogue cells are dependent. Cluster CI is primary. Non-significance is not equivalence; repeated DEV comparisons are exploratory."
     },
     {
+      "report_id": "local-qwen25-7b-m4-holdout-gold_v2",
+      "baseline_report_id": "gemini-4-argon-g9-holdout-gold_v2",
+      "reference_id": "gold_v2",
+      "win": 4,
+      "loss": 52,
+      "compared": 148,
+      "dialogues": 21,
+      "delta": -0.32432432,
+      "delta_ci": {
+        "lower": -0.40689655,
+        "upper": -0.22077922,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "p_value": 0.0,
+      "significant": true,
+      "conclusion": "difference_detected",
+      "exploratory": true,
+      "missing_or_error_cells": {
+        "model": 0,
+        "baseline": 0
+      },
+      "caveat": "Unadjusted exact cell-level McNemar assumes independent discordances; dialogue cells are dependent. Cluster CI is primary. Non-significance is not equivalence; repeated DEV comparisons are exploratory."
+    },
+    {
       "report_id": "cascade-haiku-gemini-g9-holdout-gold_v2_full",
       "baseline_report_id": "gemini-4-argon-g9-holdout-gold_v2_full",
       "reference_id": "gold_v2_full",
@@ -23858,6 +26186,36 @@
         "baseline": 0
       },
       "caveat": "Unadjusted exact cell-level McNemar assumes independent discordances; dialogue cells are dependent. Cluster CI is primary. Non-significance is not equivalence; repeated DEV comparisons are exploratory."
+    },
+    {
+      "report_id": "local-qwen25-7b-m4-holdout-gold_v2_full",
+      "baseline_report_id": "gemini-4-argon-g9-holdout-gold_v2_full",
+      "reference_id": "gold_v2_full",
+      "win": 15,
+      "loss": 52,
+      "compared": 168,
+      "dialogues": 21,
+      "delta": -0.2202381,
+      "delta_ci": {
+        "lower": -0.30952381,
+        "upper": -0.125,
+        "level": 0.95,
+        "method": "dialogue_cluster_percentile",
+        "repetitions": 10000,
+        "seed": 20261108,
+        "unit": "dialogue",
+        "valid_repetitions": 10000,
+        "effective_dialogues": 21
+      },
+      "p_value": 6.4591e-06,
+      "significant": true,
+      "conclusion": "difference_detected",
+      "exploratory": true,
+      "missing_or_error_cells": {
+        "model": 0,
+        "baseline": 0
+      },
+      "caveat": "Unadjusted exact cell-level McNemar assumes independent discordances; dialogue cells are dependent. Cluster CI is primary. Non-significance is not equivalence; repeated DEV comparisons are exploratory."
     }
   ],
   "stability": [
@@ -23931,7 +26289,7 @@
       },
       {
         "artifact": "models.json",
-        "sha256": "c1a4c8ce67567771c444142abdb8688853a7eb7ffb989c6efa42429f93ee35c9"
+        "sha256": "c7a146502fd22282afb5d685cc52cc466fa8c41a0d3f4dc4eeca0cbb9d645142"
       },
       {
         "artifact": "v1.json",

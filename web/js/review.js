@@ -6,6 +6,13 @@
  * decision come from the API response or from the checklist formula, never from constants.
  * Conversation and user text is rendered with textContent only. Pure helpers are exported for node tests. */
 
+export function initialEvidenceIds(messages = [], evidence = []) {
+  const participants = messages.filter(m => ['operator', 'client'].includes(m.speaker));
+  const ids = new Set(participants.map(m => m.id));
+  const selected = evidence.map(e => e?.message_id).filter(id => ids.has(id));
+  return selected.length ? [...new Set(selected)] : participants.length ? [participants[0].id] : [];
+}
+
 const NS = 'http://www.w3.org/2000/svg';
 const mounts = new WeakMap();
 const ROLE_LABELS = { operator: 'Оператор', client: 'Клиент', bot: 'Бот', system: 'Система' };
@@ -906,7 +913,7 @@ export function mount(CQA = globalThis.window?.CQA) {
     const legend = el('legend', 'cqa-review-label');
     const legendCount = el('span', 'cqa-review-messages__count');
     legend.append(el('span', '', 'Реплики-доказательства'), legendCount);
-    const messagesHint = el('p', 'cqa-review-hint', 'Отмечены реплики, на которые сослался ИИ. Добавьте те, что подтверждают вашу позицию.');
+    const messagesHint = el('p', 'cqa-review-hint', 'Предвыбраны реплики участников из доказательств ИИ или первая реплика оператора/клиента. Проверьте выбор и отметьте то, что подтверждает вашу позицию.');
     messagesHint.id = nextId('cqa-appeal-messages-hint');
     messages.setAttribute('aria-describedby', messagesHint.id);
     const list = el('ul', 'cqa-review-message-list');
@@ -978,7 +985,7 @@ export function mount(CQA = globalThis.window?.CQA) {
     if (draft) ui.comment.value = draft.comment;
     else if (!keepComment) ui.comment.value = '';
     const evidenceIds = new Set((evaluationOf(detail, criterion.id, checklist)?.evidence || []).map(item => item?.message_id).filter(Boolean));
-    const checked = new Set(draft ? draft.messageIds : evidenceIds);
+    const checked = new Set(draft ? draft.messageIds : initialEvidenceIds(detail.messages, evaluationOf(detail, criterion.id, checklist)?.evidence));
     ui.list.replaceChildren();
     (detail.messages || []).forEach((message, index) => {
       const li = el('li');
@@ -1798,7 +1805,21 @@ export function mount(CQA = globalThis.window?.CQA) {
       connected: () => form.isConnected,
       focusAction: action => (action === 'change' ? change : confirm).node.focus(),
     };
-    const decide = action => submitDecisionForm(action, { appeal, detail, criterion, current, checklist, form: controls }).catch(fail);
+    let editing = false;
+    reason.addEventListener('blur', () => {
+      if (editing) reasonField.setError(reason.value.trim() ? '' : 'Укажите причину решения: она попадёт в карточку и журнал.');
+    });
+    answer.wrap.addEventListener('focusout', event => {
+      if (editing && !answer.wrap.contains(event.relatedTarget)) answer.setError(validateAnswer(criterion, answer.read()).error || '');
+    });
+    const decide = action => {
+      if (action === 'change' && !editing && !validateAnswer(criterion, answer.read()).ok) {
+        editing = true;
+        answer.focus();
+        return;
+      }
+      return submitDecisionForm(action, { appeal, detail, criterion, current, checklist, form: controls }).catch(fail);
+    };
     confirm.node.addEventListener('click', () => decide('confirm'));
     change.node.addEventListener('click', () => decide('change'));
     decisionControl = { decide, connected: controls.connected };

@@ -1,0 +1,36 @@
+/* P mode: the score and verbatim evidence must survive the glass theme overrides.
+   Long conversations/results keep their own scroll regions; nothing is line-clamped. */
+.cqa-root.gl-theme.projector .cqa-card__total { flex-wrap: wrap; }
+.cqa-root.gl-theme.projector .cqa-card__total strong { font-size: 80px; line-height: 1.05; }
+.cqa-root.gl-theme.projector .cqa-card__total--incomplete strong { font-size: 28px; line-height: 1.3; }
+.cqa-root.gl-theme.projector .cqa-card__evidence blockquote { font-size: 24px; line-height: 1.45; font-weight: 550; }
+.cqa-root.gl-theme.projector .cqa-card__evidence { border-left-width: 4px; padding-left: 14px; }
+.cqa-root.gl-theme.projector .cqa-card__critical { gap: 12px; font-size: 18px; line-height: 1.4; padding: 12px; overflow-wrap: anywhere; }
+.cqa-root.gl-theme.projector .cqa-card__critical .cqa-card__icon { width: 32px; height: 32px; flex-basis: 32px; stroke-width: 2; }
+.cqa-root.gl-theme.projector .cqa-card__criterion-heading { flex-wrap: wrap; min-height: 44px; }
+.cqa-root.gl-theme.projector .cqa-card__criterion-title { flex-basis: 60%; }
+.cqa-root.gl-theme.projector .cqa-card__answer { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
+.cqa-root.gl-theme.projector .cqa-card__score-heading { flex-wrap: wrap; }
+.cqa-root.gl-theme.projector .cqa-card__subtitle,
+.cqa-root.gl-theme.projector .cqa-card__panel-heading > span,
+.cqa-root.gl-theme.projector .cqa-card__handoff { font-size: 16px; }
+.cqa-root.gl-theme.projector .cqa-card__panel-heading h3 { font-size: 18px; }
+
+@media (min-width: 1024px) and (min-height: 650px) {
+  .cqa-root.gl-theme.projector {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    height: 100dvh; min-height: 0;
+    padding: 12px 16px 84px; gap: 8px 12px;
+  }
+  .cqa-root.gl-theme.projector > .cqa-header { grid-column: 1/-1; }
+  .cqa-root.gl-theme.projector > .cqa-mode-strip { grid-column: 1; }
+  .cqa-root.gl-theme.projector > .cqa-navigation { grid-column: 2; }
+  .cqa-root.gl-theme.projector > :is(.cqa-run-warning, .cqa-workspace) { grid-column: 1/-1; }
+  .cqa-root.gl-theme.projector .gl-rail { display: none; }
+  .cqa-root.gl-theme.projector .cqa-workspace { min-height: 0; padding: 10px; }
+  .cqa-root.gl-theme.projector .cqa-dialogues-layout { grid-template-columns: 260px minmax(0, 1fr); height: 100%; min-height: 0; }
+  .cqa-root.gl-theme.projector .cqa-card__header { padding: 10px 18px; }
+  .cqa-root.gl-theme.projector .cqa-card__score-summary { padding: 14px 18px 0; }
+  .cqa-root.gl-theme.projector .cqa-navigation .cqa-tabs { left: 50%; bottom: 12px; }
+}

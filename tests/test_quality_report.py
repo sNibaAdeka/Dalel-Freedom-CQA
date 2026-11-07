@@ -280,7 +280,7 @@ def test_two_generations_are_identical_reconcile_and_exclude_raw_data(tmp_path):
     first, second = Q.generate(source, legacy, refs), Q.generate(source, legacy, refs)
     assert Q.json_text(first) == Q.json_text(second)
     assert Q.snapshot(first) == Q.snapshot(second)
-    assert len(first["reports"]) == 33 and len(first["comparisons"]) == 30
+    assert len(first["reports"]) == 36 and len(first["comparisons"]) == 33
     output = Q.json_text(first)
     assert "PRIVATE_SENTINEL" not in output and "DO_NOT_EXPORT" not in output and str(tmp_path) not in output
     for report in first["reports"]:
@@ -342,3 +342,36 @@ def test_without_the_strong_run_nothing_changes():
     del runs[Q.STRONG_RUN]
     Q.reprice_replayed_strong_stage(runs, CFG)
     assert runs["or-hold-cascade-g9"]["rows"]["d"]["cost_kzt_full"] == 1.0
+
+
+def test_subsamples_all_kz_and_all_calls_with_tune_note(tmp_path):
+    source, legacy, refs = synthetic_inputs(tmp_path)
+    split = {"holdout": ["a", "b"], "tune": ["k1", "k2"]}
+    (source / "eval/split.json").write_text(json.dumps(split))
+    labels = [{"conv_id": cid, "criterion_id": key, "answer": answer}
+              for cid in ["a", "b", "k1", "k2", "c1"] for key, answer in [("B", "yes"), ("S", 10)]]
+    for path in [legacy / "eval/gold/silver.jsonl", refs / "gold_v2.jsonl", refs / "gold_v2_full.jsonl"]:
+        write_jsonl(path, labels)
+
+    def row(cid, language, channel, s_answer):
+        return {"conv_id": cid, "language": language, "channel": channel, "wall_s": 1,
+                "evals": [{"criterion_id": "B", "answer": "yes", "cost_kzt_full": 1}, {"criterion_id": "S", "answer": s_answer, "cost_kzt_full": 1}]}
+    write_jsonl(source / "results/eval_runs/or-kzcalls-gemini-g9.jsonl", [
+        {"_meta": {"name": "or-kzcalls-gemini-g9", "mode": "fast", "preset": {"model": "openai:cheap"}, "started": "2026-01-01 00:00:00"}},
+        row("k1", "KZ", "agent chat", 10), row("k2", "KZ", "agent chat", 5), row("c1", "RU", "voice call", 5)])
+    payload = Q.generate(source, legacy, refs)
+    kz, calls = payload["subsamples"]
+    assert (kz["id"], kz["dialogues"], kz["tune_dialogues"]) == ("kz-all", 2, 2)
+    assert (kz["references"]["silver"]["matched"], kz["references"]["silver"]["labelled"]) == (3, 4)
+    assert "2 из 2" in kz["note"] and "не независим" in kz["note"]
+    assert (calls["id"], calls["dialogues"]) == ("calls-all", 1)
+    assert (calls["references"]["silver"]["matched"], calls["references"]["silver"]["labelled"]) == (1, 2)
+    assert "C4/C6" in calls["note"] and "на проверку" in calls["note"]
+    text = Q.snapshot(payload)
+    assert "Все KZ-чаты DEV" in text and "3/4" in text
+    assert str(tmp_path) not in Q.json_text(payload)
+
+
+def test_subsamples_absent_run_is_empty_not_error(tmp_path):
+    source, legacy, refs = synthetic_inputs(tmp_path)
+    assert Q.generate(source, legacy, refs)["subsamples"] == []

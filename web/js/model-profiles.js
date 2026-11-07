@@ -68,3 +68,23 @@ export function profileGuide(data) {
       ? 'Этот DEV-набор использовался для выбора решения; независимой проверки на новых данных здесь нет.' : '',
   };
 }
+
+/** Conservative full-dialogue scenario; saved answers/cache can reduce actual calls. */
+export function runForecast({ quality, profile, mode = 'fast', dialogues, criteria = 8, votes = 1 }) {
+  const report = quality?.reports?.find(r => r.id === quality?.profile_catalog?.[profile]?.report_id);
+  const raw = report?.economics;
+  const cost = raw?.cost_per_dialogue_usd ?? (report?.cost?.currency === 'USD' && report.cost.count > 0 ? report.cost.amount / report.cost.count : null);
+  const seconds = raw?.latency_provenance?.projection_allowed === true ? raw.mean_seconds_per_dialogue : null;
+  const measured = mode === (report?.mode || 'fast');
+  const knownProfile = ['cloud', 'cascade', 'routing', 'local'].includes(profile);
+  const calls = !knownProfile ? null : mode === 'fast' ? dialogues * (['cascade', 'routing'].includes(profile) ? 2 : 1)
+    : Number.isSafeInteger(votes) && votes > 0 ? dialogues * criteria * votes : null;
+  return { dialogues, calls, cost: measured && finite(cost) && cost >= 0 ? cost * dialogues : null,
+    seconds: measured && finite(seconds) && seconds >= 0 ? seconds * dialogues : null };
+}
+export function forecastText(forecast) {
+  return `Диалогов: ${forecast.dialogues}. Вызовов модели: ${forecast.calls == null ? 'прогноза нет' : `до ${forecast.calls} без повторов`}. ` +
+    `Прогноз этого прогона: ${forecast.cost == null ? 'стоимость — прогноза нет' : `≈ ${number(forecast.cost, 4)} $`}; ` +
+    `${forecast.seconds == null ? 'время — прогноза нет' : `≈ ${number(forecast.seconds, 0)} с последовательно`}. ` +
+    'Сценарий полной оценки; кэш и сохранённые ответы могут уменьшить расход, повторы — увеличить. Это не лимит расходов.';
+}

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Дәлел — ни одного балла без доказательства</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --background: #d8dee3; --surface: #f8fafb; --glass: #f8fafbef;
+      --ink: #242c33; --muted: #35414a; --line: #b9c3cc;
+      --highlight: #e9edf0; --white: #ffffff; --focus: #245fbd;
+      --shadow: #242c3326;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--background); color: var(--ink); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button { font: inherit; cursor: pointer; touch-action: manipulation; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .deck { width: 100%; margin: auto; }
+    .slide { padding: 24px 20px; background: linear-gradient(130deg, var(--surface), var(--highlight)); }
+    .eyebrow { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; color: var(--muted); font-weight: 650; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2 { font-size: 36px; line-height: 1.08; letter-spacing: -.045em; margin-block: 28px; font-weight: 650; }
+    h3 { font-size: 22px; line-height: 1.2; letter-spacing: -.025em; }
+    p { line-height: 1.4; }
+    .brand { font-family: Georgia, "Times New Roman", serif; font-size: 1.35em; }
+    .grid { display: grid; gap: 16px; }
+    .panel { min-width: 0; padding: 22px; background: var(--glass); border: 1px solid var(--white); border-radius: 22px; box-shadow: inset 0 1px 0 var(--white), 0 12px 36px var(--shadow); }
+    .panel p { margin-top: 12px; font-size: 19px; }
+    .muted, .note { color: var(--muted); }
+    .note { font-size: 16px; line-height: 1.4; margin-top: 20px; }
+    .flow { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; counter-reset: steps; }
+    .flow li { counter-increment: steps; }
+    .flow li::before { content: "0" counter(steps); display: block; color: var(--muted); font-size: 18px; font-variant-numeric: tabular-nums; margin-bottom: 16px; }
+    .flow p { font-size: 18px; }
+    .metric { display: block; font-size: 64px; line-height: 1.1; letter-spacing: -.055em; font-weight: 650; font-variant-numeric: tabular-nums; margin: 10px 0; }
+    .metric-label { font-size: 18px; font-weight: 650; }
+    .costs { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 12px 16px; margin: 20px 0 0; font-size: 19px; }
+    .costs dt, .costs dd { margin: 0; }
+    .costs dd { font-weight: 650; font-variant-numeric: tabular-nums; }
+    .scope { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 14px; }
+    .closing { margin-top: 24px; font-size: 24px; font-weight: 600; letter-spacing: -.025em; }
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 8px 20px; background: var(--surface); border-top: 1px solid var(--line); }
+    .controls nav { display: flex; align-items: center; gap: 12px; }
+    .controls button { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); background: var(--surface); transition: transform 180ms ease-out; }
+    .controls button:hover { background: var(--highlight); }
+    .controls button:active { transform: scale(.97); }
+    .controls button:disabled { cursor: default; color: var(--muted); }
+    .controls svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .help { font-size: 14px; color: var(--muted); }
+    .counter { font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    @media (min-width: 768px) {
+      body { min-height: 100dvh; display: grid; place-items: center; }
+      .deck { width: min(100vw, calc((100dvh - 66px) * 16 / 9)); container-type: inline-size; }
+      .slide { aspect-ratio: 16 / 9; padding: 3.2cqw 4cqw; }
+      .eyebrow { font-size: 1.45cqw; }
+      h1, h2 { font-size: 4cqw; margin-block: 2.5cqw; }
+      .grid { grid-template-columns: 1fr 1fr; gap: 1.5cqw; }
+      .panel { padding: 2cqw; border-radius: 1.8cqw; }
+      h3 { font-size: 2.1cqw; }
+      .panel p { font-size: 1.9cqw; margin-top: 1cqw; }
+      .note { font-size: 1.55cqw; margin-top: 1.5cqw; }
+      .flow { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1cqw; }
+      .flow .panel { padding: 1.6cqw; }
+      .flow li::before { font-size: 1.6cqw; margin-bottom: 2cqw; }
+      .flow h3 { font-size: 2cqw; }
+      .flow p { font-size: 1.65cqw; }
+      .metric { font-size: 6.6cqw; margin: .6cqw 0; }
+      .metric-label { font-size: 1.65cqw; }
+      .costs { font-size: 2cqw; gap: 1.2cqw; margin-top: 2cqw; }
+      .scope { margin-top: 1.4cqw; padding-top: 1.2cqw; }
+      .scope p { font-size: 1.5cqw; }
+      #title-3 { margin-block: 1.4cqw; }
+      .closing { font-size: 2.4cqw; margin-top: 2.3cqw; }
+      .advantages { grid-template-columns: 1.05fr 1fr 1fr; }
+      .advantages p { font-size: 1.85cqw; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
+    @media print {
+      @page { size: 320mm 180mm; margin: 0; }
+      body, .deck { display: block; width: 320mm; }
+      .slide, .slide[hidden] { display: block !important; width: 320mm; height: 180mm; break-after: page; }
+      .controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="Презентация Дәлел">
+    <section class="slide" aria-labelledby="title-1" data-title="Проблема и решение">
+      <div class="eyebrow"><span>−60HZ · Freedom Broker CQA</span><span>Проблема и решение</span></div>
+      <h1 id="title-1"><span class="brand">Дәлел</span><br>Ни одного балла<br>без доказательства</h1>
+      <div class="grid">
+        <article class="panel"><h3>Оценку нужно объяснить</h3><p>В банковском QA мало поставить балл. Нужно найти нарушение в диалоге, разобрать спор и учесть новую версию правил.</p></article>
+        <article class="panel"><h3>От диалога к проверяемому итогу</h3><p>«Дәлел» связывает оценку с точной цитатой, проверяет её кодом и сохраняет историю решений.</p></article>
+      </div>
+    </section>
+    <section class="slide" aria-labelledby="title-2" data-title="Как работает" hidden>
+      <div class="eyebrow"><span>Дәлел · −60HZ</span><span>Как работает</span></div>
+      <h2 id="title-2">Ответ модели —<br>начало проверки</h2>
+      <ol class="flow">
+        <li class="panel"><h3>Диалог</h3><p>Чат или расшифровка звонка.</p></li>
+        <li class="panel"><h3>Модель</h3><p>Ответ по критерию + точная цитата.</p></li>
+        <li class="panel"><h3>Код</h3><p>Сверяет цитату с оригиналом. Считает итог.</p></li>
+        <li class="panel"><h3>Апелляция</h3><p>Человек разбирает спор. Решение в журнале.</p></li>
+        <li class="panel"><h3>Замена критерия</h3><p>Новая версия. Пересчёт затронутых оценок.</p></li>
+      </ol>
+      <p class="closing">Диалог → ответ + цитата → проверка → решение → пересчёт</p>
+      <p class="note">Совпадение цитаты с текстом не доказывает верность вывода модели: спорные оценки проверяет человек.</p>
+    </section>
+    <section class="slide" aria-labelledby="title-3" data-title="Качество и экономика" hidden>
+      <div class="eyebrow"><span>Дәлел · −60HZ</span><span>Сохранённые замеры</span></div>
+      <h2 id="title-3">Качество с границами.<br>Цена за диалог.</h2>
+      <div class="grid">
+        <article class="panel"><h3>Gemini · машинный эталон</h3><strong class="metric" data-metric="agreement">95,6%</strong><p class="metric-label"><span data-metric="cells">152/159</span> размеченных оценок · <span data-metric="dialogues">21</span> диалог</p><p>Валидационная часть DEV<br>95% ДИ: <span data-metric="ci">91,1–98,8%</span></p></article>
+        <article class="panel"><h3>Оценка затрат API</h3><dl class="costs"><dt>Облако · Gemini</dt><dd data-cost="cloud">$0,0459</dd><dt>Каскад</dt><dd data-cost="cascade">$0,0250</dd><dt>Маршрутизация</dt><dd data-cost="routing">$0,0261</dd></dl><div class="scope"><p>Все 15 KZ-чатов: 115/117 (14 из 15 — в настройке правил). Все 5 звонков: 29/37 — завышает C4/C6, отправляем на проверку. Пересказ 10 диалогов: 79 из 80 ответов не изменились.</p></div></article>
+      </div>
+      <p class="note">DEV участвовал в настройке, эталон машинный: это не независимый тест и не точность по человеческой разметке. Цена — оценка по usage API, не счёт и не ROI. Источник: web/data/quality.json.</p>
+    </section>
+    <section class="slide" aria-labelledby="title-4" data-title="Почему мы" hidden>
+      <div class="eyebrow"><span>Дәлел · −60HZ</span><span>Почему мы</span></div>
+      <h2 id="title-4">Показываем процесс.<br>Каждое решение проверяемо.</h2>
+      <div class="grid advantages">
+        <article class="panel"><h3>Без заготовок</h3><p>Живой расчёт по диалогу и текущим критериям.</p><p>Журнал: что изменилось, кем и почему.</p></article>
+        <article class="panel"><h3>Четыре режима</h3><p>Облако, каскад, маршрутизация и локальная модель.</p><p>Локальный режим — без выхода в облако.</p></article>
+        <article class="panel"><h3>Dynamics 365</h3><p>Встраиваемая панель в рабочем месте сотрудника.</p><p>Диалог, оценка и доказательства рядом.</p></article>
+      </div>
+      <p class="closing">Готовы к пилоту · github.com/sNibaAdeka/Dalel-Freedom-CQA</p>
+      <p class="note">Локально (qwen2.5 7B, ноутбук M4, офлайн): 62,3% против машинного эталона, ~6 мин на диалог — уровень черновика; для пилота нужна GPU-модель. Интеграция требует настройки в среде банка.</p>
+    </section>
+    <footer class="controls">
+      <span class="help">← → · Пробел<br>Home / End</span>
+      <nav aria-label="Листание слайдов">
+        <button type="button" id="previous" aria-label="Предыдущий слайд"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+        <span class="counter" id="counter" aria-live="polite" aria-atomic="true">1 / 4</span>
+        <button type="button" id="next" aria-label="Следующий слайд"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+      </nav>
+    </footer>
+  </main>
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const previous = document.getElementById('previous');
+      const next = document.getElementById('next');
+      const counter = document.getElementById('counter');
+      let index = 0;
+      function show(value) {
+        index = Math.max(0, Math.min(slides.length - 1, value));
+        slides.forEach((slide, i) => { slide.hidden = i !== index; });
+        previous.disabled = index === 0;
+        next.disabled = index === slides.length - 1;
+        counter.textContent = `${index + 1} / ${slides.length}`;
+        document.title = `${slides[index].dataset.title} — Дәлел`;
+        // replaceState also works when this standalone deck is opened via file://.
+        try { history.replaceState(null, '', `#${index + 1}`); } catch { /* navigation still works */ }
+      }
+      const fromHash = () => { const value = Number(location.hash.slice(1)); show(Number.isInteger(value) && value > 0 ? value - 1 : 0); };
+      previous.addEventListener('click', () => show(index - 1));
+      next.addEventListener('click', () => show(index + 1));
+      window.addEventListener('hashchange', fromHash);
+      document.addEventListener('keydown', event => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+        // Space/Enter on a focused button keep native button activation.
+        if (event.key === ' ' && event.target.closest('button')) return;
+        let target;
+        if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(event.key)) target = index + 1;
+        if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) target = index - 1;
+        if (event.key === 'Home') target = 0;
+        if (event.key === 'End') target = slides.length - 1;
+        if (target === undefined) return;
+        event.preventDefault(); show(target);
+      });
+      fromHash();
+    })();
+  </script>
+</body>
+</html>

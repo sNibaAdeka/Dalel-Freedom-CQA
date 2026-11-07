@@ -36,7 +36,7 @@ test('comparisons derive cost ratio and labelled denominator, with explicit DEV 
   const cloud = fixture.reports.find(r => r.id === fixture.profile_catalog.cloud.report_id);
   const guide = profileGuide(fixture);
   assert.match(guide.summary, /Gemini 4 Argon/);
-  assert.match(guide.summary, /qwen3.5:9b/);
+  assert.match(guide.summary, /qwen2.5:7b/);
   assert.match(guide.comparison, /2,2 раза дешевле по расчётной стоимости/);
   assert.ok(guide.comparison.includes(`${cloud.counts.matched}/${cloud.counts.total - cloud.counts.unlabelled}`));
   assert.match(guide.comparison, /не гарантия/);

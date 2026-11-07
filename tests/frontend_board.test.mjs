@@ -153,7 +153,8 @@ test('budget tracks selected channel mix and profile; choosing cascade never sta
   }, { mountBudget: (_host, value) => { options = value; return { update: value => updates.push(value), destroy: () => destroyed++ }; } });
   t.after(destroy); await tick();
   const latest = () => updates.at(-1) || options;
-  assert.deepEqual(latest().plan, { dialogues: 2, channels: { chat: 1, call: 1 }, mode: 'fast' });
+  assert.deepEqual(latest().plan, { dialogues: 1, channels: { chat: 1, call: 0 }, mode: 'fast' });
+  await choose(host, 'Диалоги', 'all');
   const controls = walk(host).filter(n => n.tagName === 'SELECT');
   const group = controls.find(n => n.children.some(c => c.textContent === 'Все загруженные наборы'));
   group.value = 'B'; await group.dispatch('change');
@@ -390,7 +391,7 @@ test('mounted board saves provider choice before launch and keeps write failures
   await findClass(host, 'cqa-board__form').dispatch('submit');
   assert.equal(calls[0][0], 'config'); assert.equal(calls[1][1].profile, 'chosen-server-profile'); assert.deepEqual(calls[1][1].conv_ids, ['a']);
   assert.equal(calls[1][1].live, true); assert.equal(calls[1][1].force, false, 'fresh missing pairs must not discard saved unchanged evaluations');
-  assert.equal(calls[1][1].activate, true, 'activation belongs to the run so old totals are captured first');
+  assert.equal(calls[1][1].activate, false, 'open-dialogue evaluation does not activate by default');
   assert.match(findClass(host, 'cqa-board__notice').textContent, /503 unavailable/);
   assert.equal(findClass(host, 'cqa-board__notice').attributes.role, 'alert');
   assert.equal(CQA.bus.events.filter(([name]) => name === 'run:finished').length, 0);
@@ -474,9 +475,9 @@ test('read-only selection never starts a run or preview and shows no invented co
   await choose(host, 'Модель', 'local'); CQA.bus.emit('checklist:selected', 3); await tick();
   assert.equal(writes, 0);
   const hint = findClass(host, 'cqa-board__plan-hint').textContent;
-  assert.match(hint, /до запуска.*недоступ/i);
+  assert.match(hint, /Диалогов: 1/);
   assert.doesNotMatch(hint, /\d+\s*(пар|₸|с\b)/);
-  assert.match(hint, /времени.*стоимости.*нет/i);
+  assert.match(hint, /стоимость — прогноза нет; время — прогноза нет/i);
   destroy();
 });
 
@@ -534,7 +535,7 @@ test('only the explicit full rerun action requests force and it does not persist
   assert.ok(full); assert.equal(full.type, 'button'); assert.ok(!full.className.includes('--primary'));
   await full.dispatch('click'); await tick();
   assert.equal(calls[0].force, true); assert.equal(calls[0].live, true); assert.equal(calls[0].preview, false);
-  assert.equal(calls[0].activate, true); assert.deepEqual(calls[0].conv_ids, ['a']);
+  assert.equal(calls[0].activate, false); assert.deepEqual(calls[0].conv_ids, ['a']);
   await submit(host); assert.equal(calls[1].force, false); assert.equal(calls[1].live, false);
   destroy();
 });

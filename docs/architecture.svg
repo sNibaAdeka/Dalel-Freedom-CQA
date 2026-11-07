@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1120" viewBox="0 0 1440 1120" role="img" aria-labelledby="title desc">
   <title id="title">Дәлел: три пути модели, один проверяемый результат</title>
-  <desc id="desc">Новые диалоги и версия чек-листа создают план живой оценки. Облако: Gemini 4 Argon через OpenRouter с резервным Sonnet CLI. Каскад: Haiku, затем Gemini при необходимости проверки. Локально: qwen3.5:9b в Ollama без облачного fallback. Ответ проходит проверку цитат и детерминированную формулу, затем доступен в интерфейсе и апелляциях. Хеш содержания определяет переоценку. Dynamics показан локальным iframe-примером; внедрение в банковском контуре не подтверждено.</desc>
+  <desc id="desc">Новые диалоги и версия чек-листа создают план живой оценки. Облако: Gemini 4 Argon через OpenRouter с резервным Sonnet CLI. Каскад: Haiku, затем Gemini при необходимости проверки. Локально: qwen2.5:7b в Ollama без облачного fallback (ноутбук M4: 62,3%, 341 с/диалог). Ответ проходит проверку цитат и детерминированную формулу, затем доступен в интерфейсе и апелляциях. Хеш содержания определяет переоценку. Dynamics показан локальным iframe-примером; внедрение в банковском контуре не подтверждено.</desc>
   <defs>
     <style>
       :root { --surface:#f3f7f5; --card:#ffffff; --ink:#15382b; --muted:#365b4d; --border:#789486; --accent:#195c43; --tint:#e4efe8; --warning:#624319; }
@@ -59,7 +59,7 @@
 
   <rect x="966" y="352" width="426" height="240" rx="16" class="card"/>
   <text x="988" y="389" class="label">ЛОКАЛЬНО / OLLAMA</text>
-  <text x="988" y="428" class="heading">qwen3.5:9b · Q4_K_M</text>
+  <text x="988" y="428" class="heading">qwen2.5:7b · Q4_K_M</text>
   <text x="988" y="464" class="body">Сервер в доверенном контуре</text>
   <text x="988" y="505" class="body">Облачный fallback запрещён</text>
   <text x="988" y="541" class="small">При сбое — ошибка, не облако</text>

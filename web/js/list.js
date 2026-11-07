@@ -39,6 +39,30 @@ export function evaluationState(row) {
   if (row.needs_review) return "review";
   return "approved";
 }
+/** Read-only fallback: each row keeps the version that actually supplied its score. */
+export async function withPreviousScores(rows, versions, api) {
+  const previous = versions.map(v => Number(v.version)).filter(Number.isInteger).sort((a, b) => b - a);
+  let cursor = 0;
+  const result = rows.map(row => ({ ...row }));
+  await Promise.all(Array.from({ length: Math.min(6, rows.length) }, async () => {
+    while (cursor < rows.length) {
+      const index = cursor++, row = rows[index];
+      if (finite(row.total) || !['pending', 'incomplete'].includes(row.status)) continue;
+      for (const version of previous.filter(v => v < Number(row.checklist_version))) {
+        try {
+          const detail = await api.conversation(row.id, version);
+          if (!finite(detail.score?.total) || detail.score?.status === 'incomplete') continue;
+          result[index] = { ...row, total: detail.score.total, critical: Boolean(detail.score.critical),
+            needs_review: Boolean(detail.needs_review), status: detail.status,
+            appealed: (detail.appeals || []).some(a => a.status === 'open'),
+            cells: detail.evals || [], checklist_version: version, previous_score: true };
+          break;
+        } catch { /* Keep the active-version row when historical data is unavailable. */ }
+      }
+    }
+  }));
+  return result;
+}
 const statusLabels = {
   error: "Ошибка оценки",
   no_applicable: "Нет применимых критериев",
@@ -178,6 +202,13 @@ export function mount(CQA = window.CQA) {
       button?.focus({ preventScroll: true });
       button?.scrollIntoView({ block: "nearest", behavior: "auto" });
     }
+    const row = state.rows.find(item => item.id === id);
+    if (row?.checklist_version != null) {
+      CQA.state.checklistVersion = Number(row.checklist_version);
+      const selector = document.getElementById('cqa-version-select');
+      if (selector) selector.value = String(row.checklist_version);
+      CQA.bus.emit('checklist:selected', Number(row.checklist_version));
+    }
     CQA.bus.emit("conv:open", id);
   }
   function chooseFirstOnce() {
@@ -233,9 +264,16 @@ export function mount(CQA = window.CQA) {
     top.append(icon, element("span", "cq-list-language", row.language));
     const id = element("span", "cq-list-id", row.id); id.title = row.id;
     const statusNode = element("span", `cq-list-status is-${status}`, statusLabels[status]);
+    if (row.critical) {
+      const diamond = element('span', 'cq-list-diamond');
+      diamond.innerHTML = '<svg viewBox="0 0 24 24" role="img" aria-label="Грубая ошибка"><path d="M12 2 22 12 12 22 2 12Z M12 7v6m0 3v.1"/></svg>';
+      statusNode.prepend(diamond);
+    }
     content.append(top, id, statusNode);
     const scoreBox = element("span", "cq-list-score");
-    scoreBox.append(element("strong", "", score));
+    scoreBox.classList.toggle('is-previous', Boolean(row.previous_score));
+    scoreBox.append(element("strong", "", row.previous_score ? `v${row.checklist_version} · ${score}` : score));
+    if (row.previous_score) button.setAttribute('aria-label', `${button.getAttribute('aria-label')}. Предыдущая оценка по v${row.checklist_version}`);
     const main = element("span", "cq-list-row-main");
     main.append(content, scoreBox);
     button.append(main);
@@ -293,7 +331,10 @@ export function mount(CQA = window.CQA) {
     if (!state.error && !state.loading) {
       if (!state.rows.length) setNotice("Диалогов пока нет. Загрузите набор данных, чтобы начать проверку.");
       else if (!state.visible.length) setNotice("Диалоги не найдены. Измените запрос или сбросьте фильтры.", "Сбросить фильтры", resetFilters);
-      else setNotice("");
+      else {
+        const previous = state.rows.filter(row => row.previous_score).length;
+        setNotice(previous ? `Оценки предыдущих версий: ${previous}. Версия указана рядом с баллом; счётчики учитывают показанные оценки.` : '');
+      }
     }
     if (focusId) Array.from(rowsNode.querySelectorAll(".cq-list-row")).find(node => node.dataset.id === focusId)?.focus({ preventScroll: true });
     chooseFirstOnce();
@@ -322,7 +363,9 @@ export function mount(CQA = window.CQA) {
       }));
     }
     try {
-      const result = await CQA.api.conversations();
+      const activeRows = await CQA.api.conversations();
+      const versions = typeof CQA.api.checklists === 'function' ? await CQA.api.checklists() : CQA.state.checklists || [];
+      const result = await withPreviousScores(activeRows, versions, CQA.api);
       if (request !== state.request || controller.signal.aborted) return;
       if (!Array.isArray(result)) throw new Error("Expected a conversation summary array.");
       const ids = new Set();
@@ -331,6 +374,7 @@ export function mount(CQA = window.CQA) {
         channel: row.channel === "call" ? "call" : "chat",
         cells: Array.isArray(row.cells) ? row.cells : [],
       }));
+      CQA.state.listScoreVersions = Object.fromEntries(state.rows.map(row => [row.id, row.checklist_version]));
       state.loaded = true;
       state.loading = false;
       summary();
@@ -402,6 +446,12 @@ export function mount(CQA = window.CQA) {
     const id = payload?.conv_id || payload?.id || payload?.score?.conv_id;
     const row = state.rows.find(item => item.id === id);
     if (!row) return;
+    // A different version must first be reconciled with the server's active list.
+    // Do not turn a labelled historical score into an unlabelled optimistic result.
+    if (payload.checklist?.version != null && Number(payload.checklist.version) !== Number(row.checklist_version)) {
+      void reload();
+      return;
+    }
     const score = payload.score || payload;
     if ("total" in score) row.total = score.total;
     if ("critical" in score) row.critical = Boolean(score.critical);

@@ -120,7 +120,7 @@ function harness(setup) {
   globalThis.window={matchMedia:()=>({matches:true}),localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},addEventListener(){},removeEventListener(){}};
   globalThis.requestAnimationFrame=fn=>setTimeout(fn,0);globalThis.cancelAnimationFrame=clearTimeout;
   const versions=[{...copy(V1),active:true}],calls=[];
-  const CQA={config:{mock:true},state:{modules:{board:true}},bus:{on:(k,fn)=>{if(!subscriptions.has(k))subscriptions.set(k,new Set());subscriptions.get(k).add(fn);return()=>subscriptions.get(k).delete(fn);},emit:(k,v)=>{events.push([k,v]);for(const fn of subscriptions.get(k)||[])fn(v);}},api:{checklists:async()=>copy(versions),checklist:async n=>copy(versions.find(v=>v.version===n)),conversations:async()=>[{id:'synthetic-1',group_id:'TEST'}],createChecklist:async body=>{calls.push(['save',body]);const v={...copy(body),version:2};versions.push(v);return v;},activateChecklist:async n=>{calls.push(['activate',n]);return{version:n};},createRun:async body=>{calls.push(['run',body]);return{run_id:'run-test'};},run:async()=>({status:'complete',done:1,total:1,is_mock:true,per_conv:[]})}};
+  const CQA={config:{mock:true},state:{modules:{board:false}},bus:{on:(k,fn)=>{if(!subscriptions.has(k))subscriptions.set(k,new Set());subscriptions.get(k).add(fn);return()=>subscriptions.get(k).delete(fn);},emit:(k,v)=>{events.push([k,v]);for(const fn of subscriptions.get(k)||[])fn(v);}},api:{checklists:async()=>copy(versions),checklist:async n=>copy(versions.find(v=>v.version===n)),conversations:async()=>[{id:'synthetic-1',group_id:'TEST'}],createChecklist:async body=>{calls.push(['save',body]);const v={...copy(body),version:2};versions.push(v);return v;},activateChecklist:async n=>{calls.push(['activate',n]);return{version:n};},createRun:async body=>{calls.push(['run',body]);return{run_id:'run-test'};},run:async()=>({status:'complete',done:1,total:1,is_mock:true,per_conv:[]})}};
   setup?.(CQA);
   const controller=editor.mount(CQA);
   return {host,store,events,calls,CQA,controller,click:action=>{const target=host.querySelector(`[data-action="${action}"]`);assert.ok(target,`missing ${action}`);dispatch(target,'click');},restore:()=>{controller.destroy();Object.assign(globalThis,saved);}};
@@ -196,7 +196,7 @@ test('preview pins the same model profile and mode shown by the budget', async (
   } finally { h.restore(); }
 });
 
-test('real mount creates a persisted draft, preserves it after failure, then saves a new version and delegates apply once', async () => {
+test('standalone editor persists a draft, preserves it after failure, saves a new version and applies once', async () => {
   const h=harness();
   try {
     await settle();assert.equal(h.controller.state().view,1);
@@ -223,7 +223,7 @@ test('real mount creates a persisted draft, preserves it after failure, then sav
     assert.equal(h.calls.filter(([n])=>n==='activate').length,0,'the run must capture its baseline before activation');
     assert.equal(h.events.filter(([n])=>n==='checklist:activated').length,0);
     assert.deepEqual(h.events.find(([n])=>n==='run:started')[1],{run_id:'run-test',version:2});
-    assert.ok(h.events.some(([n,p])=>n==='nav:open'&&p==='board'));
+    assert.equal(h.events.some(([n,p])=>n==='nav:open'&&p==='board'), false, 'standalone editor owns observation');
     h.CQA.bus.emit('checklist:activated',{version:2});
     h.CQA.bus.emit('run:finished',{run_id:'run-test',version:2,status:'complete',done:1,total:1,activated:true});
     assert.equal(h.controller.state().sessionActive,2);
@@ -311,4 +311,15 @@ test('preview sends its scored sample and explains unscored additions before sta
     h.click('preview');await settle();
     assert.deepEqual(h.calls.find(([n])=>n==='run')[1],{version:1,preview:true,conv_ids:['scored','new']});
   } finally {h.restore();}
+});
+
+
+test('W10 assembled editor delegates apply to board planning without creating a run', async () => {
+  const h = harness(CQA => { CQA.state.modules.board = true; CQA.state.activeConversationId = 'synthetic-1'; });
+  try {
+    await settle(); h.click('apply'); await settle();
+    assert.equal(h.calls.some(([name]) => name === 'run' || name === 'activate'), false);
+    assert.deepEqual(h.events.find(([name]) => name === 'board:prepare')[1], { version: 1, group: '' });
+    assert.ok(h.events.some(([name, value]) => name === 'nav:open' && value === 'board'));
+  } finally { h.restore(); }
 });

@@ -26,7 +26,7 @@ function icon(name) {
   svg.setAttribute('aria-hidden', 'true');
   svg.classList.add('cqa-card__icon');
   const p = document.createElementNS(NS, 'path');
-  p.setAttribute('d', name === 'check' ? 'm5 12 4 4L19 6' : name === 'link' ? 'M10 14 14 10M8 16l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M16 8l1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0' : 'M12 8v5m0 3v.1M8 3h8l5 5v8l-5 5H8l-5-5V8z');
+  p.setAttribute('d', name === 'check' ? 'm5 12 4 4L19 6' : name === 'link' ? 'M10 14 14 10M8 16l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M16 8l1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0' : 'M12 2 22 12 12 22 2 12Z M12 7v6m0 3v.1');
   svg.append(p);
   return svg;
 }
@@ -507,7 +507,7 @@ export function mount(CQA = window.CQA) {
     current.messages.forEach((message, index) => content.append(messageRow(message, index)));
     rangeBracket = element('div', 'cqa-card__range-bracket'); rangeBracket.hidden = true; rangeBracket.setAttribute('aria-hidden', 'true'); content.append(rangeBracket);
     transcript.append(content); left.append(transcript);
-    resultPanel = element('section', 'cqa-card__results'); resultPanel.id = 'cqa-card-result'; resultPanel.setAttribute('aria-label', 'Результат оценки');
+    resultPanel = element('section', 'cqa-card__results'); resultPanel.id = 'cqa-card-result'; resultPanel.tabIndex = 0; resultPanel.setAttribute('aria-label', 'Результат оценки');
     const score = detail.score || {};
     const answers = dialogueAnswerState(detail);
     const unassessed = notEvaluated(detail);
@@ -597,7 +597,8 @@ export function mount(CQA = window.CQA) {
     empty('Открываем диалог', 'Загружаем разговор и результаты оценки.');
     host.setAttribute('aria-busy', 'true');
     try {
-      const detail = await CQA.api.conversation(id, { trace: true });
+      const rowVersion = CQA.state.listScoreVersions?.[id];
+      const detail = await CQA.api.conversation(id, { ...(rowVersion != null ? { version: rowVersion } : {}), trace: true });
       if (destroyed || token !== generation) return;
       if (!detail || detail.id !== id || !Array.isArray(detail.messages)) throw new Error('Invalid conversation response');
       // Read-only recovery is scoped to this browser, API endpoint and exact input content.

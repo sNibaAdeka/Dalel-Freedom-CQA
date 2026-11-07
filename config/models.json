@@ -130,16 +130,16 @@
       }
     },
     "local": {
-      "_doc": "Local model through Ollama native /api/chat (num_ctx 16k, think off). qwen3.5:9b Q4_K_M fits fully into an 8 GB RTX 4060 with OLLAMA_FLASH_ATTENTION=1 and OLLAMA_KV_CACHE_TYPE=q8_0. Base URL from CQA_OLLAMA_URL (RTX machine). Local GPUs are slow: accurate = one call per criterion, single vote, no arbiter. No cloud fallback for ollama models (cqa/llm.py fallback_model): if the local server is down the evaluation fails loudly instead of sending dialogues out.",
+      "_doc": "Local model through Ollama native /api/chat (num_ctx 16k, think off), base URL from CQA_OLLAMA_URL (default localhost). Measured: qwen2.5:7b-instruct Q4_K_M on a MacBook Air M4 16 GB, fully offline, DEV holdout 21 dialogues: 99/159 = 62.3% vs the machine reference (Gemini 95.6%), mean 341 s per dialogue - a draft/triage quality, not a replacement for the cloud model. Planned upgrade on an 8 GB RTX GPU: qwen3.5:9b Q4_K_M (not measured). No cloud fallback for ollama models (cqa/llm.py fallback_model): if the local server is down the evaluation fails loudly instead of sending dialogues out.",
       "fast": {
-        "model": "ollama:qwen3.5:9b-q4_K_M",
+        "model": "ollama:qwen2.5:7b-instruct",
         "votes": 1,
         "temperatures": [
           0.0
         ]
       },
       "accurate": {
-        "model": "ollama:qwen3.5:9b-q4_K_M",
+        "model": "ollama:qwen2.5:7b-instruct",
         "votes": 1,
         "temperatures": [
           0.0

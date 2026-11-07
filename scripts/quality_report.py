@@ -33,6 +33,7 @@ RUNS = [
     ("hk-g10-all", "Haiku g10", "haiku-g10-holdout", False),
     ("m1-sonnet-g9-all", "Sonnet 5.5 CLI", "sonnet-cli-g9-holdout", True),
     ("m1-hold-haiku-m1-c4", "Haiku g9 (ранний)", "haiku-g9-earlier-holdout", True),
+    ("local-m4-qwen25-7b-hold-g9", "Локально: qwen2.5 7B (ноутбук M4, офлайн)", "local-qwen25-7b-m4-holdout", False),
 ]
 
 
@@ -652,6 +653,49 @@ def stability(left, right, ids, criteria, label):
                                    "Different recorded configurations. This measures cross-configuration agreement, not same-configuration reproducibility.")}
 
 
+SUBSAMPLE_RUN = "or-kzcalls-gemini-g9"
+
+
+def subsample_reports(source_root, holdout_run, refs, criteria, split, metadata):
+    """All KZ chats and all calls of DEV from two Gemini g9 runs (the KZ/calls run plus the holdout run).
+
+    On overlap (dialogues present in both runs) the holdout run row is used. Optional: absent run file -> [].
+    """
+    path = source_root / "results/eval_runs" / (SUBSAMPLE_RUN + ".jsonl")
+    if not path.exists():
+        return [], None
+    extra = load_run(path)
+    tune = set(split.get("tune", []))
+    groups = (("kz-all", "Все KZ-чаты DEV", lambda m: m["language"] == "KZ" and "call" not in m["channel"].lower(),
+               "tune",
+               "Правила настраивали на {tune} из {n} KZ-чатов (tune); Gemini на них не настраивался. Это не независимая выборка."),
+              ("calls-all", "Все звонки DEV", lambda m: "call" in m["channel"].lower(), "calls",
+               "Звонков мало ({n}); модель завышает шкалы C4/C6 → такие оценки отправляются на проверку. Вывода о точности на звонках не делаем."))
+    out = []
+    for gid, label, pick, kind, note in groups:
+        rows = {}
+        for run in (extra, holdout_run):  # later wins: holdout run row preferred on overlap
+            for cid, row in run["rows"].items():
+                m = metadata.get(cid) or {key: row.get(key) or "unknown" for key in ("language", "channel")}
+                if pick(m):
+                    rows[cid] = row
+        ids = sorted(rows)
+        merged = {"rows": rows}
+        tuned = sum(cid in tune for cid in ids)
+        item = {"id": gid, "label": label, "dialogues": len(ids), "tune_dialogues": tuned,
+                "model": "Gemini 4 Argon", "rules": "g9", "sample_kind": kind,
+                "note": note.format(tune=tuned, n=len(ids)),
+                "source": {"artifacts": [SUBSAMPLE_RUN + ".jsonl", RUNS[0][0] + ".jsonl"], "sha256": [digest(path)]},
+                "references": {}}
+        for ref_id, ref in refs.items():
+            agg = aggregate(measured_cells(merged, ref, ids, criteria))
+            c = agg["counts"]
+            item["references"][ref_id] = {"matched": c["matched"], "labelled": c["total"] - c["unlabelled"],
+                                          "counts": c, "agreement_ci": agg["agreement_ci"]}
+        out.append(item)
+    return out, path
+
+
 def generate(source_root, legacy_root, references_root):
     input_paths = [source_root / p for p in ("data/checklists/v1.json", "eval/split.json", "config/models.json")]
     input_paths += [legacy_root / "eval/gold/silver.jsonl", references_root / "gold_v2.jsonl", references_root / "gold_v2_full.jsonl"]
@@ -681,6 +725,9 @@ def generate(source_root, legacy_root, references_root):
             if cid in metadata and metadata[cid] != item:
                 raise ValueError("conflicting dialogue language/channel metadata")
             metadata[cid] = item
+    subsamples, subsample_path = subsample_reports(source_root, runs[RUNS[0][0]], refs, criteria, split, metadata)
+    if subsample_path is not None:
+        initial_hashes[subsample_path] = digest(subsample_path)
     reports, comparisons = [], []
     for ref_id, reference in refs.items():
         for name, label, report_id, _ in RUNS:
@@ -695,14 +742,14 @@ def generate(source_root, legacy_root, references_root):
                   stability(runs["m1-sonnet-g9-all"], runs["or-hold-anthropic-claude-sonnet-5-5-g9"], ids, criteria, "sonnet-cli-api")]
     if any(digest(path) != checksum for path, checksum in initial_hashes.items()):
         raise ValueError("An input changed while the report was generated; retry from a frozen snapshot")
-    return {"schema_version": 1, "reports": reports,
+    return {"schema_version": 1, "reports": reports, "subsamples": subsamples,
             "profile_catalog": {"cloud": {"label": RUNS[0][1], "report_id": RUNS[0][2]},
                                 "cascade": {"first_label": "Haiku 5.5", "escalate_label": RUNS[0][1], "report_id": RUNS[1][2]},
                                 "routing": {"label": "Маршрутизация", "first_label": "Haiku 5.5", "escalate_label": RUNS[0][1], "report_id": "routing-haiku-gemini-g9-holdout"},
-                                "local": {"label": "qwen3.5:9b", "model": config["profiles"]["local"]["fast"]["model"], "cloud_fallback": False,
+                                "local": {"label": "qwen2.5:7b (ноутбук, офлайн)", "report_id": "local-qwen25-7b-m4-holdout", "model": config["profiles"]["local"]["fast"]["model"], "cloud_fallback": False,
                                           "api_cost": {"amount": 0 if config["profiles"]["local"]["fast"]["model"].startswith("ollama:") else None,
                                                        "currency": "USD", "basis": "no_external_api", "scope": "local_only",
-                                                       "source": "config/models.json local Ollama profile; hardware/electricity and latency not measured"}},
+                                                       "source": "config/models.json local Ollama profile; MacBook Air M4 16 GB run local-m4-qwen25-7b-hold-g9; electricity not measured"}},
                                 "source": "config/models.json and frozen run metadata; no inferred measurements"},
             "comparisons": comparisons, "stability": stabilities,
             "methodology": {"generator": "scripts/quality_report.py", "seed": SEED, "repetitions": REPETITIONS,
@@ -770,6 +817,16 @@ def snapshot(payload):
     for group in first["languages"] + first["channels"] + first["criteria"]:
         c = group["counts"]
         lines.append(f"| {group['id']} | {group['dialogues']} | {c['matched']}/{c['total']-c['unlabelled']} | {interval(group['agreement_ci'])} |")
+    if payload.get("subsamples"):
+        lines += ["", "## Подвыборки: все KZ-чаты и все звонки DEV", "",
+                  "Gemini 4 Argon, правила g9, прогоны `or-kzcalls-gemini-g9` и holdout-прогон (на пересечении берётся holdout). Эталоны: silver (основной), gold_v2.", "",
+                  "| Подвыборка | Диалогов | Из них tune | Эталон | Совпало / размечено | Совпадение [95% ДИ] |", "|---|---:|---:|---|---:|---|"]
+        for sub in payload["subsamples"]:
+            for ref_id, ref in sub["references"].items():
+                if ref_id == "gold_v2_full":
+                    continue
+                lines.append(f"| {sub['label']} | {sub['dialogues']} | {sub['tune_dialogues']} | {ref_id} | {ref['matched']}/{ref['labelled']} | {pct(ref['matched']/ref['labelled'] if ref['labelled'] else None)} {interval(ref['agreement_ci'])} |")
+        lines += ["", *["- " + sub["label"] + ": " + sub["note"] for sub in payload["subsamples"]]]
     lines += ["", "## Источники для экономики банка", "", "Доля ручной проверки вычисляется только по финальному `needs_review`: хотя бы один критерий помечен. Эскалация в Gemini не равна направлению человеку. При пропущенных флагах доля неизвестна. Стоимость пары — амортизированная цена запланированного критерия, не предельная цена изменения одного критерия.", "", "| Профиль / канал | n | Записано ₸ / диалог | Записанное среднее, с | p50 / p95, с | На проверку / известные | Доля |", "|---|---:|---:|---:|---|---:|---:|"]
     usage_notes = []
     for profile in ("cloud", "cascade", "routing"):
