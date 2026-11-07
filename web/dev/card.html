@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Дәлел — демо карточки</title>
+  <link rel="icon" href="data:,">
+  <style>
+    .cqa-root { --brand:#93d83d; --brand-ink:#18300a; --surface:#fff; --ink:#182323; --muted:#526162; --line:#d5dddd; --yes:#1d6939; --no:#a12e38; --partial:#865307; --na:#526162; --critical:#782336; --focus:#245fbd; font-family:system-ui,sans-serif; font-size:16px; background:#f0f4f3; color:var(--ink); margin:0; padding:24px; min-height:100vh; }
+    .cqa-root * { box-sizing:border-box; }
+    .cqa-root .demo-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:0 auto 20px; max-width:1200px; }
+    .cqa-root .demo-toolbar h1 { font-size:24px; margin:0 auto 0 0; letter-spacing:-.04em; }
+    .cqa-root .demo-toolbar button { min-height:44px; background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--ink); padding:8px 14px; font:inherit; cursor:pointer; }
+    .cqa-root .demo-toolbar button:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+    .cqa-root #cqa-card { max-width:1200px; margin:auto; }
+    .cqa-root .demo-notice { max-width:1200px; margin:0 auto 16px; font-size:14px; color:var(--muted); line-height:1.6; }
+    .cqa-root #demo-status { min-height:24px; max-width:1200px; margin:16px auto; font-size:14px; }
+    .cqa-root.projector { font-size:20px; }
+    @media(max-width:600px) { .cqa-root { padding:12px; } .cqa-root .demo-toolbar h1 { width:100%; } }
+  </style>
+</head>
+<body class="cqa-root">
+  <nav class="demo-toolbar" aria-label="Демонстрационные сценарии">
+    <h1>Дәлел / карточка</h1>
+    <button id="demo-call" type="button">Звонок RU</button>
+    <button id="demo-kz" type="button">Чат KZ / N/A</button>
+    <button id="demo-invalid" type="button">Неверная цитата</button>
+    <button id="demo-role" type="button">Роль: оператор</button>
+    <button id="demo-projector" type="button" aria-pressed="false">Проектор</button>
+  </nav>
+  <p class="demo-notice">Вымышленные диалоги и демонстрационные оценки. Здесь можно проверить карточку без сервера оценки. Запись не загружается; переход к звуку отображается в строке событий.</p>
+  <main id="cqa-card"></main>
+  <p id="demo-status" role="status"></p>
+  <script>
+    if (location.protocol === 'file:') {
+      document.getElementById('cqa-card').textContent = 'Откройте через HTTP: python3 -m http.server 8000 --directory web; затем http://localhost:8000/dev/card.html';
+    } else {
+      import('../js/card.js').then(({ mount }) => {
+        const handlers = new Map();
+        window.CQA = {
+          config: { role:'operator', mock:true }, state: {},
+          bus: {
+            on(name, fn) { if (!handlers.has(name)) handlers.set(name, new Set()); handlers.get(name).add(fn); return () => handlers.get(name).delete(fn); },
+            emit(name, value) { handlers.get(name)?.forEach(fn => fn(value)); }
+          },
+          api: { async conversation(id) { return createDemo(id); } }
+        };
+        const CQA = window.CQA;
+        function createDemo(id) {
+          const kz = id === 'demo-kz';
+          const raw = kz ? [
+            ['bot','Сәлеметсіз бе! Сұрағыңызды жазыңыз.'], ['client','Қосымшадағы хабарламаларды қалай өшіремін?'],
+            ['system','Диалог операторға берілді.'], ['operator','Сәлеметсіз бе! Мен сізге көмектесемін.'],
+            ['client','Тек жарнамалық хабарламаларды өшіргім келеді.'], ['operator','Баптауларды ашып, «Хабарламалар» бөлімін таңдаңыз.'],
+            ['operator','Жарнамалық хабарламалар қосқышын өшіріңіз. Қызметтік хабарламалар сақталады.'],
+            ['client','Рақмет, өшірдім.'], ['operator','Көмектесе алғаныма қуаныштымын. Сау болыңыз!']
+          ] : [
+            ['system','Вымышленный звонок. Начало записи.'], ['client','Здравствуйте, где найти историю уведомлений?'],
+            ['operator','Здравствуйте! Помогу вам найти историю уведомлений.'], ['client','Мне нужно сообщение за вчера.'],
+            ['operator','Откройте раздел «Уведомления» в приложении.'], ['system','Запись приостановлена.'],
+            ['system','Запись возобновлена.'], ['operator','Выберите вчерашнюю дату. Мы не гарантируем доходность инвестиций.'],
+            ['client','Нашёл нужное сообщение, спасибо.'], ['operator','Рад помочь. Всего доброго!']
+          ];
+          const messages = raw.map(([speaker,text],idx) => ({ id:`${id}:${idx}`,idx,speaker,text,ts_raw:kz?`00:${String(idx*6).padStart(2,'0')}`:`2026-11-07T12:${String(Math.floor(idx*15/60)).padStart(2,'0')}:${String(idx*15%60).padStart(2,'0')}+05:00`,t_sec:idx*15,rec_sec:kz?null:idx*15-(idx>=6?15:0) }));
+          const names = ['Приветствие','Уточнение вопроса','Понятное решение','Риски инвестиций','Проверка результата','Вежливость','Прощание','Отсутствие грубости'];
+          const weights = [10,15,20,15,10,15,10,5];
+          const answers = ['yes',1,'yes','na','no','yes','yes','yes'];
+          const operators = messages.filter(m=>m.speaker==='operator');
+          const criteria = names.map((title,i) => ({ id:`C${i+1}`,title,section:i<2?'Начало':i<6?'Решение':'Завершение',answer_type:i===1?'scale':'binary',scale:i===1?[0,1,2]:null,max_points:i===1?2:1,weight:weights[i],na_allowed:i===3,critical:i===7 }));
+          const applicable = 85;
+          const evals = criteria.map((c,i)=> {
+            const message = operators[Math.min(i,operators.length-1)];
+            const quote = message.text;
+            return { criterion_id:c.id,conv_id:id,answer:answers[i],evidence:i===3||i===4?[]:[{message_id:message.id,quote,start:0,end:quote.length,valid:true}], checked_range:i===4?[operators[0].id,operators.at(-1).id]:null, na_reason:i===3?'Клиент спрашивает о настройках приложения; инвестиционные продукты не обсуждались.':null, explanation:i===4?'В проверенном участке оператор не спросил, решён ли вопрос.':'Демонстрационный вывод для проверки интерфейса. Цитата взята из вымышленного диалога.', confidence:i===1?.68:.94,needs_review:i===1,critical_hit:false,model:'demo / без LLM',tokens_in:100,tokens_out:25,cost_kzt:.12,latency_ms:0,suggestion:i===4?'Подскажите, удалось ли найти нужный раздел?':null };
+          });
+          if (id === 'demo-invalid') {
+            const message=messages.find(m=>m.text.includes('не гарантируем'));
+            evals[0].evidence=[{message_id:message.id,quote:'Мы гарантируем доходность инвестиций.',start:message.text.indexOf('Мы'),end:message.text.length,valid:true}];
+            evals[0].explanation='Вход содержит ошибочную цитату с удалённым отрицанием. Интерфейс должен отвергнуть её даже при valid=true.';
+          }
+          const lines = criteria.map((c,i)=> { const ratio=answers[i]==='yes'?1:answers[i]===1?.5:0; return {criterion_id:c.id,answer:answers[i],points:answers[i]==='na'?null:ratio*c.max_points,max_points:c.max_points,weight:c.weight,weight_effective:answers[i]==='na'?0:c.weight/applicable*100,contribution:answers[i]==='na'?0:ratio*c.weight/applicable*100,is_na:answers[i]==='na'}; });
+          const total_raw=lines.reduce((n,l)=>n+l.contribution,0);
+          const sections={};
+          for (const c of criteria) { sections[c.section]=(sections[c.section]||0)+lines.find(l=>l.criterion_id===c.id).contribution; }
+          return {id,language:kz?'KZ':'RU',channel:kz?'chat':'call',group_id:'SYNTHETIC',is_mock:true,messages,evals,checklist:{version:1,name:'Демонстрационный',criteria},score:{total:Math.round(total_raw*10)/10,total_raw,checklist_version:1,critical:false,sections,lines,formula_steps:['Вес применимых критериев: 85%.','Вклад = балл / максимум × вес / 85 × 100.']},meta:{wait_sec:30,recording_gaps:kz?[]:[[75,90]]},audio_url:null,appeals:[],decisions:[],audit:[],latency_ms:0};
+        }
+        CQA.bus.on('appeal:start', value => { document.getElementById('demo-status').textContent=`Запрошена апелляция по ${value.criterion_id}. Форму подключает модуль апелляций.`; });
+        CQA.bus.on('audio:seek', value => { document.getElementById('demo-status').textContent=`Переход к звуку: ${value.message_id}. В автономном примере записи нет.`; });
+        ['call','kz','invalid'].forEach(name => document.getElementById(`demo-${name}`).addEventListener('click',()=>CQA.bus.emit('conv:open',`demo-${name}`)));
+        document.getElementById('demo-role').addEventListener('click',event=>{CQA.config.role=CQA.config.role==='operator'?'reviewer':'operator';event.currentTarget.textContent=`Роль: ${CQA.config.role==='operator'?'оператор':'проверяющий'}`;CQA.bus.emit('role:changed',CQA.config.role);});
+        document.getElementById('demo-projector').addEventListener('click',event=>{const active=document.body.classList.toggle('projector');event.currentTarget.setAttribute('aria-pressed',String(active));});
+        mount(CQA);
+        CQA.bus.emit('app:ready');
+        CQA.bus.emit('conv:open','demo-call');
+      }).catch(() => { document.getElementById('cqa-card').textContent='Не удалось открыть модуль карточки. Проверьте запуск HTTP-сервера и наличие web/js/card.js.'; });
+    }
+  </script>
+</body>
+</html>

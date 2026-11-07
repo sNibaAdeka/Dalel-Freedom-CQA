@@ -1,0 +1,173 @@
+{
+  "_doc": "LLM providers, prices and evaluation presets for cqa/llm.py and cqa/evaluator.py. Model ids are 'provider:model' (split on the first colon only, so 'ollama:qwen2.5:7b-instruct' works). Env overrides: CQA_PROFILE (cloud|claude|local|mock), CQA_MODEL (main model for both modes), CQA_ARBITER_MODEL, CQA_BASE_URL/CQA_API_KEY (OpenAI-compatible endpoint, e.g. DeepSeek), CQA_OLLAMA_URL, CQA_USD_KZT.",
+  "usd_kzt": 500.0,
+  "default_profile": "cloud",
+  "fallback": {
+    "_doc": "cqa/llm.py: on 402/no credits switch to this model at once; on 429/5xx/connection errors back off exponentially up to backoff_total_s, then switch; on timeouts after `retries`. Not used for mock or when the failed model has the same provider. A profile may override with its own \"fallback\" (null = off). Env: CQA_FALLBACK_MODEL (none = off), CQA_BACKOFF_TOTAL_S. Answers carry usage.fallback=true and the real provider/model.",
+    "model": "claude_cli:sonnet",
+    "backoff_total_s": 60
+  },
+  "providers": {
+    "openai": {
+      "base_url_env": "CQA_BASE_URL",
+      "base_url_default": "https://api.deepseek.com",
+      "api_key_env": "CQA_API_KEY",
+      "timeout_s": 150,
+      "concurrency": 12,
+      "json_mode": true
+    },
+    "ollama": {
+      "base_url_env": "CQA_OLLAMA_URL",
+      "base_url_default": "http://localhost:11434",
+      "api_key_env": null,
+      "timeout_s": 900,
+      "concurrency": 2,
+      "num_ctx": 16384,
+      "think": false
+    },
+    "claude_cli": {
+      "binary_env": "CQA_CLAUDE_BIN",
+      "binary_default": "claude",
+      "timeout_s": 420,
+      "concurrency": 4
+    },
+    "anthropic": {
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "timeout_s": 240,
+      "concurrency": 6
+    },
+    "mock": {
+      "concurrency": 8
+    }
+  },
+  "pricing_usd_per_mtok": {
+    "_doc": "USD per 1M tokens. DeepSeek: list prices (cache miss / cache hit / output), check https://api-docs.deepseek.com/quick_start/pricing. claude_cli reports total_cost_usd itself; these rows are used only by the anthropic SDK provider. ollama = 0.",
+    "deepseek-chat": {
+      "in": 0.28,
+      "in_cached": 0.028,
+      "out": 0.42
+    },
+    "deepseek-reasoner": {
+      "in": 0.28,
+      "in_cached": 0.028,
+      "out": 0.42
+    },
+    "claude-haiku-5-5": {
+      "in": 0.1,
+      "in_cached": 0.01,
+      "out": 0.5
+    },
+    "_doc_openrouter": "OpenRouter model ids (CQA_BASE_URL=https://openrouter.ai/api/v1), list prices from GET /api/v1/models on 2026-11-07. Longest matching prefix wins only if exact id is absent; keep exact ids here.",
+    "anthropic/claude-haiku-5.5": {"in": 0.1, "out": 0.5},
+    "anthropic/claude-sonnet-5.5": {"in": 2.0, "out": 10.0},
+    "anthropic/claude-opus-5.5": {"in": 4.0, "out": 20.0},
+    "deepseek/deepseek-v4-pro": {"in": 0.65, "out": 1.29},
+    "deepseek/deepseek-v4-flash": {"in": 0.09, "out": 0.18},
+    "openai/gpt-6.1-terra": {"in": 1.0, "out": 5.0},
+    "google/gemini-4-argon": {"in": 2.0, "out": 10.0},
+    "qwen/qwen3.8-27b": {"in": 0.15, "out": 1.88}
+  },
+  "profiles": {
+    "cloud": {
+      "_doc": "Main cloud mode on an OpenAI-compatible API (OpenRouter). Fast = one call per dialogue; chosen 2026-11-07 by a 6-model bake-off on the 21 holdout dialogues with guidance m1-g9: google/gemini-4-argon 95.6% vs silver (95.3% gold_v2), ~$0.046 and ~41 s per dialogue; next: claude-sonnet-5.5 92.5-95.0%, qwen3.8-27b 93.1%, deepseek-v4-pro 92.5%. Control runs use fast. Accurate = one Gemini call per criterion, 1 vote, no arbiter (not benchmarked; about 8x the tokens of fast).",
+      "fast": {
+        "model": "openai:google/gemini-4-argon",
+        "votes": 1,
+        "temperatures": [
+          0.0
+        ]
+      },
+      "accurate": {
+        "_doc": "One Gemini call per criterion (focused prompt), 1 vote, no arbiter. Not benchmarked; about 8x the tokens of fast. Majority votes of 3-5 models in fast mode were simulated on the 21 holdout dialogues (2026-11-07) and did not beat Gemini alone beyond noise (best 153/159 vs 152/159 at ~2x cost), so no multi-model vote here.",
+        "model": "openai:google/gemini-4-argon",
+        "votes": 1,
+        "temperatures": [
+          0.0
+        ],
+        "arbiter": null
+      }
+    },
+    "claude": {
+      "_doc": "Team subscription through the claude CLI. Use for spot checks only; temperature is not controllable in the CLI (votes differ by sampling). CLI aliases are supported by --help; resolved_models records actual model IDs on successful calls. CLI total_cost_usd is a usage estimate, not an additional subscription invoice.",
+      "fast": {
+        "model": "claude_cli:sonnet",
+        "votes": 1,
+        "temperatures": [
+          1.0
+        ]
+      },
+      "accurate": {
+        "model": "claude_cli:sonnet",
+        "votes": 3,
+        "temperatures": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "arbiter": {
+          "model": "claude_cli:opus",
+          "when": "disagree"
+        }
+      }
+    },
+    "cascade": {
+      "_doc": "Cheap model first, stronger model only when needed (cqa/evaluator.py _cascade). Haiku 5.5 evaluates the dialogue; if any criterion needs review (low confidence, failed validation, critical flag, keyword-rule disagreement), Gemini 4 Argon re-evaluates the whole dialogue and its answers are used. Measured live on the 21 holdout dialogues with guidance m1-g9 (2026-11-07, run or-hold-cascade-g9): 95.6% vs silver and 95.3% vs gold_v2, the same as Gemini alone; 9 of 21 dialogues escalated; $0.021 per dialogue instead of $0.046. For volume; the control run uses profile cloud.",
+      "fast": {
+        "model": "openai:anthropic/claude-haiku-5.5",
+        "votes": 1,
+        "temperatures": [0.0],
+        "escalate": {"model": "openai:google/gemini-4-argon", "when": "needs_review"}
+      }
+    },
+    "routing": {
+      "_doc": "Bank policy routing (cqa/evaluator.py _route + _cascade): phone calls go straight to Gemini 4 Argon (long, ASR-noisy; skips the cheap first pass and roughly halves their latency); chats start on Haiku 5.5 and are escalated to Gemini when Haiku marks any criterion for review OR answers C3 Identification with yes/no, i.e. the operator touched the client's account data. Run through the product on the cache, 21 holdout dialogues: 152/159, 10 of 21 dialogues on Gemini, $0.0261 per dialogue (Gemini stages priced by tokens x config prices); 'account data only' without the doubt trigger gave 153 or 149 depending on the Haiku run.",
+      "fast": {
+        "model": "openai:anthropic/claude-haiku-5.5",
+        "votes": 1,
+        "temperatures": [0.0],
+        "route_by_channel": {"call": "openai:google/gemini-4-argon"},
+        "escalate": {"model": "openai:google/gemini-4-argon", "when": "needs_review", "when_answers": {"C3": ["yes", "no"]}}
+      }
+    },
+    "local": {
+      "_doc": "Local model through Ollama native /api/chat (num_ctx 16k, think off). qwen3.5:9b Q4_K_M fits fully into an 8 GB RTX 4060 with OLLAMA_FLASH_ATTENTION=1 and OLLAMA_KV_CACHE_TYPE=q8_0. Base URL from CQA_OLLAMA_URL (RTX machine). Local GPUs are slow: accurate = one call per criterion, single vote, no arbiter. No cloud fallback for ollama models (cqa/llm.py fallback_model): if the local server is down the evaluation fails loudly instead of sending dialogues out.",
+      "fast": {
+        "model": "ollama:qwen3.5:9b-q4_K_M",
+        "votes": 1,
+        "temperatures": [
+          0.0
+        ]
+      },
+      "accurate": {
+        "model": "ollama:qwen3.5:9b-q4_K_M",
+        "votes": 1,
+        "temperatures": [
+          0.0
+        ],
+        "arbiter": null
+      }
+    },
+    "mock": {
+      "fast": {
+        "model": "mock:mock",
+        "votes": 1,
+        "temperatures": [
+          0.0
+        ]
+      },
+      "accurate": {
+        "model": "mock:mock",
+        "votes": 3,
+        "temperatures": [
+          0.0,
+          0.5,
+          0.9
+        ],
+        "arbiter": {
+          "model": "mock:mock-arbiter",
+          "when": "disagree"
+        }
+      }
+    }
+  }
+}

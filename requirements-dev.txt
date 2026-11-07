@@ -1,0 +1,2 @@
+-r requirements-cqa.txt
+pytest>=8

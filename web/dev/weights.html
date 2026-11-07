@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Дәлел — лента весов</title><style>
+.cqa-root { --brand:#99dc40; --brand-ink:#213214; --surface:#fff; --ink:#17231d; --muted:#526158; --line:#dbe2dc; --yes:#17673d; --no:#ac3333; --partial:#88600b; --na:#626d66; --focus:#2468c4; color:var(--ink); background:#f3f6f3; font:16px/1.5 system-ui,sans-serif; margin:0; padding:32px 20px; min-height:100vh; box-sizing:border-box; }
+.cqa-root * { box-sizing:border-box; }
+.cqa-root .demo { max-width:720px; margin:auto; }
+.cqa-root h1 { font-size:28px; letter-spacing:-.035em; margin:8px 0; }
+.cqa-root .lede { color:var(--muted); margin:0 0 24px; }
+.cqa-root .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-block:16px; }
+.cqa-root .controls button,.cqa-root .controls select { font:inherit; min-height:44px; padding:8px 12px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); cursor:pointer; max-width:100%; }
+.cqa-root .controls button:focus-visible,.cqa-root .controls select:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
+.cqa-root .panel { border:1px solid var(--line); border-radius:16px; padding:20px; background:var(--surface); }
+.cqa-root .badge { color:var(--yes); font-weight:650; }
+.cqa-root .launch { padding:16px; border:1px solid var(--line); background:var(--surface); }
+.cqa-root .launch[hidden] { display:none; }
+.cqa-root code { overflow-wrap:anywhere; }
+.cqa-root .result { color:var(--muted); font-variant-numeric:tabular-nums; }
+@media(max-width:480px) { .cqa-root {padding:20px 12px;} .cqa-root .panel {padding:12px;} }
+</style></head>
+<body class="cqa-root"><main class="demo"><p class="badge">Дәлел / демо компонента</p><h1>Почему меняется вес</h1><p class="lede">Фиктивные оценки для проверки интерфейса. Итог и эффективные веса передаются готовыми.</p>
+<div id="launch" class="launch" hidden>Откройте страницу через локальный HTTP-сервер: <code>python3 -m http.server 8080 --directory web</code>, затем <code>http://localhost:8080/dev/weights.html</code>.</div>
+<div class="controls"><label for="scenario">Сценарий</label><select id="scenario"><option value="mixed">Один критерий N/A</option><option value="all">Все критерии N/A</option><option value="none">Без N/A</option><option value="empty">Нет оценки</option></select></div>
+<section class="panel"><p class="result" id="total"></p><div id="cqa-weights"></div><p id="focus" class="result" aria-live="polite">Клик по строке выбирает критерий.</p></section></main>
+<script>
+if(location.protocol==='file:') document.getElementById('launch').hidden=false;
+else (async()=>{
+ const listeners = new Map(); const bus = {on(name,fn) {if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);return()=>listeners.get(name).delete(fn);},emit(name,value){for(const fn of listeners.get(name)||[])fn(value);}};
+ const CQA=window.CQA={state:{},config:{mock:true},bus};
+ const {mount}=await import('../js/weights.js');mount(CQA);
+ const names=['Приветствие','Уточнение вопроса','Предложение продукта','Завершение'];
+ const base=[
+ {criterion_id:'C1',answer:'yes',weight:20,weight_effective:25,points:1,max_points:1,is_na:false},
+ {criterion_id:'C2',answer:1,weight:30,weight_effective:37.5,points:1,max_points:2,is_na:false},
+ {criterion_id:'C3',answer:'na',weight:20,weight_effective:0,points:null,max_points:1,is_na:true},
+ {criterion_id:'C4',answer:'no',weight:30,weight_effective:37.5,points:0,max_points:1,is_na:false}];
+ function show(mode){
+  let lines=base.map(x=>({...x})),total=43.75;
+  if(mode==='all'){lines=lines.map(x=>({...x,answer:'na',is_na:true,points:null,weight_effective:0}));total=null;}
+  if(mode==='none'){lines=lines.map(x=>({...x,answer:x.is_na?'yes':x.answer,is_na:false,points:x.is_na?1:x.points,weight_effective:x.weight}));total=55;}
+  if(mode==='empty'){lines=[];total=null;}
+  const detail={id:'demo-weights',is_mock:true,checklist:{criteria:names.map((title,i)=>({id:'C'+(i+1),title}))},score:{total,lines,formula_steps:mode==='mixed'?['Применимый вес: 20 + 30 + 30 = 80.','Эффективный вес первого критерия: 20 ÷ 80 × 100 = 25%.','Итог: 25 × 1 + 37,5 × 0,5 + 37,5 × 0 = 43,75.']:[]}};
+  CQA.state.conversation=detail;bus.emit('conv:loaded',detail);document.getElementById('total').textContent='Итог примера: '+(total===null?'не рассчитан':total+' / 100');
+ }
+ document.getElementById('scenario').addEventListener('change',e=>show(e.target.value));
+ bus.on('criterion:focus',e=>document.getElementById('focus').textContent='Выбран критерий '+e.criterion_id);
+ show('mixed');
+})().catch(()=>{document.getElementById('launch').hidden=false;});
+</script></body></html>

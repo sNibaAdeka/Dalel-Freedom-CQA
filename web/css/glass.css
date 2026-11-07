@@ -1,0 +1,214 @@
+/* Дәлел — стеклянная тема. Только токены в :root; правила компонентов используют var(--…).
+   Материал: surface x opacity + backdrop blur/saturate + inset-кромка + тинт ::before (.12).
+   Переменные --gl-blur/--gl-sat/--gl-alpha/--gl-alpha-inner/--gl-edge выставляет js/glass.js. */
+:root {
+  --gl-base: #e1e5e7;
+  --gl-mesh-cream: #f0f3f5;
+  --gl-mesh-sand: #d8dee3;
+  --gl-mesh-green: #c6d0d8;
+  --gl-mesh-mint: #cbd4dc;
+  --gl-surface: #f8fafb;
+  --gl-tint: #e9edf0;
+  --gl-hi: #ffffff;
+  --gl-shadow: #1f2c2433;
+  --gl-shadow-strong: #1f2c2440;
+  --gl-ink: #242c33;
+  --gl-muted: #35414a;
+  --gl-subtle: #ffffff99;
+  --gl-radius-bar: 20px;
+  --gl-radius-scene: 27px;
+  --gl-radius-panel: 17px;
+  --gl-bar-h: 62px;
+  --gl-dock-space: 92px;
+  --gl-rail-space: 88px;
+  --gl-t: 200ms;
+  --gl-ease: cubic-bezier(.22, 1, .36, 1);
+  /* значения по умолчанию (пресет «Матовое»), если JS не отработал */
+  --gl-blur: 22px; --gl-sat: 115%; --gl-alpha: 66%; --gl-alpha-inner: 49%; --gl-edge: 65%;
+}
+
+/* ---------- фон и токены темы ---------- */
+.cqa-root.gl-theme {
+  --ink: var(--gl-ink); --muted: var(--gl-muted); --surface-subtle: var(--gl-subtle);
+  --line: color-mix(in srgb, var(--gl-ink) 16%, transparent);
+  --line-strong: var(--muted);
+  color: var(--ink);
+  background:
+    radial-gradient(60% 55% at 8% 6%, var(--gl-mesh-green) 0, transparent 70%),
+    radial-gradient(55% 60% at 96% 12%, var(--gl-mesh-sand) 0, transparent 70%),
+    radial-gradient(60% 60% at 90% 96%, var(--gl-mesh-mint) 0, transparent 72%),
+    radial-gradient(50% 50% at 12% 98%, var(--gl-mesh-sand) 0, transparent 70%),
+    linear-gradient(160deg, var(--gl-mesh-cream), var(--gl-base));
+  background-color: var(--gl-base);
+  gap: 10px 12px;
+  padding: 8px 8px 12px;
+}
+
+/* ---------- материал стекла ---------- */
+.cqa-root.gl-theme :where(.cqa-header, .cqa-mode-strip, .cqa-workspace, .cqa-tabs, .cqa-navigation .cqa-version) { position: relative; }
+.cqa-root.gl-theme :is(.cqa-header, .cqa-mode-strip, .cqa-workspace, .cqa-tabs, .gl-rail, .gl-popover, .cqa-navigation .cqa-version) {
+  isolation: isolate;
+  background: color-mix(in srgb, var(--gl-surface) var(--gl-alpha), transparent);
+  -webkit-backdrop-filter: blur(var(--gl-blur)) saturate(var(--gl-sat));
+  backdrop-filter: blur(var(--gl-blur)) saturate(var(--gl-sat));
+  border: 1px solid color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent), 0 10px 30px var(--gl-shadow);
+}
+.cqa-root.gl-theme :is(.cqa-header, .cqa-mode-strip, .cqa-workspace, .cqa-tabs, .gl-rail, .gl-popover, .cqa-navigation .cqa-version)::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(135deg, var(--gl-tint), transparent 62%); opacity: .12;
+}
+/* вложенные панели: мягче, чтобы не копить непрозрачность */
+.cqa-root.gl-theme :is(.cqa-list-mount, .cqa-card-mount) {
+  position: relative; isolation: isolate; border: 1px solid color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent);
+  border-radius: var(--gl-radius-panel);
+  background: color-mix(in srgb, var(--gl-surface) var(--gl-alpha-inner), transparent);
+  -webkit-backdrop-filter: blur(calc(var(--gl-blur) * .6)) saturate(var(--gl-sat));
+  backdrop-filter: blur(calc(var(--gl-blur) * .6)) saturate(var(--gl-sat));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent);
+}
+
+/* ---------- верхняя панель 62px r20 ---------- */
+.cqa-root.gl-theme .cqa-header { min-height: var(--gl-bar-h); border-radius: var(--gl-radius-bar); padding: 6px 12px; }
+.cqa-root.gl-theme .cqa-brand strong { font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+.cqa-root.gl-theme .cqa-brand small { color: var(--muted); }
+.cqa-root.gl-theme .cqa-role-group { border-radius: 999px; padding: 2px; background: color-mix(in srgb, var(--gl-surface) 55%, transparent); border-color: var(--line); }
+.cqa-root.gl-theme .cqa-role-group button { border-radius: 999px; color: var(--ink); transition: transform var(--gl-t) var(--gl-ease), opacity var(--gl-t) var(--gl-ease); }
+.cqa-root.gl-theme .cqa-role-group button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow-small); }
+.cqa-root.gl-theme .cqa-button { border-radius: 999px; background: color-mix(in srgb, var(--gl-surface) 70%, transparent); border-color: var(--line); color: var(--ink); transition: transform var(--gl-t) var(--gl-ease); }
+.cqa-root.gl-theme .cqa-button:hover { background: var(--surface); }
+.cqa-root.gl-theme .cqa-button:active { transform: scale(.97); }
+.cqa-root.gl-theme .cqa-button[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand-ink); }
+.cqa-root.gl-theme .cqa-button-primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand-ink); }
+.cqa-root.gl-theme #cqa-mode-switch { color: var(--ink); border-color: var(--line); background: color-mix(in srgb, var(--gl-surface) 55%, transparent); border-radius: 999px; }
+
+/* ---------- строка режима и версия чек-листа ---------- */
+.cqa-root.gl-theme .cqa-navigation { padding: 0; border: 0; background: transparent; flex-wrap: nowrap; }
+.cqa-root.gl-theme .cqa-navigation .cqa-version { padding: 0 6px 0 14px; border-radius: 999px; color: var(--muted); }
+.cqa-root.gl-theme .cqa-version select { color: var(--ink); }
+.cqa-root.gl-theme .cqa-mode-strip { border-radius: 999px; padding: 0 14px; min-height: 46px; border-bottom: 1px solid color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent); color: var(--muted); }
+.cqa-root.gl-theme .cqa-mode-strip strong { color: var(--ink); }
+
+/* ---------- сцена r27 ---------- */
+.cqa-root.gl-theme .cqa-workspace { border-radius: var(--gl-radius-scene); padding: 12px; }
+.cqa-root.gl-theme .cqa-dialogues-layout { gap: 12px; }
+.cqa-root.gl-theme .cqa-list-mount { border-right: 1px solid color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent); }
+.cqa-root.gl-theme .cqa-card-mount { overflow: hidden; }
+.cqa-root.gl-theme .cqa-shell-row { background: color-mix(in srgb, var(--gl-surface) 85%, transparent); }
+.cqa-root.gl-theme .cqa-shell-row[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand-ink); }
+.cqa-root.gl-theme .cqa-footer { background: transparent; border: 0; color: var(--muted); padding: 4px 12px; }
+.cqa-root.gl-theme .cqa-toast { background: var(--ink); color: var(--surface); }
+
+/* ---------- навигация: сегмент на узких экранах ---------- */
+.cqa-root.gl-theme .cqa-tabs { border-radius: 999px; padding: 4px; gap: 4px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; }
+.cqa-root.gl-theme .cqa-tabs button {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 52px;
+  border: 0; border-radius: 999px; padding: 6px 4px; font-size: 12px; line-height: 1.15; color: var(--ink); text-align: center; white-space: normal;
+  transition: transform var(--gl-t) var(--gl-ease), opacity var(--gl-t) var(--gl-ease);
+}
+.cqa-root.gl-theme .cqa-tabs button:active { transform: scale(.97); }
+.cqa-root.gl-theme .cqa-tabs button[aria-selected="true"] { background: var(--brand); color: var(--brand-ink); font-weight: 650; box-shadow: inset 0 0 0 1.5px var(--brand-ink); }
+.cqa-root.gl-theme .gl-icon { width: 20px; height: 20px; }
+
+/* ---------- поповер «Вид» ---------- */
+.cqa-root.gl-theme .gl-popover {
+  position: fixed; z-index: 60; top: 78px; right: 12px; left: 12px; margin-inline: auto; width: auto; max-width: 360px; max-height: calc(100dvh - 96px); overflow: auto;
+  border-radius: var(--gl-radius-scene); padding: 16px; display: grid; gap: 12px;
+  background: color-mix(in srgb, var(--gl-surface) 97%, transparent);
+  animation: gl-pop var(--gl-t) var(--gl-ease);
+}
+.cqa-root.gl-theme .gl-popover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cqa-root.gl-theme .gl-popover-title { margin: 0; font-size: 17px; }
+.cqa-root.gl-theme .gl-icon-button, .cqa-root.gl-theme .gl-rail-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--ink); transition: transform var(--gl-t) var(--gl-ease), opacity var(--gl-t) var(--gl-ease); }
+.cqa-root.gl-theme .gl-icon-button:hover, .cqa-root.gl-theme .gl-rail-button:hover { background: var(--surface); border-color: var(--line); }
+.cqa-root.gl-theme .gl-icon-button:active, .cqa-root.gl-theme .gl-rail-button:active { transform: scale(.95); }
+.cqa-root.gl-theme .gl-rail-button[aria-pressed="true"], .cqa-root.gl-theme .gl-rail-button[aria-expanded="true"] { background: var(--brand-soft); border-color: var(--brand-ink); }
+.cqa-root.gl-theme .gl-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.cqa-root.gl-theme .gl-preset, .cqa-root.gl-theme .gl-reset { min-height: 44px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font-size: 14px; transition: transform var(--gl-t) var(--gl-ease); }
+.cqa-root.gl-theme .gl-preset:active, .cqa-root.gl-theme .gl-reset:active { transform: scale(.97); }
+.cqa-root.gl-theme .gl-preset[aria-pressed="true"] { background: var(--brand); border-color: var(--brand-ink); color: var(--brand-ink); font-weight: 650; }
+.cqa-root.gl-theme .gl-slider { display: grid; gap: 2px; font-size: 14px; }
+.cqa-root.gl-theme .gl-slider-head { display: flex; justify-content: space-between; gap: 8px; }
+.cqa-root.gl-theme .gl-slider output { color: var(--muted); font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme .gl-slider input[type="range"] { width: 100%; height: 44px; margin: 0; accent-color: var(--focus); background: transparent; }
+.cqa-root.gl-theme .gl-popover-note { margin: 0; font-size: 12px; color: var(--muted); }
+
+/* ---------- фокус ---------- */
+.cqa-root.gl-theme :is(button, a, select, input, summary, [tabindex]):focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; box-shadow: 0 0 0 5px var(--gl-surface); }
+
+/* ---------- рейка скрыта по умолчанию ---------- */
+.cqa-root.gl-theme .gl-rail { display: none; }
+
+/* ---------- >= 700px: сетка, док-пилюля внизу, поповер справа ---------- */
+@media (min-width: 700px) {
+  .cqa-root.gl-theme {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto auto; align-content: start;
+    padding: 12px 16px calc(var(--gl-dock-space) + env(safe-area-inset-bottom, 0px));
+  }
+  .cqa-root.gl-theme > .cqa-header { grid-column: 1 / -1; grid-row: 1; }
+  .cqa-root.gl-theme > .cqa-mode-strip { grid-column: 1; grid-row: 2; }
+  .cqa-root.gl-theme > .cqa-navigation { grid-column: 2; grid-row: 2; align-self: stretch; }
+  .cqa-root.gl-theme > .cqa-workspace { grid-column: 1 / -1; grid-row: 3; }
+  .cqa-root.gl-theme > .cqa-footer { display: none; }
+  .cqa-root.gl-theme .cqa-navigation .cqa-version { min-height: 46px; }
+  .cqa-root.gl-theme .cqa-navigation .cqa-tabs {
+    position: fixed; z-index: 50; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    display: flex; width: auto; max-width: calc(100vw - 24px); padding: 6px; gap: 4px;
+    background: color-mix(in srgb, var(--gl-surface) var(--gl-alpha), transparent);
+  }
+  .cqa-root.gl-theme .cqa-navigation .cqa-tabs button { flex-direction: row; gap: 8px; min-height: 48px; padding: 0 18px; font-size: 15px; white-space: nowrap; }
+  .cqa-root.gl-theme .gl-popover { left: auto; right: 16px; width: 340px; }
+  .cqa-root.gl-theme .cqa-toast { bottom: calc(var(--gl-dock-space) + 8px); right: 20px; }
+  .cqa-root.gl-theme .cqa-header { padding: 6px 14px; }
+}
+@media (min-width: 769px) {
+  .cqa-root.gl-theme { grid-template-rows: auto auto minmax(0, 1fr); height: 100dvh; min-height: 560px; }
+  .cqa-root.gl-theme > .cqa-workspace { min-height: 0; overflow: auto; }
+}
+@media (min-width: 1100px) {
+  .cqa-root.gl-theme { padding-left: calc(var(--gl-rail-space) + 8px); }
+  .cqa-root.gl-theme .gl-rail {
+    display: flex; flex-direction: column; gap: 6px; position: fixed; z-index: 45; left: 16px; top: calc(12px + var(--gl-bar-h) + 12px);
+    padding: 8px; border-radius: var(--gl-radius-bar); width: 60px;
+  }
+  .cqa-root.gl-theme .gl-view-toggle { display: none; }
+  .cqa-root.gl-theme .gl-popover { top: calc(12px + var(--gl-bar-h) + 12px); left: 88px; right: auto; margin: 0; }
+  .cqa-root.projector.gl-theme .cqa-navigation .cqa-tabs button { font-size: 17px; }
+}
+
+/* ---------- < 700px: сегмент-навигация сверху ---------- */
+@media (max-width: 699px) {
+  .cqa-root.gl-theme { padding: 8px 8px 12px; }
+  .cqa-root.gl-theme .cqa-header { border-radius: var(--gl-radius-bar); }
+  .cqa-root.gl-theme .cqa-header-controls { grid-template-columns: minmax(0, 1fr) 44px 44px; }
+  .cqa-root.gl-theme .gl-view-toggle { width: 44px; min-width: 44px; padding: 8px; }
+  .cqa-root.gl-theme .gl-view-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .cqa-root.gl-theme .cqa-navigation { display: grid; gap: 8px; }
+  .cqa-root.gl-theme .cqa-navigation .cqa-version { width: 100%; border-top: 1px solid color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent); padding: 4px 8px 4px 14px; }
+  .cqa-root.gl-theme .cqa-mode-strip { border-radius: var(--gl-radius-panel); padding: 6px 12px; }
+  .cqa-root.gl-theme .cqa-workspace { border-radius: var(--gl-radius-bar); padding: 8px; }
+  .cqa-root.gl-theme .cqa-footer { padding: 8px 12px; }
+  .cqa-root.gl-theme .gl-popover { top: 70px; }
+}
+
+/* ---------- режим проектора: плотнее, крупнее цели ---------- */
+.cqa-root.gl-theme.projector { --gl-shadow: var(--gl-shadow-strong); }
+.cqa-root.gl-theme.projector .cqa-brand strong { font-size: 28px; }
+
+/* ---------- движение ---------- */
+@keyframes gl-pop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .cqa-root.gl-theme *, .cqa-root.gl-theme *::before { animation: none !important; transition: none !important; }
+}
+
+/* ---------- фолбэк без backdrop-filter: сплошная поверхность ---------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .cqa-root.gl-theme :is(.cqa-header, .cqa-mode-strip, .cqa-workspace, .cqa-tabs, .gl-rail, .gl-popover, .cqa-navigation .cqa-version, .cqa-list-mount, .cqa-card-mount),
+  .cqa-root.gl-theme .cqa-navigation .cqa-tabs { background: var(--gl-surface); }
+  .cqa-root.gl-theme :is(.cqa-list-mount, .cqa-card-mount) { background: var(--surface-subtle); }
+}
+/* повышенная контрастность ОС: сплошные поверхности */
+@media (prefers-contrast: more) {
+  .cqa-root.gl-theme :is(.cqa-header, .cqa-mode-strip, .cqa-workspace, .cqa-tabs, .gl-rail, .gl-popover, .cqa-navigation .cqa-version),
+  .cqa-root.gl-theme .cqa-navigation .cqa-tabs { background: var(--gl-surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}

@@ -1,0 +1,26 @@
+/* Semantic application tokens only; deliberately no animated layout. */
+.cqa-economics, .cqa-economics * { box-sizing: border-box; min-width: 0; }
+.cqa-economics { color: var(--ink); background: var(--surface); border-block-start: 1px solid var(--line); font-size: 1rem; line-height: 1.5; padding-block: 8px; }
+.cqa-economics summary { min-height: 44px; padding: 12px 8px; cursor: pointer; font-weight: 650; touch-action: manipulation; }
+.cqa-economics summary:hover { background: var(--surface-subtle); }
+.cqa-economics :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.cqa-economics__fields, .cqa-economics__results { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.cqa-economics__field { display: flex; flex-direction: column; gap: 6px; }
+.cqa-economics__field label { font-weight: 600; }
+.cqa-economics__field input { width: 100%; min-height: 44px; padding: 10px 12px; font: inherit; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); color: var(--ink); background: var(--surface); }
+.cqa-economics__error { color: var(--no); font-size: .875em; }
+.cqa-economics__note { color: var(--muted); margin: 8px 0 16px; }
+.cqa-economics__profile { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.cqa-economics__profile h3 { margin: 0 0 12px; font-size: 1.125em; }
+.cqa-economics__profile dl { margin: 0; }
+.cqa-economics__profile dl > div { padding-block: 8px; border-block-end: 1px solid var(--line); }
+.cqa-economics__profile dt { color: var(--muted); }
+.cqa-economics__profile dd { margin: 2px 0 0; font-weight: 650; font-variant-numeric: tabular-nums; }
+.cqa-economics__warning { padding: 12px; border-inline-start: 3px solid var(--partial); background: var(--surface-subtle); color: var(--ink); }
+.cqa-economics__button { min-height: 44px; min-width: 44px; padding: 10px 16px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); cursor: pointer; font: inherit; touch-action: manipulation; }
+.cqa-economics__button:hover { background: var(--surface-subtle); }
+.cqa-economics :is(p, label, h3, dt, dd, summary, button) { overflow-wrap: anywhere; }
+@media (min-width: 768px) { .cqa-economics__fields, .cqa-economics__results { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .cqa-economics:not(.cqa-economics--budget) > .cqa-economics__fields { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cqa-root.projector .cqa-economics { font-size: 1.125rem; }
+@media (prefers-reduced-motion: reduce) { .cqa-economics * { animation: none; transition: none; scroll-behavior: auto; } }

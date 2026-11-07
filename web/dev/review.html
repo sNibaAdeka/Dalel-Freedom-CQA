@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Дәлел — демо апелляции и решения</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../app.css">
+  <style>
+    .cqa-root .demo-dialogues { padding: 20px 30px 40px; }
+    .cqa-root .demo-switcher { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+    .cqa-root .demo-switcher > span { color: var(--muted); font-size: 13px; margin-right: 4px; }
+    .cqa-root .demo-switcher button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 14px; }
+    .cqa-root .demo-switcher button[aria-pressed="true"] { border-color: var(--brand-ink); background: var(--brand-soft); font-weight: 650; }
+    .cqa-root .demo-switcher button:focus-visible, .cqa-root .demo-fail:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    .cqa-root .demo-fail { min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 13px; }
+    .cqa-root .demo-fail[aria-pressed="true"] { border-color: var(--no); background: var(--no-bg); color: var(--no); font-weight: 650; }
+    .cqa-root .demo-check { margin: 20px 0 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .cqa-root .demo-check h2 { margin: 0 0 4px; font-size: 16px; }
+    .cqa-root .demo-check p { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .cqa-root .demo-check ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .cqa-root .demo-check li { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+    .cqa-root .demo-check li span { color: var(--muted); }
+    .cqa-root .demo-check [data-ok="true"] { color: var(--yes); font-weight: 650; }
+    .cqa-root .demo-check [data-ok="false"] { color: var(--no); font-weight: 650; }
+    .cqa-root #cqa-panel-review > #cqa-review { max-width: 1500px; }
+    @media (max-width: 768px) { .cqa-root .demo-dialogues { padding: 14px 16px 32px; } }
+  </style>
+</head>
+<body style="margin:0">
+  <div class="cqa-root" data-role="operator">
+    <a class="cqa-skip" href="#cqa-workspace">Перейти к содержимому</a>
+    <header class="cqa-header">
+      <a class="cqa-brand" href="#dialogues" aria-label="Дәлел — демо апелляции">
+        <svg class="cqa-brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12"/><path d="m10 21 6 6 14-15"/></svg>
+        <span><strong>Дәлел</strong><small>Демо T24: апелляция → решение → новый итог</small></span>
+      </a>
+      <div class="cqa-header-controls">
+        <div class="cqa-role-group" role="group" aria-label="Рабочая роль">
+          <button type="button" data-role="operator" aria-pressed="true">Оператор</button>
+          <button type="button" data-role="reviewer" aria-pressed="false">Проверяющий</button>
+        </div>
+      </div>
+    </header>
+    <div class="cqa-navigation">
+      <nav class="cqa-tabs" role="tablist" aria-label="Разделы демо">
+        <button type="button" role="tab" id="cqa-tab-dialogues" aria-controls="cqa-panel-dialogues" aria-selected="true" tabindex="0" data-tab="dialogues">Диалоги</button>
+        <button type="button" role="tab" id="cqa-tab-review" aria-controls="cqa-panel-review" aria-selected="false" tabindex="-1" data-tab="review">На проверке</button>
+      </nav>
+      <button type="button" class="demo-fail" id="demo-fail" aria-pressed="false">Сбой следующей записи: выкл</button>
+    </div>
+    <div class="cqa-mode-strip" role="status"><span class="cqa-mode-dot" aria-hidden="true"></span><strong id="demo-mode-title">Демонстрационный режим</strong><span id="cqa-mode-description">Вымышленные диалоги, чек-лист v1. Итог считает сервер-заглушка по формуле PDF, модуль сверяет его своим пересчётом. Данные живут только в этой вкладке.</span></div>
+    <main id="cqa-workspace" class="cqa-workspace" tabindex="-1">
+      <section class="cqa-tab-panel demo-dialogues" id="cqa-panel-dialogues" role="tabpanel" aria-labelledby="cqa-tab-dialogues">
+        <nav class="demo-switcher" id="demo-switcher" aria-label="Синтетические диалоги"><span>Диалог:</span></nav>
+        <div id="cqa-card" class="cqa-card-mount"></div>
+        <section class="demo-check" aria-labelledby="demo-check-title">
+          <h2 id="demo-check-title">Сверка чисел</h2>
+          <p>Сервер-заглушка считает итог своей реализацией формулы v1. Модуль T24 независимо пересчитывает тот же итог из ответов ИИ и решений.</p>
+          <ul id="demo-check-list"><li>Откройте диалог.</li></ul>
+        </section>
+      </section>
+      <section class="cqa-tab-panel" id="cqa-panel-review" role="tabpanel" aria-labelledby="cqa-tab-review" hidden><div id="cqa-review"></div></section>
+    </main>
+    <div id="cqa-announcer" class="cqa-visually-hidden" aria-live="polite" aria-atomic="true"></div>
+    <div id="cqa-toast" class="cqa-toast" role="status" hidden></div>
+  </div>
+  <script type="module">
+    const byId = id => document.getElementById(id);
+    if (location.protocol === 'file:') {
+      byId('cqa-card').textContent = 'Откройте через HTTP: python3 -m http.server 8000 --directory web, затем http://localhost:8000/dev/review.html';
+    } else {
+      start().catch(error => { byId('cqa-card').textContent = `Демо не запустилось: ${error.message}`; });
+    }
+
+    async function start() {
+      const params = new URLSearchParams(location.search);
+      const root = document.querySelector('.cqa-root');
+      const listeners = new Map();
+      const bus = {
+        on(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); return () => listeners.get(name)?.delete(fn); },
+        emit(name, payload) {
+          for (const fn of [...(listeners.get(name) || [])]) {
+            try { const result = fn(payload); if (result?.catch) result.catch(error => toast(error.message)); } catch (error) { toast(error.message); }
+          }
+        },
+      };
+      const CQA = window.CQA = { config: { role: 'operator', mock: true, locale: 'ru' }, state: { tab: 'dialogues', modules: {}, checklistVersion: 1 }, bus, api: null };
+      let toastTimer = 0;
+      function toast(message) { clearTimeout(toastTimer); const node = byId('cqa-toast'); node.textContent = String(message); node.hidden = false; toastTimer = setTimeout(() => { node.hidden = true; }, 5000); }
+      CQA.toast = toast;
+      CQA.announce = message => { byId('cqa-announcer').textContent = message; };
+      const tabs = ['dialogues', 'review'];
+      function setTab(tab, focus = false) {
+        if (!tabs.includes(tab)) return;
+        CQA.state.tab = tab;
+        for (const name of tabs) {
+          const button = byId(`cqa-tab-${name}`);
+          button.setAttribute('aria-selected', String(name === tab)); button.tabIndex = name === tab ? 0 : -1;
+          if (name === tab && focus) button.focus();
+          byId(`cqa-panel-${name}`).hidden = name !== tab;
+        }
+        bus.emit('tab:changed', tab);
+      }
+      function setRole(role) {
+        CQA.config.role = role; CQA.state.role = role; root.dataset.role = role;
+        root.querySelectorAll('[data-role]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.role === role)));
+        bus.emit('role:changed', role);
+        CQA.announce(role === 'operator' ? 'Роль: оператор' : 'Роль: проверяющий');
+      }
+      CQA.setTab = setTab; CQA.setRole = setRole;
+      root.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => setTab(button.dataset.tab)));
+      root.querySelector('[role="tablist"]').addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const index = tabs.indexOf(CQA.state.tab);
+        setTab(event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs.at(-1) : tabs[(index + 1) % tabs.length], true);
+      });
+      root.querySelectorAll('[data-role]').forEach(button => button.addEventListener('click', () => setRole(button.dataset.role)));
+      bus.on('conv:open', id => { CQA.state.activeConversationId = id; setTab('dialogues'); reflectSwitcher(id); });
+      const failButton = byId('demo-fail');
+      failButton.addEventListener('click', () => {
+        const next = failButton.getAttribute('aria-pressed') !== 'true';
+        failButton.setAttribute('aria-pressed', String(next));
+        failButton.textContent = `Сбой следующей записи: ${next ? 'вкл' : 'выкл'}`;
+      });
+
+      let ids;
+      if (params.get('api') === 'shared') {
+        const { createApi } = await import('../js/api.js');
+        CQA.api = createApi(CQA);
+        CQA.state.checklists = await CQA.api.checklists();
+        ids = (await CQA.api.conversations()).slice(0, 3).map(row => [row.id, row.id]);
+        byId('cqa-mode-description').textContent = 'Общий мок api.js (синтетический чек-лист волны 1). Сбой записи здесь не моделируется.';
+        failButton.hidden = true;
+      } else {
+        const demo = createDemoServer(() => failButton.getAttribute('aria-pressed') === 'true', () => { failButton.setAttribute('aria-pressed', 'false'); failButton.textContent = 'Сбой следующей записи: выкл'; });
+        CQA.api = demo.api;
+        CQA.state.checklists = [structuredClone(demo.checklist)];
+        ids = demo.labels;
+      }
+      const switcher = byId('demo-switcher');
+      for (const [id, label] of ids) {
+        const button = document.createElement('button');
+        button.type = 'button'; button.dataset.id = id; button.textContent = label; button.setAttribute('aria-pressed', 'false');
+        button.addEventListener('click', () => bus.emit('conv:open', id));
+        switcher.append(button);
+      }
+      function reflectSwitcher(id) { switcher.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.id === id))); }
+
+      const [{ mount: mountCard }, review] = await Promise.all([import('../js/card.js'), import('../js/review.js')]);
+      mountCard(CQA); CQA.state.modules.card = true;
+      review.mount(CQA); CQA.state.modules.review = true;
+      installCheck(CQA, review);
+      setRole('operator');
+      setTab(location.hash === '#review' ? 'review' : 'dialogues');
+      bus.emit('app:ready', CQA);
+      bus.emit('conv:open', ids[0][0]);
+    }
+
+    function installCheck(CQA, review) {
+      const list = byId('demo-check-list');
+      const decisions = new Map();
+      const row = (label, value, ok) => { const li = document.createElement('li'); const name = document.createElement('span'); name.textContent = label; const text = document.createElement('strong'); text.textContent = value; li.append(name, text); if (ok !== undefined) { const mark = document.createElement('b'); mark.dataset.ok = String(ok); mark.textContent = ok ? 'совпадает' : 'расхождение'; li.append(mark); } return li; };
+      CQA.bus.on('decision:saved', payload => { if (payload?.conv_id) decisions.set(payload.conv_id, payload); });
+      CQA.bus.on('conv:loaded', detail => {
+        const history = review.buildHistory(detail, CQA.state.checklists?.[0]);
+        const f = review.formatNumber;
+        const auditAi = [...(detail.audit || [])].reverse().find(event => event.event === 'eval.completed');
+        const serverAi = auditAi?.payload?.total;
+        const items = [
+          row('Итог сервера (score.total)', f(detail.score?.total)),
+          row('Пересчёт модуля по формуле чек-листа', f(history.finalScore?.total), history.verified === true),
+        ];
+        if (serverAi !== undefined) items.push(row('Итог ИИ: сервер / пересчёт модуля из исходных ответов', `${f(serverAi)} / ${f(history.aiScore?.total)}`, serverAi === history.aiScore?.total));
+        items.push(row('В карточке: Итог ИИ → Финал', `${f(history.aiTotal)} → ${f(history.finalTotal)}`));
+        const last = decisions.get(detail.id);
+        if (last) items.push(row('Последнее решение: сервер вернул', `${f(last.old_total)} → ${f(last.new_total)}`, last.new_total === detail.score?.total));
+        list.replaceChildren(...items);
+      });
+    }
+
+    /* Synthetic server for the dev page. Checklist v1 semantics; independent implementation of the PDF formula. */
+    function createDemoServer(shouldFail, resetFail) {
+      const checklist = {
+        checklist_id: 'freedom-chat-quality', version: 1, name: 'Чек-лист качества чатов', rounding: { total: 2, mode: 'half_up' },
+        sections: ['Начало и понимание запроса', 'Безопасность и решение', 'Ведение и завершение диалога', 'Грубые нарушения'],
+        criteria: [
+          { id: 'C1', section: 'Начало и понимание запроса', title: 'Установление контакта', answer_type: 'binary', weight: 10, max_points: 10, scale: null, na_allowed: false, na_rule: '', critical: false, description: 'Да — оператор поздоровался на языке клиента и представился в первом ответе.' },
+          { id: 'C2', section: 'Начало и понимание запроса', title: 'Выявление потребности', answer_type: 'binary', weight: 15, max_points: 15, scale: null, na_allowed: true, na_rule: 'N/A — данных для ответа хватало с самого начала.', critical: false, description: 'Да — оператор учёл известные детали и уточнил недостающее до ответа.' },
+          { id: 'C3', section: 'Безопасность и решение', title: 'Идентификация', answer_type: 'binary', weight: 20, max_points: 20, scale: null, na_allowed: true, na_rule: 'N/A — запрос не требовал идентификации.', critical: false, description: 'Да — проверка личности подтверждена до раскрытия данных или защищённого действия.' },
+          { id: 'C4', section: 'Безопасность и решение', title: 'Корректная и полная консультация', answer_type: 'scale', weight: 20, max_points: 20, scale: [0, 5, 10, 15, 20], scale_labels: { 20: 'Все существенные вопросы закрыты или дан корректный следующий шаг.', 15: 'Основной вопрос решён, пропущена второстепенная деталь.', 10: 'Часть запроса закрыта, существенный вопрос остался открытым.', 5: 'Есть общая подсказка, но клиенту всё ещё непонятно, как действовать.', 0: 'Ответа по существу нет или ключевая рекомендация ошибочна.' }, na_allowed: true, na_rule: 'N/A — чат закончился до того, как клиент сформулировал запрос.', critical: false, description: 'Оцените ответ или следующий шаг по шкале.' },
+          { id: 'C5', section: 'Ведение и завершение диалога', title: 'Эмпатия и клиентоориентированность', answer_type: 'binary', weight: 15, max_points: 15, scale: null, na_allowed: false, na_rule: '', critical: false, description: 'Да — оператор вежлив и отреагировал на конкретную проблему клиента.' },
+          { id: 'C6', section: 'Ведение и завершение диалога', title: 'Управление диалогом, скорость и грамотность', answer_type: 'scale', weight: 15, max_points: 15, scale: [0, 4, 7, 10], scale_labels: { 10: 'Ответы ясные и связные.', 7: 'Один заметный сбой, но клиент может понять ответ и продолжить.', 4: 'Клиенту приходится переспрашивать из-за формулировок или порядка ответов.', 0: 'Ход диалога непонятен.' }, na_allowed: false, na_rule: '', critical: false, description: 'Оцените ясность, порядок ответов и предупреждение об ожидании по шкале.' },
+          { id: 'C7', section: 'Ведение и завершение диалога', title: 'Завершение', answer_type: 'binary', weight: 5, max_points: 5, scale: null, na_allowed: true, na_rule: 'N/A — чат оборвался до возможности его завершить.', critical: false, description: 'Да — оператор подвёл итог или предложил дальнейшую помощь и попрощался.' },
+          { id: 'C8', section: 'Грубые нарушения', title: 'Грубые ошибки', answer_type: 'binary', weight: 0, max_points: 0, scale: null, na_allowed: false, na_rule: '', critical: true, critical_rule: 'Без баллов. «Да» = нарушение выявлено.', description: 'Да — оскорбление, платная услуга в обход компании или раскрытие конфиденциальной информации.' },
+        ],
+      };
+      const now = Date.now();
+      const iso = minutesAgo => new Date(now - minutesAgo * 60000).toISOString();
+      const clone = value => structuredClone(value);
+      const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+      const fail = () => { if (shouldFail()) { resetFail(); throw new Error('Сервер вернул ошибку 503. Запись не выполнена.'); } };
+      const dialogs = [
+        { id: 'demo-v1-pdf', label: 'RU · пример PDF (85,38)', language: 'RU', minutes: 180, operatorMessages: [
+          ['bot', 'Здравствуйте! Я виртуальный помощник. Опишите ваш вопрос.'],
+          ['client', 'Какая комиссия за вывод денег с брокерского счёта на карту?'],
+          ['system', 'Диалог передан оператору.'],
+          ['operator', 'Здравствуйте! Меня зовут Айгерим, я помогу с выводом средств.'],
+          ['operator', 'На карту другого банка вывод идёт с комиссией по тарифу, на карту нашего банка — без комиссии.'],
+          ['client', 'А сколько идут деньги?'],
+          ['operator', 'Обычно один рабочий день. Извините, сначала ответила неточно: заявки в выходные обрабатываются в понедельник.'],
+          ['client', 'Понятно, спасибо.'],
+          ['operator', 'Рада помочь! Если появятся вопросы — пишите. Хорошего дня!'],
+        ], evals: {
+          C1: { answer: 'yes', quote: [3, 'Здравствуйте! Меня зовут Айгерим'], explanation: 'Оператор поздоровался на языке клиента и представился в первом ответе.' },
+          C2: { answer: 'na', na_reason: 'Клиент сразу назвал операцию и направление вывода: данных хватало.', explanation: 'Уточнять было нечего.' },
+          C3: { answer: 'na', na_reason: 'Общий вопрос о комиссии не требует идентификации.', explanation: 'Защищённых действий не было.' },
+          C4: { answer: 15, quote: [4, 'на карту нашего банка — без комиссии'], explanation: 'Ответ по комиссии дан, но срок зачисления оператор назвал только после вопроса клиента.', confidence: 0.64 },
+          C5: { answer: 'yes', quote: [8, 'Рада помочь!'], explanation: 'Оператор вежлив на протяжении диалога.' },
+          C6: { answer: 7, quote: [6, 'Извините, сначала ответила неточно'], explanation: 'Один заметный сбой: оператор поправила свой ответ о сроках.' },
+          C7: { answer: 'yes', quote: [8, 'Если появятся вопросы — пишите. Хорошего дня!'], explanation: 'Оператор предложил помощь и попрощался.' },
+          C8: { answer: 'no', range: [3, 8], explanation: 'Оскорблений, платных услуг в обход компании и раскрытия данных не найдено.' },
+        } },
+        { id: 'demo-v1-id', label: 'RU · смена номера (65)', language: 'RU', minutes: 95, operatorMessages: [
+          ['bot', 'Здравствуйте! Чем могу помочь?'],
+          ['client', 'Хочу сменить номер телефона в профиле, старая сим-карта утеряна.'],
+          ['system', 'Клиент переведён на оператора.'],
+          ['operator', 'Здравствуйте! Меня зовут Тимур. Подскажите, какой номер указать новым?'],
+          ['client', 'Новый номер оканчивается на 00-00.'],
+          ['operator', 'Готово, номер в профиле изменён на новый.'],
+          ['client', 'Спасибо!'],
+          ['system', 'Клиент закрыл чат.'],
+        ], evals: {
+          C1: { answer: 'yes', quote: [3, 'Здравствуйте! Меня зовут Тимур.'], explanation: 'Приветствие и имя в первом ответе.' },
+          C2: { answer: 'yes', quote: [3, 'Подскажите, какой номер указать новым?'], explanation: 'Оператор уточнил недостающие данные.' },
+          C3: { answer: 'no', range: [3, 5], explanation: 'Смена номера — защищённое действие, но проверка личности в чате не проведена.', confidence: 0.91 },
+          C4: { answer: 10, quote: [5, 'Готово, номер в профиле изменён на новый.'], explanation: 'Действие выполнено, но без проверки и без объяснения последствий.' },
+          C5: { answer: 'yes', quote: [5, 'Готово, номер в профиле изменён на новый.'], explanation: 'Вежливый тон.' },
+          C6: { answer: 10, quote: [3, 'Подскажите, какой номер указать новым?'], explanation: 'Ответы ясные и связные.' },
+          C7: { answer: 'no', range: [5, 5], explanation: 'Оператор не предложил помощь и не попрощался.', confidence: 0.58 },
+          C8: { answer: 'no', range: [3, 5], explanation: 'Грубых нарушений не найдено.' },
+        }, appeals: [{ id: 'demo-appeal-open', criterion_id: 'C7', comment: 'Клиент закрыл чат сразу после ответа — попрощаться было невозможно. Прошу N/A.', message_ids: [6, 7], minutes: 25 }] },
+        { id: 'demo-v1-kz', label: 'KZ · грубая ошибка (51,25)', language: 'KZ', minutes: 240, operatorMessages: [
+          ['bot', 'Сәлеметсіз бе! Сұрағыңызды жазыңыз.'],
+          ['client', 'Шотыма ақшаны қалай салуға болады?'],
+          ['operator', 'Сәлеметсіз бе! Менің атым Ерлан, көмектесемін.'],
+          ['operator', 'Қосымшада «Толықтыру» бөлімін ашыңыз.'],
+          ['client', 'Ол жерде карта таңдалмайды.'],
+          ['operator', 'Жеке нөміріңізді жазыңыз, ақылы кеңесті өзім жеке беремін.'],
+          ['client', 'Жоқ, рақмет.'],
+          ['operator', 'Жақсы. Тағы сұрақ болса, жазыңыз. Сау болыңыз!'],
+        ], evals: {
+          C1: { answer: 'yes', quote: [2, 'Сәлеметсіз бе! Менің атым Ерлан'], explanation: 'Приветствие на казахском и имя в первом ответе.' },
+          C2: { answer: 'yes', quote: [3, 'Қосымшада «Толықтыру» бөлімін ашыңыз.'], explanation: 'Запрос понятен, оператор сразу перешёл к ответу.' },
+          C3: { answer: 'na', na_reason: 'Пополнение через приложение не требовало идентификации в чате.', explanation: 'Защищённых действий не было.' },
+          C4: { answer: 5, quote: [3, 'Қосымшада «Толықтыру» бөлімін ашыңыз.'], explanation: 'Есть общая подсказка, но проблема с выбором карты не решена.' },
+          C5: { answer: 'no', range: [2, 7], explanation: 'Оператор не отреагировал на проблему клиента с картой.' },
+          C6: { answer: 4, quote: [3, 'Қосымшада «Толықтыру» бөлімін ашыңыз.'], explanation: 'Клиенту пришлось вернуться к той же проблеме.' },
+          C7: { answer: 'yes', quote: [7, 'Тағы сұрақ болса, жазыңыз. Сау болыңыз!'], explanation: 'Оператор предложил помощь и попрощался.' },
+          C8: { answer: 'yes', quote: [5, 'ақылы кеңесті өзім жеке беремін'], explanation: 'Оператор предложил платную консультацию в обход компании.', confidence: 0.88 },
+        }, appeals: [{ id: 'demo-appeal-closed', criterion_id: 'C6', comment: 'Клиент понял, где пополнить: раздел я назвал сразу.', message_ids: [3], minutes: 120, decision: { id: 'demo-decision-closed', action: 'confirm', reason: 'Проблему с выбором карты оператор не разобрал: клиенту пришлось вернуться к вопросу.', minutes: 110 } }] },
+      ];
+      const details = new Map();
+      const appeals = new Map();
+      let sequence = 0;
+      const nextId = prefix => `${prefix}-${Date.now().toString(36)}-${++sequence}`;
+
+      function fraction(criterion, answer) {
+        if (answer === 'yes') return 1;
+        if (answer === 'no') return 0;
+        if (typeof answer === 'number') return answer / Math.max(...criterion.scale);
+        return null;
+      }
+      function serverScore(id, answers, aiCritical) {
+        let applicable = 0, points = 0;
+        for (const criterion of checklist.criteria) {
+          const answer = answers[criterion.id];
+          if (criterion.critical || !(criterion.weight > 0) || answer === 'na' || answer == null) continue;
+          applicable += criterion.weight; points += fraction(criterion, answer) * criterion.weight;
+        }
+        const raw = applicable ? points / applicable * 100 : null;
+        const total = raw === null ? null : Math.round(raw * 100 + 1e-9) / 100;
+        const lines = checklist.criteria.map(criterion => {
+          const answer = answers[criterion.id];
+          const flag = criterion.critical && !(criterion.weight > 0);
+          const value = answer === 'na' || flag ? null : fraction(criterion, answer);
+          const effective = value === null || !applicable ? 0 : criterion.weight / applicable * 100;
+          return { criterion_id: criterion.id, answer, points: value === null ? null : value * criterion.max_points, max_points: criterion.max_points, weight: criterion.weight, weight_effective: effective, contribution: value === null ? 0 : value * effective, is_na: answer === 'na' };
+        });
+        const sections = {};
+        for (const section of checklist.sections.slice(0, 3)) {
+          let w = 0, p = 0;
+          for (const criterion of checklist.criteria.filter(item => item.section === section)) {
+            const answer = answers[criterion.id];
+            if (answer === 'na' || answer == null || !(criterion.weight > 0)) continue;
+            w += criterion.weight; p += fraction(criterion, answer) * criterion.weight;
+          }
+          sections[section] = w ? Math.round(p / w * 10000 + 1e-9) / 100 : null;
+        }
+        return { conv_id: id, checklist_version: 1, total, total_raw: raw, sections, critical: answers.C8 === 'yes', lines,
+          formula_steps: [`Сумма применимых весов: ${applicable}.`, `Баллы: ${Math.round(points * 100) / 100}.`, raw === null ? 'Применимых критериев нет: итог не считается.' : `Итог = ${Math.round(points * 100) / 100} / ${applicable} × 100 = ${total}.`], ai_critical: aiCritical };
+      }
+      function finalAnswers(detail) {
+        const answers = Object.fromEntries(detail.evals.map(item => [item.criterion_id, item.answer]));
+        for (const decision of detail.decisions) { const appeal = detail.appeals.find(item => item.id === decision.appeal_id); if (appeal) answers[appeal.criterion_id] = decision.new_answer; }
+        return answers;
+      }
+      function rescore(detail) { detail.score = serverScore(detail.id, finalAnswers(detail), detail.evals.some(item => item.critical_hit)); return detail.score; }
+
+      for (const dialog of dialogs) {
+        const messages = dialog.operatorMessages.map(([speaker, text], idx) => ({ id: `${dialog.id}:${idx}`, idx, speaker, text, ts_raw: `00:${String(idx * 7).padStart(2, '0')}`, t_sec: idx * 7, rec_sec: null }));
+        const evals = checklist.criteria.map(criterion => {
+          const spec = dialog.evals[criterion.id];
+          const evidence = [];
+          if (spec.quote) {
+            const message = messages[spec.quote[0]];
+            const start = message.text.indexOf(spec.quote[1]);
+            evidence.push({ message_id: message.id, quote: spec.quote[1], start, end: start + spec.quote[1].length, valid: true });
+          }
+          const confidence = spec.confidence ?? 0.9;
+          return { conv_id: dialog.id, criterion_id: criterion.id, criterion_hash: `demo-${criterion.id}`, prompt_version: 'demo-ui', answer: spec.answer, evidence,
+            checked_range: spec.range ? [messages[spec.range[0]].id, messages[spec.range[1]].id] : null, na_reason: spec.na_reason || null, explanation: spec.explanation,
+            suggestion: null, confidence, critical_hit: criterion.critical && spec.answer === 'yes', model: 'demo-ui (без LLM)', tokens_in: 0, tokens_out: 0, cost_kzt: 0, latency_ms: 0,
+            needs_review: confidence < 0.7 || (criterion.critical && spec.answer === 'yes'), review_reasons: confidence < 0.7 ? ['Низкая уверенность (демо)'] : [] };
+        });
+        const detail = { id: dialog.id, channel: 'chat', language: dialog.language, group_id: 'SYNTHETIC', messages, meta: { wait_sec: 20, recording_gaps: [], lang_switches: [] }, audio_url: null,
+          evals, score: null, checklist: clone(checklist), appeals: [], decisions: [], audit: [], is_mock: true };
+        const aiScore = rescore(detail);
+        detail.audit.push({ id: 1, entity: 'conversation', entity_id: dialog.id, event: 'eval.completed', payload: { total: aiScore.total, model: 'demo-ui (без LLM)' }, ts: iso(dialog.minutes) });
+        for (const seed of dialog.appeals || []) {
+          const appeal = { id: seed.id, conv_id: dialog.id, criterion_id: seed.criterion_id, comment: seed.comment, message_ids: seed.message_ids.map(i => messages[i].id), status: seed.decision ? 'decided' : 'open', created_at: iso(seed.minutes), is_mock: true };
+          detail.appeals.push(appeal); appeals.set(appeal.id, appeal);
+          detail.audit.push({ id: detail.audit.length + 1, entity: 'appeal', entity_id: appeal.id, event: 'appeal.created', payload: { criterion_id: appeal.criterion_id }, ts: appeal.created_at });
+          if (seed.decision) {
+            const before = detail.score.total;
+            const current = finalAnswers(detail)[appeal.criterion_id];
+            const decision = { id: seed.decision.id, appeal_id: appeal.id, action: seed.decision.action, old_answer: current, new_answer: current, reason: seed.decision.reason, created_at: iso(seed.decision.minutes), is_mock: true };
+            detail.decisions.push(decision);
+            const after = rescore(detail).total;
+            detail.audit.push({ id: detail.audit.length + 1, entity: 'decision', entity_id: decision.id, event: 'decision.saved', payload: { appeal_id: appeal.id }, ts: decision.created_at });
+            detail.audit.push({ id: detail.audit.length + 1, entity: 'conversation', entity_id: dialog.id, event: 'score.recalculated', payload: { decision_id: decision.id, old_total: before, new_total: after }, ts: decision.created_at });
+          }
+        }
+        details.set(dialog.id, detail);
+      }
+      const getDetail = id => { const detail = details.get(id); if (!detail) throw new Error('Диалог не найден.'); return detail; };
+      function validAnswer(criterion, answer) {
+        if (answer === 'na') return criterion.na_allowed;
+        if (criterion.answer_type === 'scale') return typeof answer === 'number' && criterion.scale.includes(answer);
+        return answer === 'yes' || answer === 'no';
+      }
+      const api = {
+        async conversations() { await wait(80); return [...details.values()].map(detail => ({ id: detail.id, channel: detail.channel, language: detail.language, total: detail.score.total, critical: detail.score.critical, needs_review: detail.evals.some(item => item.needs_review), is_mock: true })); },
+        async conversation(id) { await wait(140); return clone(getDetail(id)); },
+        async checklists() { return [clone(checklist)]; },
+        async appeals(filters = {}) { await wait(120); return clone([...appeals.values()].filter(item => !filters.status || item.status === filters.status)); },
+        async createAppeal(body) {
+          await wait(260); fail();
+          const detail = getDetail(body.conv_id);
+          if (!String(body.comment || '').trim()) throw new Error('Напишите комментарий к апелляции.');
+          if (!detail.evals.some(item => item.criterion_id === body.criterion_id)) throw new Error('Критерий не найден в оценке.');
+          if (detail.appeals.some(item => item.criterion_id === body.criterion_id && item.status === 'open')) throw new Error('По этому критерию апелляция уже на проверке.');
+          if ((body.message_ids || []).some(id => !detail.messages.some(message => message.id === id))) throw new Error('Отмечена несуществующая реплика.');
+          const appeal = { id: nextId('demo-appeal'), conv_id: body.conv_id, criterion_id: body.criterion_id, comment: body.comment.trim(), message_ids: [...(body.message_ids || [])], status: 'open', created_at: new Date().toISOString(), is_mock: true };
+          appeals.set(appeal.id, appeal); detail.appeals.push(appeal);
+          detail.audit.push({ id: detail.audit.length + 1, entity: 'appeal', entity_id: appeal.id, event: 'appeal.created', payload: { criterion_id: appeal.criterion_id }, ts: appeal.created_at });
+          return clone(appeal);
+        },
+        async dossier(id) {
+          await wait(900);
+          const appeal = appeals.get(id); if (!appeal) throw new Error('Апелляция не найдена.');
+          const detail = getDetail(appeal.conv_id);
+          const evaluation = detail.evals.find(item => item.criterion_id === appeal.criterion_id);
+          const evidenceIds = new Set(evaluation.evidence.map(item => item.message_id));
+          const pro = evaluation.evidence.map(item => ({ text: `ИИ опирался на эту реплику: ${evaluation.explanation}`, quote: item.quote, message_id: item.message_id }));
+          if (!pro.length) pro.push({ text: evaluation.na_reason ? `Причина N/A: ${evaluation.na_reason}` : evaluation.explanation });
+          const contra = [{ text: `Позиция оператора: «${appeal.comment}»` }];
+          for (const messageId of appeal.message_ids.filter(item => !evidenceIds.has(item))) {
+            const message = detail.messages.find(item => item.id === messageId);
+            contra.push({ text: 'Оператор отметил реплику, на которую ИИ не сослался.', quote: message.text, message_id: messageId });
+          }
+          return { appeal_id: id, arguments_for: pro, arguments_against: contra, recommendation: { text: 'Демо-досье собрано правилами без модели. Сравните реплики и решите сами.', action: null }, is_mock: true };
+        },
+        async createDecision(body) {
+          await wait(320); fail();
+          if (!String(body.reason || '').trim()) throw new Error('Укажите причину решения.');
+          if (!['confirm', 'change'].includes(body.action)) throw new Error('Выберите решение.');
+          const appeal = appeals.get(body.appeal_id); if (!appeal) throw new Error('Апелляция не найдена.');
+          if (appeal.status !== 'open') throw new Error('Решение уже сохранено.');
+          const detail = getDetail(appeal.conv_id);
+          const criterion = checklist.criteria.find(item => item.id === appeal.criterion_id);
+          const current = finalAnswers(detail)[appeal.criterion_id];
+          const answer = body.action === 'confirm' ? current : body.new_answer;
+          if (!validAnswer(criterion, answer)) throw new Error('Ответ не соответствует типу критерия.');
+          const oldTotal = detail.score.total;
+          const decision = { id: nextId('demo-decision'), appeal_id: appeal.id, action: body.action, old_answer: current, new_answer: answer, reason: body.reason.trim(), created_at: new Date().toISOString(), is_mock: true };
+          detail.decisions.push(decision); appeal.status = 'decided';
+          const stored = detail.appeals.find(item => item.id === appeal.id); if (stored) stored.status = 'decided';
+          const score = rescore(detail);
+          detail.audit.push({ id: detail.audit.length + 1, entity: 'decision', entity_id: decision.id, event: 'decision.saved', payload: { appeal_id: appeal.id }, ts: decision.created_at });
+          detail.audit.push({ id: detail.audit.length + 1, entity: 'conversation', entity_id: detail.id, event: 'score.recalculated', payload: { decision_id: decision.id, old_total: oldTotal, new_total: score.total }, ts: decision.created_at });
+          return { old_total: oldTotal, new_total: score.total, decision: clone(decision), score: clone(score), is_mock: true };
+        },
+      };
+      return { api, checklist, labels: dialogs.map(dialog => [dialog.id, dialog.label]) };
+    }
+  </script>
+</body>
+</html>

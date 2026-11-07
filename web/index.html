@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f6f8">
+  <title>Дәлел — проверка диалогов</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23334450'/%3E%3Cpath d='M8 16l5 5L24 10' fill='none' stroke='%23ffffff' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./css/run-warning.css">
+  <link rel="stylesheet" href="./css/glass.css">
+  <link rel="stylesheet" href="./css/workspace-polish.css">
+</head>
+<body style="margin:0">
+  <div class="cqa-root">
+    <a class="cqa-skip" href="#cqa-workspace">Перейти к диалогам</a>
+    <header class="cqa-header">
+      <a class="cqa-brand" href="#dialogues" aria-label="Дәлел — диалоги">
+        <svg class="cqa-brand-mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12"/><path d="m10 21 6 6 14-15"/></svg>
+        <span><strong>Дәлел</strong><small>Ни одного балла без доказательства</small></span>
+      </a>
+      <a id="cqa-mode-switch" href="?mode=live">Подключить сервер</a>
+      <div class="cqa-header-controls">
+        <div class="cqa-role-group" role="group" aria-label="Рабочая роль">
+          <button type="button" data-role="operator" aria-pressed="true">Оператор</button>
+          <button type="button" data-role="reviewer" aria-pressed="false">Проверяющий</button>
+        </div>
+        <button class="cqa-projector-toggle cqa-button" id="cqa-projector-toggle" type="button" aria-pressed="false" title="Режим проектора (P)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 4h18v12H3zM12 16v5m-4 0h8M1 4h22"/></svg><span>Проектор</span>
+        </button>
+      </div>
+    </header>
+    <div class="cqa-navigation">
+      <nav class="cqa-tabs" role="tablist" aria-label="Рабочие разделы">
+        <button type="button" role="tab" id="cqa-tab-dialogues" aria-controls="cqa-panel-dialogues" aria-selected="true" tabindex="0" data-tab="dialogues">Диалоги</button>
+        <button type="button" role="tab" id="cqa-tab-editor" aria-controls="cqa-panel-editor" aria-selected="false" tabindex="-1" data-tab="editor">Чек-лист</button>
+        <button type="button" role="tab" id="cqa-tab-review" aria-controls="cqa-panel-review" aria-selected="false" tabindex="-1" data-tab="review">На проверке</button>
+        <button type="button" role="tab" id="cqa-tab-board" aria-controls="cqa-panel-board" aria-selected="false" tabindex="-1" data-tab="board">Оценка</button>
+        <button type="button" role="tab" id="cqa-tab-quality" aria-controls="cqa-panel-quality" aria-selected="false" tabindex="-1" data-tab="quality">Качество</button>
+      </nav>
+      <label class="cqa-version"><span>Чек-лист</span><select id="cqa-version-select" aria-label="Версия чек-листа"><option value="">Загрузка…</option></select></label>
+    </div>
+    <div class="cqa-mode-strip" id="cqa-mode-strip" role="status"><span class="cqa-mode-dot" aria-hidden="true"></span><strong id="cqa-mode-title">Подготовка рабочего места</strong><span id="cqa-mode-description">Загружаем интерфейс.</span></div>
+    <div class="cqa-run-warning" id="cqa-run-warning" role="status" hidden><div><strong id="cqa-run-warning-title"></strong><p id="cqa-run-warning-copy"></p></div><button type="button" id="cqa-run-warning-open">Открыть прогон</button></div>
+    <div id="cqa-file-notice" class="cqa-file-notice" hidden><h1>Откройте интерфейс через локальный сервер</h1><p>В папке проекта запустите <code>python3 -m http.server 8080 --directory web</code>, затем откройте <a href="http://localhost:8080">localhost:8080</a>.</p><p>Браузер ограничивает JavaScript-модули при открытии HTML двойным кликом.</p></div>
+    <main id="cqa-workspace" class="cqa-workspace" tabindex="-1">
+      <section class="cqa-tab-panel cqa-dialogues-layout" id="cqa-panel-dialogues" role="tabpanel" aria-labelledby="cqa-tab-dialogues">
+        <aside id="cqa-list" class="cqa-list-mount" aria-label="Список диалогов">
+          <div class="cqa-shell-panel-head"><h1>Диалоги</h1><span class="cqa-count" id="cqa-shell-count">—</span></div>
+          <div class="cqa-shell-list" id="cqa-shell-list"><p class="cqa-empty-copy">Подготавливаем демонстрационные диалоги.</p></div>
+        </aside>
+        <div id="cqa-card" class="cqa-card-mount">
+          <div class="cqa-welcome">
+            <span class="cqa-welcome-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 8h28v32H10zM17 17h14m-14 7h9m-9 7h14"/><path d="m30 25 4 4 8-9"/></svg></span>
+            <h2>Каждый вывод начинается с разговора</h2>
+            <p>Выберите диалог слева. Здесь появятся транскрипт, оценка по критериям и доказательства.</p>
+            <div class="cqa-workflow"><span>Диалог</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg><span>Доказательство</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg><span>Решение</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="cqa-tab-panel" id="cqa-panel-editor" role="tabpanel" aria-labelledby="cqa-tab-editor" hidden><div id="cqa-editor"><p class="cqa-empty-copy">Загрузка чек-листа…</p></div></section>
+      <section class="cqa-tab-panel" id="cqa-panel-review" role="tabpanel" aria-labelledby="cqa-tab-review" hidden><div id="cqa-review"><p class="cqa-empty-copy">Загрузка обращений…</p></div></section>
+      <section class="cqa-tab-panel" id="cqa-panel-board" role="tabpanel" aria-labelledby="cqa-tab-board" hidden><div id="cqa-board"><p class="cqa-empty-copy">Загрузка оценки…</p></div></section>
+      <section class="cqa-tab-panel" id="cqa-panel-quality" role="tabpanel" aria-labelledby="cqa-tab-quality" hidden><div id="cqa-quality"><p class="cqa-empty-copy">Загрузка замеров…</p></div></section>
+    </main>
+    <footer class="cqa-footer"><span>Контроль качества диалогов</span><span id="cqa-shortcut-hint">P — проектор · 1–5 — разделы</span></footer>
+    <div id="cqa-announcer" class="cqa-visually-hidden" aria-live="polite" aria-atomic="true"></div>
+    <div id="cqa-toast" class="cqa-toast" role="status" hidden></div>
+    <noscript><p class="cqa-file-notice">Для работы интерфейса включите JavaScript.</p></noscript>
+  </div>
+  <script>
+    window.CQA_CONFIG = {
+      // ?mode=live -> server, ?mode=demo|mock -> demo data; no mode -> core.js probes ./api/health and picks live when the server answers
+      mock: (m => m === 'live' ? false : (m ? true : undefined))(new URLSearchParams(location.search).get('mode')),
+      mockBase: new URLSearchParams(location.search).get('fixtures') === '1' ? './mocks/' : null,
+      modules: ['list', 'card', 'audio', 'weights', 'review', 'board', 'editor', 'quality'],
+      ...window.CQA_CONFIG
+    };
+    if (location.protocol === 'file:') {
+      document.getElementById('cqa-file-notice').hidden = false;
+      document.getElementById('cqa-workspace').hidden = true;
+      document.getElementById('cqa-mode-title').textContent = 'Нужен локальный сервер';
+      document.getElementById('cqa-mode-description').textContent = 'Команда запуска приведена ниже.';
+    } else {
+      var entryModule = new URLSearchParams(location.search).get('label') === '1' ? './js/labeling.js' : './js/core.js';
+      Promise.resolve().then(async function () {
+        if (new URLSearchParams(location.search).has('data')) {
+          var embedded = await Promise.all([import('./dynamics/bootstrap.js'), import('./dynamics/deployment.js')]);
+          embedded[0].applyBootstrap(window, embedded[1].deployment);
+        }
+        var module = await import(entryModule);
+        return module.boot();
+      }).catch(function () {
+        document.getElementById('cqa-mode-title').textContent = 'Интерфейс не загрузился';
+        document.getElementById('cqa-mode-description').textContent = 'Проверьте конфигурацию встраивания или файлы интерфейса и обновите страницу.';
+      });
+    }
+  </script>
+</body>
+</html>

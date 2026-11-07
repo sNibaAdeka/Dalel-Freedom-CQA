@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Дәлел — плеер звонка</title><style>
+.cqa-root { --brand:#99dc40; --brand-ink:#213214; --surface:#fff; --ink:#17231d; --muted:#526158; --line:#dbe2dc; --yes:#17673d; --no:#ac3333; --partial:#88600b; --na:#626d66; --focus:#2468c4; color:var(--ink); background:#f3f6f3; font:16px/1.5 system-ui,sans-serif; margin:0; padding:32px 20px; min-height:100vh; box-sizing:border-box; }
+.cqa-root * { box-sizing:border-box; }
+.cqa-root .demo { max-width:720px; margin:auto; }
+.cqa-root h1 { font-size:28px; letter-spacing:-.035em; margin:8px 0; }
+.cqa-root .lede { color:var(--muted); margin:0 0 24px; }
+.cqa-root .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-block:16px; }
+.cqa-root .controls button,.cqa-root .controls select { font:inherit; min-height:44px; padding:8px 12px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); cursor:pointer; max-width:100%; }
+.cqa-root .controls button:focus-visible,.cqa-root .controls select:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
+.cqa-root .panel { border:1px solid var(--line); border-radius:16px; padding:20px; background:var(--surface); }
+.cqa-root .badge { color:var(--yes); font-weight:650; }
+.cqa-root .launch { padding:16px; border:1px solid var(--line); background:var(--surface); }
+.cqa-root .launch[hidden] { display:none; }
+.cqa-root code { overflow-wrap:anywhere; }
+.cqa-root .result { color:var(--muted); font-variant-numeric:tabular-nums; }
+@media(max-width:480px) { .cqa-root {padding:20px 12px;} .cqa-root .panel {padding:12px;} }
+</style></head>
+<body class="cqa-root"><main class="demo"><p class="badge">Дәлел / демо компонента</p><h1>От доказательства к звуку</h1><p class="lede">Полностью синтетический пример. Плеер использует короткий тестовый тон, а не запись разговора.</p>
+<div id="launch" class="launch" hidden>Откройте страницу через локальный HTTP-сервер: <code>python3 -m http.server 8080 --directory web</code>, затем <code>http://localhost:8080/dev/audio.html</code>.</div>
+<div class="controls"><label for="scenario">Сценарий</label><select id="scenario"><option value="ready">Доступная запись</option><option value="missing">Запись недоступна</option><option value="slow">Медленный ответ</option><option value="chat">Чат без аудио</option></select></div>
+<section class="panel"><div id="cqa-audio"></div><div class="controls"><button data-message="demo-call:0">Реплика 00:01</button><button data-message="demo-call:1">Реплика 00:04</button><button data-message="demo-call:2">Реплика 00:07</button></div><p id="focus" class="result" aria-live="polite">Выберите реплику.</p></section>
+</main><script>
+if(location.protocol==='file:') document.getElementById('launch').hidden=false;
+else (async()=>{
+  const listeners = new Map(); const bus = {on(name,fn) {if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);return()=>listeners.get(name).delete(fn);},emit(name,value){for(const fn of listeners.get(name)||[])fn(value);}};
+  const samples=8000*9, bytes=new ArrayBuffer(44+samples*2), data=new DataView(bytes);
+  const text=(offset,value)=>{for(let i=0;i<value.length;i++)data.setUint8(offset+i,value.charCodeAt(i));};
+  text(0,'RIFF');data.setUint32(4,36+samples*2,true);text(8,'WAVE');text(12,'fmt ');data.setUint32(16,16,true);
+  data.setUint16(20,1,true);data.setUint16(22,1,true);data.setUint32(24,8000,true);data.setUint32(28,16000,true);data.setUint16(32,2,true);data.setUint16(34,16,true);text(36,'data');data.setUint32(40,samples*2,true);
+  for(let i=0;i<samples;i++)data.setInt16(44+i*2,Math.sin(2*Math.PI*330*i/8000)*250,true);
+  const src=URL.createObjectURL(new Blob([bytes],{type:'audio/wav'}));
+  const detail={id:'demo-call',channel:'call',is_mock:true,messages:[1,4,7].map((n,i)=>({id:'demo-call:'+i,rec_sec:n,ts_raw:'00:0'+n}))};
+  let mode='ready';
+  const CQA=window.CQA={state:{activeConversationId:detail.id},config:{mock:true},bus,api:{async audio(){const selected=mode;if(selected==='slow')await new Promise(resolve=>setTimeout(resolve,1000));return{src:selected==='missing'?null:src,offsets:Object.fromEntries(detail.messages.map(m=>[m.id,m.rec_sec]))};}}};
+  const {mount}=await import('../js/audio.js');mount(CQA);bus.emit('conv:loaded',detail);
+  document.getElementById('scenario').addEventListener('change',event=>{mode=event.target.value;bus.emit('conv:loaded',{...detail,channel:mode==='chat'?'chat':'call'});document.getElementById('focus').textContent=mode==='chat'?'В чате запись не нужна.':'Выберите реплику.';});
+  document.querySelectorAll('[data-message]').forEach(button=>button.addEventListener('click',()=>bus.emit('audio:seek',{conv_id:detail.id,message_id:button.dataset.message})));
+  bus.on('audio:position',position=>{document.getElementById('focus').textContent='Выбран фрагмент '+position.message_id+'; время в записи: '+position.rec_sec+' с.';});
+  addEventListener('pagehide',()=>URL.revokeObjectURL(src),{once:true});
+})().catch(()=>{document.getElementById('launch').hidden=false;});
+</script></body></html>

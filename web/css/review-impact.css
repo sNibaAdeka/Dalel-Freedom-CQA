@@ -1,0 +1,60 @@
+/* Card-local Freedom tokens; no extra primary action, colors or layout dependencies. */
+.cqa-root .cqa-review-impact {
+  --impact-accent: var(--yes);
+  --impact-surface: var(--surface-subtle);
+  padding: 20px 16px;
+  min-width: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+.cqa-root .cqa-review-impact__title { margin: 0 0 8px; font-size: 1em; line-height: 1.4; letter-spacing: -.015em; }
+.cqa-root .cqa-review-impact--quiet { padding-block: 4px; }
+.cqa-root .cqa-review-impact--quiet > summary { min-height: 44px; padding-block: 12px; color: var(--muted); font-size: .875em; cursor: pointer; }
+.cqa-root .cqa-review-impact--quiet[open] { padding-bottom: 16px; }
+.cqa-root .cqa-review-impact__note,
+.cqa-root .cqa-review-impact__reason,
+.cqa-root .cqa-review-impact__order { margin: 0; color: var(--muted); font-size: .8125em; line-height: 1.6; }
+.cqa-root .cqa-review-impact__order { margin: 16px 0 4px; font-weight: 600; }
+.cqa-root .cqa-review-impact__unavailable,
+.cqa-root .cqa-review-impact__empty { margin: 12px 0 0; padding: 12px; background: var(--impact-surface); font-size: .875em; line-height: 1.6; }
+.cqa-root .cqa-review-impact__list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.cqa-root .cqa-review-impact__item { min-width: 0; padding: 0 0 8px; }
+.cqa-root .cqa-review-impact__focus {
+  display: grid; grid-template-columns: minmax(0, 1fr) 20px; gap: 4px 12px; align-items: center;
+  width: 100%; min-width: 44px; min-height: 44px; padding: 10px 8px;
+  border: 1px solid transparent; border-radius: 6px;
+  text-align: left; font: inherit; color: var(--ink); background: transparent;
+  cursor: pointer; touch-action: manipulation;
+  transition: transform 160ms cubic-bezier(.22, 1, .36, 1);
+}
+.cqa-root .cqa-review-impact__focus:hover { background: var(--impact-surface); }
+.cqa-root .cqa-review-impact__focus:active { transform: translateY(1px); }
+.cqa-root .cqa-review-impact__focus:focus-visible,
+.cqa-root .cqa-review-impact__scenarios > summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.cqa-root .cqa-review-impact__name { font-size: .875em; line-height: 1.5; font-weight: 600; }
+.cqa-root .cqa-review-impact__value { grid-column: 1; color: var(--impact-accent); font-size: .875em; font-weight: 650; font-variant-numeric: tabular-nums; }
+.cqa-root .cqa-review-impact__focus svg { grid-column: 2; grid-row: 1 / span 2; width: 20px; height: 20px; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.cqa-root .cqa-review-impact__reason { padding: 0 8px; }
+.cqa-root .cqa-review-impact__critical { margin-top: 16px; padding: 4px 0 10px; border-inline-start: 2px solid var(--line-strong); background: var(--impact-surface); }
+.cqa-root .cqa-review-impact__critical[data-flag-state='hit'] { border-color: var(--critical); background: var(--critical-bg); }
+.cqa-root .cqa-review-impact__critical[data-flag-state='hit'] .cqa-review-impact__value { color: var(--critical); }
+.cqa-root .cqa-review-impact__critical[data-flag-state='unavailable'] .cqa-review-impact__value,
+.cqa-root .cqa-review-impact[data-review-impact='unavailable'] .cqa-review-impact__item .cqa-review-impact__value { color: var(--muted); }
+.cqa-root .cqa-review-impact__scenarios { margin: 8px 8px 0; font-size: .8125em; }
+.cqa-root .cqa-review-impact__scenarios > summary { min-height: 44px; padding: 12px 0; cursor: pointer; color: var(--impact-accent); font-weight: 550; }
+.cqa-root .cqa-review-impact__scenarios ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.cqa-root .cqa-review-impact__scenarios li { line-height: 1.65; font-variant-numeric: tabular-nums; }
+.cqa-root .cqa-review-impact__denominator { display: block; color: var(--muted); }
+.cqa-root .cqa-review-impact-loading { min-height: 112px; margin: 20px 16px; background: var(--surface-subtle); color: var(--muted); padding: 16px; font-size: .875em; }
+@container (min-width: 420px) {
+  .cqa-root .cqa-review-impact { padding-inline: 24px; }
+  .cqa-root .cqa-review-impact__focus { grid-template-columns: minmax(0, 1fr) auto 20px; gap: 12px; }
+  .cqa-root .cqa-review-impact__value { grid-column: 2; max-width: 15ch; text-align: right; }
+  .cqa-root .cqa-review-impact__focus svg { grid-column: 3; grid-row: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cqa-root .cqa-review-impact__focus { transition: none; }
+  .cqa-root .cqa-review-impact__focus:active { transform: none; }
+}

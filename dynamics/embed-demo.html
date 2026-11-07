@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <link rel="icon" href="data:,">
+  <title>Дәлел · Проверка встраивания</title>
+  <link rel="stylesheet" href="./embed-demo.css">
+  <script type="module" src="./embed-demo.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#embed-workspace">К встроенному приложению</a>
+  <header class="page-header">
+    <span class="brand">Дәлел<span class="brand-separator" aria-hidden="true">/</span><span>Интеграция</span></span>
+    <span class="environment">Локальный пример · T50</span>
+  </header>
+  <main>
+    <section class="connection" aria-labelledby="page-title">
+      <div class="intro">
+        <p class="eyebrow">Dynamics 365 · iframe</p>
+        <h1 id="page-title">Контроль качества в карточке CRM</h1>
+        <p>Откройте диалог и проверьте обмен событиями. Этот стенд не подключён к организации Dynamics 365.</p>
+      </div>
+      <form id="host-form">
+        <div class="field"><label for="api-base">Адрес API</label><select id="api-base" aria-describedby="api-note" required></select><p class="hint" id="api-note">Разрешённые адреса из конфигурации.</p></div>
+        <div class="field"><label for="host-role">Роль в интерфейсе</label><select id="host-role" aria-describedby="role-note"><option value="operator">Оператор</option><option value="reviewer">Проверяющий</option></select><p class="hint" id="role-note">Роль меняет вид, а не права доступа.</p></div>
+        <div class="field"><label for="conv-id">ID диалога</label><input id="conv-id" name="convId" maxlength="200" autocomplete="off" spellcheck="false" aria-describedby="conv-note conv-error"><p class="hint" id="conv-note">Без ID — только смена роли.</p><p class="field-error" id="conv-error" hidden></p></div>
+        <button class="primary" type="submit" id="apply-context">Применить</button>
+      </form>
+      <p id="connection-state" role="status" aria-live="polite">Подготовка приложения…</p>
+      <p class="field-error" id="connection-error" role="alert" hidden></p>
+    </section>
+    <section class="embed-workspace" id="embed-workspace" tabindex="-1" aria-label="Встроенное приложение Дәлел" aria-busy="true">
+      <div class="loading" id="frame-loading"><p>Загрузка приложения…</p><div class="skeleton" aria-hidden="true"></div><div class="skeleton short" aria-hidden="true"></div></div>
+      <iframe id="cqa-frame" title="Дәлел — контроль качества диалогов" referrerpolicy="no-referrer" allow="camera 'none'; microphone 'none'; geolocation 'none'"></iframe>
+    </section>
+    <section class="events" aria-labelledby="events-title">
+      <div class="section-heading"><h2 id="events-title">События приложения</h2><span id="event-count">0 событий</span></div>
+      <p class="hint">Здесь показываются только ID, баллы и состояние подключения. Тексты диалогов и комментарии не передаются.</p>
+      <ol id="event-log" aria-label="Последние 12 событий"><li class="empty">Ожидаем подключение iframe.</li></ol>
+    </section>
+    <noscript><p class="field-error">Для стенда нужен JavaScript. Включите его и обновите страницу.</p></noscript>
+  </main>
+  <footer>Локальная проверка протокола. Размещение в Dynamics 365 требует отдельной настройки.</footer>
+</body>
+</html>

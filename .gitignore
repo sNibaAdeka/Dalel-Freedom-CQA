@@ -1,0 +1,20 @@
+# --- secrets & local env ---
+.env
+.env.*
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.cache/
+
+# --- confidential data & local results ---
+data/raw/
+data/uploads/
+data/processed/
+results/
+reports/
+output/
+*.sqlite
+*.sqlite-journal
+.pytest_cache/
+node_modules/

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1120" viewBox="0 0 1440 1120" role="img" aria-labelledby="title desc">
+  <title id="title">Дәлел: три пути модели, один проверяемый результат</title>
+  <desc id="desc">Новые диалоги и версия чек-листа создают план живой оценки. Облако: Gemini 4 Argon через OpenRouter с резервным Sonnet CLI. Каскад: Haiku, затем Gemini при необходимости проверки. Локально: qwen3.5:9b в Ollama без облачного fallback. Ответ проходит проверку цитат и детерминированную формулу, затем доступен в интерфейсе и апелляциях. Хеш содержания определяет переоценку. Dynamics показан локальным iframe-примером; внедрение в банковском контуре не подтверждено.</desc>
+  <defs>
+    <style>
+      :root { --surface:#f3f7f5; --card:#ffffff; --ink:#15382b; --muted:#365b4d; --border:#789486; --accent:#195c43; --tint:#e4efe8; --warning:#624319; }
+      text { font-family:Arial,Helvetica,sans-serif; fill:var(--ink); }
+      .title { font-size:38px; font-weight:700; }
+      .heading { font-size:25px; font-weight:700; }
+      .body { font-size:22px; }
+      .small { font-size:20px; fill:var(--muted); }
+      .label { font-size:19px; font-weight:700; letter-spacing:1px; fill:var(--accent); }
+      .card { fill:var(--card); stroke:var(--border); stroke-width:1.5; }
+      .line { fill:none; stroke:var(--accent); stroke-width:2.5; marker-end:url(#arrow); }
+      .route { fill:none; stroke:var(--accent); stroke-width:2.5; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" style="fill:var(--accent)"/></marker>
+  </defs>
+  <rect width="1440" height="1120" style="fill:var(--surface)"/>
+  <text x="48" y="62" class="title">Дәлел · три пути модели, один проверяемый результат</text>
+  <text x="48" y="101" class="body">Новые диалоги → текущие правила → доказательства → решение человека</text>
+
+  <rect x="48" y="140" width="410" height="155" rx="16" class="card"/>
+  <text x="70" y="174" class="label">01 / ДАННЫЕ</text>
+  <text x="70" y="210" class="heading">API набора / JSON</text>
+  <text x="70" y="246" class="body">RU · KZ · EN / чат и звонок</text>
+  <text x="70" y="277" class="small">ID, роли, таймкоды, запись</text>
+  <path d="M458 216 H502" class="line"/>
+
+  <rect x="502" y="140" width="420" height="155" rx="16" class="card"/>
+  <text x="524" y="174" class="label">02 / ПЛАН ПРОГОНА</text>
+  <text x="524" y="210" class="heading">Версия + профиль + режим</text>
+  <text x="524" y="246" class="body">Новому диалогу — живая оценка</text>
+  <text x="524" y="277" class="small">Хеш правила управляет переоценкой</text>
+  <path d="M922 216 H966" class="line"/>
+
+  <rect x="966" y="140" width="426" height="155" rx="16" class="card"/>
+  <text x="988" y="174" class="label">03 / МАРШРУТИЗАЦИЯ</text>
+  <text x="988" y="210" class="heading">Оценщик и провайдер</text>
+  <text x="988" y="246" class="body">Модель, вызовы, токены, статус</text>
+  <text x="988" y="277" class="small">Fast допускает повторные вызовы</text>
+
+  <path d="M1180 295 V325 H253 V352 M720 325 V352 M1180 325 V352" class="route"/>
+  <rect x="48" y="352" width="410" height="240" rx="16" class="card"/>
+  <text x="70" y="389" class="label">ОБЛАКО / FAST</text>
+  <text x="70" y="428" class="heading">Gemini 4 Argon</text>
+  <text x="70" y="464" class="body">Через OpenRouter</text>
+  <text x="70" y="505" class="body">При сбое → Sonnet CLI</text>
+  <text x="70" y="541" class="small">Резерв требует авторизации</text>
+  <text x="70" y="572" class="small">Оба пути — внешние сервисы</text>
+
+  <rect x="502" y="352" width="420" height="240" rx="16" class="card"/>
+  <text x="524" y="389" class="label">КАСКАД / FAST</text>
+  <text x="524" y="428" class="heading">Haiku → Gemini</text>
+  <text x="524" y="464" class="body">Через OpenRouter</text>
+  <text x="524" y="505" class="body">Есть «на проверку» → второй этап</text>
+  <text x="524" y="541" class="small">Повторно оценивается весь диалог</text>
+  <text x="524" y="572" class="small">Стоимость включает оба этапа</text>
+
+  <rect x="966" y="352" width="426" height="240" rx="16" class="card"/>
+  <text x="988" y="389" class="label">ЛОКАЛЬНО / OLLAMA</text>
+  <text x="988" y="428" class="heading">qwen3.5:9b · Q4_K_M</text>
+  <text x="988" y="464" class="body">Сервер в доверенном контуре</text>
+  <text x="988" y="505" class="body">Облачный fallback запрещён</text>
+  <text x="988" y="541" class="small">При сбое — ошибка, не облако</text>
+  <text x="988" y="572" class="small">Качество профиля не измерено*</text>
+
+  <path d="M253 592 V624 H1180 V592 M720 592 V624 M253 624 V654" class="route"/>
+  <rect x="48" y="654" width="410" height="199" rx="16" class="card"/>
+  <text x="70" y="689" class="label">04 / ВАЛИДАТОР</text>
+  <text x="70" y="725" class="heading">Цитата → исходная реплика</text>
+  <text x="70" y="761" class="body">Допустимый ответ и границы</text>
+  <text x="70" y="794" class="small">Пропуск действия → участок</text>
+  <text x="70" y="826" class="small">N/A → причина неприменимости</text>
+  <path d="M458 750 H502" class="line"/>
+
+  <rect x="502" y="654" width="420" height="199" rx="16" class="card"/>
+  <text x="524" y="689" class="label">05 / ФОРМУЛА В КОДЕ</text>
+  <text x="524" y="725" class="heading">100 × баллы / применимый вес</text>
+  <text x="524" y="761" class="body">N/A исключает вес из расчёта</text>
+  <text x="524" y="794" class="small">Half-up, 2 знака · C8 отдельно</text>
+  <text x="524" y="826" class="small">Новый вес → пересчёт без LLM</text>
+  <path d="M922 750 H966" class="line"/>
+
+  <rect x="966" y="654" width="426" height="199" rx="16" class="card"/>
+  <text x="988" y="689" class="label">06 / ПРОВЕРКА ЧЕЛОВЕКОМ</text>
+  <text x="988" y="725" class="heading">Апелляция → решение</text>
+  <text x="988" y="761" class="body">Исходный и финальный ответ</text>
+  <text x="988" y="794" class="small">SQLite: версии, история, прогоны</text>
+  <text x="988" y="826" class="small">HTML / CSS / JS · FastAPI</text>
+
+  <rect x="48" y="891" width="1344" height="175" rx="16" style="fill:var(--tint)"/>
+  <text x="70" y="928" class="heading">Границы доказательств</text>
+  <text x="70" y="964" class="body">Цитата из источника ≠ верный вывод. Машинный DEV-эталон ≠ независимая человеческая точность.</text>
+  <text x="70" y="999" class="body">Dynamics 365: локальный iframe-пример; tenant, вход и серверные права требуют отдельной проверки.</text>
+  <text x="70" y="1034" class="small">*В quality.json и model_bakeoff.md. Изоляция банковского контура не сертифицирована. Срез: 3515373.</text>
+  <text x="48" y="1098" class="small">Статическая схема без анимации · описание и ссылки на код: docs/ARCHITECTURE.md</text>
+</svg>

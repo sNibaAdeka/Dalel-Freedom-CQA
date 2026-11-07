@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Дәлел — очередь диалогов</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f3f5f7; color: #17251f; font-size: 16px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .cqa-root {
+      --ink: #17251f; --surface: #ffffff; --surface-alt: #f6f8f7;
+      --muted: #59655f; --line: #dce3df; --brand: #a3e643; --brand-ink: #204516;
+      --selection: #f0f8e9; --focus: #2859b8; --yes: #25613c; --yes-soft: #edf7ef;
+      --no: #a62e35; --no-soft: #fff1f1; --partial: #835500; --partial-soft: #fff7e8;
+      --critical: #842740; --critical-soft: #fff0f5; --na: #59655f;
+      max-width: 1440px; margin: 0 auto; min-height: 100vh;
+    }
+    .demo-header { padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; gap: 20px; background: var(--surface); border-bottom: 1px solid var(--line); }
+    .demo-header strong { font-size: 25px; letter-spacing: -.04em; }
+    .demo-header p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+    .demo-header button, .demo-controls button { min-height: 44px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+    .demo-header button:focus-visible, .demo-controls button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    .demo-layout { display: grid; grid-template-columns: 330px minmax(0,1fr); height: calc(100vh - 90px); min-height: 650px; border: 1px solid var(--line); border-top: 0; }
+    .demo-layout[hidden] { display: none; }
+    #cqa-list { min-width: 0; min-height: 0; border-right: 1px solid var(--line); }
+    .demo-content { padding: 40px; overflow: auto; }
+    .demo-content h1 { font-size: 30px; line-height: 1.2; margin: 0 0 10px; letter-spacing: -.025em; }
+    .demo-content p { color: var(--muted); line-height: 1.6; max-width: 52ch; }
+    .demo-selection { margin-top: 30px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; max-width: 560px; }
+    .demo-selection h2 { font-size: 23px; margin: 0 0 10px; overflow-wrap: anywhere; }
+    .demo-selection dl { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0; }
+    .demo-selection dt { font-size: 13px; color: var(--muted); }
+    .demo-selection dd { font-size: 17px; margin: 5px 0 0; }
+    .demo-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+    .demo-note { font-size: 13px; }
+    .projector .cq-list { font-size: 20px; }
+    .demo-file { display: none; padding: 24px; line-height: 1.6; }
+    @media (max-width: 767px) {
+      .demo-header { padding: 16px; align-items: flex-start; }
+      .demo-layout { display: flex; flex-direction: column; height: auto; min-height: 0; }
+      #cqa-list { border-right: 0; border-bottom: 1px solid var(--line); }
+      .demo-content { padding: 24px 16px; }
+      .demo-header p { max-width: 23ch; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cqa-root">
+    <header class="demo-header"><div><strong>Дәлел</strong><p>Ни одного балла без доказательства</p></div><button type="button" id="projector" aria-pressed="false">Режим проектора</button></header>
+    <p class="demo-file" id="file-help">Для запуска откройте папку проекта в терминале: <code>python3 -m http.server 8080 --directory web</code>, затем перейдите на <code>http://localhost:8080/dev/list.html</code>.</p>
+    <div class="demo-layout">
+      <aside id="cqa-list"></aside>
+      <main class="demo-content">
+        <h1>Каждый диалог — на виду</h1>
+        <p>Выберите диалог в очереди. Фильтры помогают найти нужный язык, звонок или оценку, требующую проверки.</p>
+        <section class="demo-selection" aria-live="polite"><h2 id="selected-id">Выберите диалог</h2><dl><div><dt>Язык</dt><dd id="selected-language">—</dd></div><div><dt>Канал</dt><dd id="selected-channel">—</dd></div><div><dt>Оценка</dt><dd id="selected-total">—</dd></div><div><dt>Требует проверки</dt><dd id="selected-review">—</dd></div></dl></section>
+        <div class="demo-controls"><button type="button" id="demo-normal">65 диалогов</button><button type="button" id="demo-empty">Пустой список</button><button type="button" id="demo-error">Ошибка загрузки</button></div>
+        <p class="demo-note">Автономная проверка интерфейса. Все 65 записей и оценки вымышлены. Пункты карты — примеры, а не официальный чек-лист.</p>
+      </main>
+    </div>
+  </div>
+  <script>
+    if (location.protocol === "file:") {
+      document.getElementById("file-help").style.display = "block";
+      document.querySelector(".demo-layout").hidden = true;
+    } else {
+      import("../js/list.js").then(({ mount }) => {
+        const listeners = new Map();
+        const rows = Array.from({ length: 65 }, (_, index) => {
+          const language = index < 35 ? "RU" : index < 50 ? "KZ" : "EN";
+          const channel = index >= 30 && index < 35 ? "call" : "chat";
+          const critical = index % 17 === 0;
+          const needs_review = critical || index % 5 === 0;
+          const total = index === 64 ? null : 48 + (index * 13) % 53;
+          return {
+            id: "demo-" + language.toLowerCase() + "-" + String(index + 1).padStart(3, "0"),
+            language, channel, total, critical, needs_review, is_mock: true,
+            cells: Array.from({ length: 8 }, (_, i) => ({
+              criterion_id: "C" + (i + 1),
+              answer: total === null ? null : i === 5 && index % 3 === 0 ? "na" : i === 3 ? index % 3 : (index + i) % 7 === 0 ? "no" : "yes",
+              confidence: index % 5 === 0 && i === 2 ? .62 : .96,
+              critical_hit: critical && i === 6,
+              needs_review: critical && i === 6,
+            })),
+          };
+        });
+        let mode = "normal";
+        window.CQA = {
+          config: { mock: true }, state: {},
+          api: { conversations: async () => {
+            await new Promise(resolve => setTimeout(resolve, 200));
+            if (mode === "error") { mode = "normal"; throw new Error("Synthetic loading failure"); }
+            return mode === "empty" ? [] : structuredClone(rows);
+          } },
+          bus: {
+            on(name, callback) {
+              if (!listeners.has(name)) listeners.set(name, new Set());
+              listeners.get(name).add(callback);
+              return () => listeners.get(name).delete(callback);
+            },
+            emit(name, payload) { for (const fn of listeners.get(name) || []) fn(payload); },
+          },
+        };
+        const queue = mount(window.CQA);
+        window.CQA.bus.on("conv:open", id => {
+          const row = rows.find(item => item.id === id);
+          if (!row) return;
+          document.getElementById("selected-id").textContent = id;
+          document.getElementById("selected-language").textContent = row.language;
+          document.getElementById("selected-channel").textContent = row.channel === "call" ? "Звонок" : "Чат";
+          document.getElementById("selected-total").textContent = row.total === null ? "Не оценён" : row.total + " из 100";
+          document.getElementById("selected-review").textContent = row.needs_review ? "Да" : "Нет";
+        });
+        window.CQA.bus.emit("app:ready");
+        for (const name of ["normal", "empty", "error"]) document.getElementById("demo-" + name).onclick = () => { mode = name; queue.reload(); };
+        document.getElementById("projector").onclick = event => {
+          const enabled = document.querySelector(".cqa-root").classList.toggle("projector");
+          event.currentTarget.setAttribute("aria-pressed", String(enabled));
+        };
+      }).catch(() => {
+        document.getElementById("file-help").style.display = "block";
+        document.getElementById("file-help").textContent = "Не удалось открыть модуль. Проверьте, что страница запущена через локальный HTTP-сервер и web/js/list.js находится рядом.";
+      });
+    }
+  </script>
+</body>
+</html>

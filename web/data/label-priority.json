@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "checklist_id": "freedom-chat-quality",
+  "checklist_version": 1,
+  "cells": [
+    {
+      "conv_id": "p4-ru-004",
+      "criterion_id": "C8",
+      "criterion_hash": "ae9b9e0074e5bc48"
+    },
+    {
+      "conv_id": "p4-ru-004",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-en-015",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-ru-009",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-ru-022",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p4-ru-001",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-en-002",
+      "criterion_id": "C7",
+      "criterion_hash": "36c9dba7fccf78f5"
+    },
+    {
+      "conv_id": "p1-en-008",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-ru-020",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-kz-015",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-kz-005",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-ru-003",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-kz-015",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-ru-005",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p4-ru-005",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p4-ru-003",
+      "criterion_id": "C2",
+      "criterion_hash": "f8da77b5dc03bf3e"
+    },
+    {
+      "conv_id": "p1-ru-022",
+      "criterion_id": "C2",
+      "criterion_hash": "f8da77b5dc03bf3e"
+    },
+    {
+      "conv_id": "p1-en-007",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-ru-026",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-kz-011",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-kz-013",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-ru-024",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-ru-025",
+      "criterion_id": "C2",
+      "criterion_hash": "f8da77b5dc03bf3e"
+    },
+    {
+      "conv_id": "p4-ru-001",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-ru-026",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p4-ru-005",
+      "criterion_id": "C2",
+      "criterion_hash": "f8da77b5dc03bf3e"
+    },
+    {
+      "conv_id": "p1-ru-016",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-ru-029",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p4-ru-002",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p4-ru-003",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p1-ru-023",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p1-ru-007",
+      "criterion_id": "C6",
+      "criterion_hash": "ce51f052c5719e8c"
+    },
+    {
+      "conv_id": "p4-ru-002",
+      "criterion_id": "C4",
+      "criterion_hash": "b9adb962c2da7d6e"
+    },
+    {
+      "conv_id": "p4-ru-003",
+      "criterion_id": "C7",
+      "criterion_hash": "36c9dba7fccf78f5"
+    },
+    {
+      "conv_id": "p1-en-001",
+      "criterion_id": "C7",
+      "criterion_hash": "36c9dba7fccf78f5"
+    },
+    {
+      "conv_id": "p1-en-003",
+      "criterion_id": "C7",
+      "criterion_hash": "36c9dba7fccf78f5"
+    },
+    {
+      "conv_id": "p1-en-004",
+      "criterion_id": "C7",
+      "criterion_hash": "36c9dba7fccf78f5"
+    },
+    {
+      "conv_id": "p1-en-005",
+      "criterion_id": "C7",
+      "criterion_hash": "36c9dba7fccf78f5"
+    },
+    {
+      "conv_id": "p1-en-007",
+      "criterion_id": "C7",
+      "criterion_hash": "36c9dba7fccf78f5"
+    },
+    {
+      "conv_id": "p1-en-008",
+      "criterion_id": "C7",
+      "criterion_hash": "36c9dba7fccf78f5"
+    }
+  ]
+}

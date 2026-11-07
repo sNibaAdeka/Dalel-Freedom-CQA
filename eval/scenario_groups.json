@@ -1,0 +1,17 @@
+{
+  "_doc": "Parallel DEV scenarios (same story in RU/KZ/EN) from reports/dev_profile.md section 7. Used by scripts/eval_accuracy.py as a gold-free consistency check: parallel versions should get the same labels unless the dialogues really differ. Ids only.",
+  "groups": {
+    "disclosure_without_id": ["p1-ru-009", "p1-kz-015", "p1-en-014"],
+    "personal_number_paid_advice": ["p1-ru-023", "p1-kz-013", "p1-en-013"],
+    "identification_and_handover": ["p1-ru-006", "p1-kz-003", "p1-en-006"],
+    "update_profile_then_withdraw": ["p1-ru-007", "p1-en-007"],
+    "update_profile_full": ["p1-ru-008", "p1-kz-004"],
+    "d_account_vs_trading": ["p1-ru-024", "p1-kz-011", "p1-en-010"],
+    "form_1042s_language": ["p1-ru-012", "p1-kz-014", "p1-en-011"],
+    "login_taken_after_closing": ["p1-ru-015", "p1-kz-007", "p1-en-001"],
+    "tariff_in_web_cabinet": ["p1-ru-001", "p1-kz-001", "p1-en-003"],
+    "topup_details": ["p1-ru-004", "p1-kz-002", "p1-en-005"],
+    "broker_report_period": ["p1-ru-011", "p1-kz-006", "p1-en-004"],
+    "margin_checkbox": ["p1-ru-020", "p1-kz-010", "p1-en-009"]
+  }
+}

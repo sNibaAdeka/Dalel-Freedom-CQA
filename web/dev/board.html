@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Дәлел — оценка и прогоны</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238be145'/%3E%3Cpath d='m8 16 5 5 11-12' fill='none' stroke='%2317330e' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../app.css">
+  <style>body{margin:0}.cqa-root{height:auto;min-height:100dvh}.demo-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 32px;border-bottom:1px solid var(--line);background:var(--surface)}.demo-toolbar button{min-height:44px}.demo-toolbar p{margin:0}.cqa-board{width:100%}</style>
+</head>
+<body>
+  <main class="cqa-root">
+    <div class="demo-toolbar"><a href="../index.html">Дәлел</a><p>Синтетическая демонстрация прогонов</p><button type="button" id="projector">Проектор</button></div>
+    <div id="cqa-board"></div>
+    <p id="demo-note" class="cqa-file-notice" hidden></p>
+  </main>
+  <script type="module">
+    import { createApi } from '../js/api.js';
+    import { createBus } from '../js/core.js';
+    import { mount } from '../js/board.js';
+    const root = document.querySelector('.cqa-root');
+    const CQA = window.CQA = { config: { mock: true, apiBase: '/api' }, state: { checklistVersion: 1, modules: { board: true }, activeConversationId: null }, bus: createBus() };
+    CQA.api = createApi(CQA);
+    CQA.bus.on('conv:open', id => { const notice = document.getElementById('demo-note'); notice.textContent = `Открыть ${id} можно в общем интерфейсе.`; notice.hidden = false; });
+    document.getElementById('projector').addEventListener('click', event => { root.classList.toggle('projector'); event.currentTarget.setAttribute('aria-pressed', String(root.classList.contains('projector'))); });
+    mount(CQA);
+  </script>
+</body>
+</html>

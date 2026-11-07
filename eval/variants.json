@@ -1,0 +1,23 @@
+{
+  "_doc": "Historical reference variants. Default scoring preserves all labels and all criteria. Variant b is available only with --legacy-variants for old sensitivity analyses; it is NOT the accepted g6 annotation policy and must never rewrite gold files.",
+  "variants": {
+    "a": {
+      "label": "эталон как есть",
+      "overrides": {},
+      "exclude": []
+    },
+    "b": {
+      "label": "исторический эксперимент: C8 override, без C7 (не политика g6)",
+      "overrides": {
+        "C8": {
+          "p1-ru-009": "no",
+          "p1-kz-015": "no",
+          "p1-en-014": "no"
+        }
+      },
+      "exclude": [
+        "C7"
+      ]
+    }
+  }
+}
