@@ -440,7 +440,7 @@ export function mount(CQA = window.CQA) {
       } else box.append(element('span', 'cqa-card__invalid', `${evidence.reason}. Проверить вручную.`));
       row.append(box);
     }
-    if (evaluation?.checked_range) row.append(button('Показать проверенный участок', () => focusCriterion(id, undefined, false, true), 'cqa-card__range-button'));
+    if (evaluation?.checked_range && ['no', 'partial', 'clear'].includes(tone)) row.append(button('Показать проверенный участок', () => focusCriterion(id, undefined, false, true), 'cqa-card__range-button'));
     if (evaluation && answer !== 'na' && !evidences.some(e => e.valid) && !evaluation.checked_range) row.append(element('p', 'cqa-card__invalid', 'Проверенное доказательство не приложено. Нужна ручная проверка.'));
     if (evaluation?.suggestion) {
       const suggestion = element('details', 'cqa-card__suggestion');
@@ -540,7 +540,9 @@ export function mount(CQA = window.CQA) {
     if (score.critical) { const banner = element('div', 'cqa-card__critical', 'Отмечена грубая ошибка'); banner.prepend(icon('alert')); scoreBox.append(banner); }
     if (!answers.incomplete && score.total == null) scoreBox.append(element('p', 'cqa-card__empty-note', score.status === 'no_applicable' ? 'Итог не рассчитывается: нет применимых критериев.' : 'Итог ещё не рассчитан.'));
     const sections = element('dl', 'cqa-card__sections');
-    for (const [name, value] of Object.entries(score.sections || {})) sections.append(element('dt', '', name), element('dd', '', value == null ? '—' : numeric(value) ? format(value, digits) : `${format(value?.points ?? value?.score, digits)} / ${format(value?.max_points ?? value?.max, digits)}`));
+    for (const [name, value] of Object.entries(score.sections || {})) sections.append(element('dt', '', name), element('dd', '', value == null ? '—' : numeric(value) ? `${format(value, digits)} из 100` : `${format(value?.points ?? value?.score, digits)} / ${format(value?.max_points ?? value?.max, digits)}`));
+    // Section results are part of the result (organizer brief), so they sit under the total, not inside «Расчёт и веса».
+    if (!answers.incomplete && Object.keys(score.sections || {}).length) scoreBox.append(sections);
     const evidenceChecks = current.evals.flatMap(e => (e.evidence || []).map(item => verifyEvidence(item, current.messages)));
     if (evidenceChecks.length || !answers.incomplete) scoreBox.append(element('p', 'cqa-card__verified-summary', `Цитаты сверены ${evidenceChecks.filter(e => e.valid).length}/${evidenceChecks.length}`));
     const formula = element('details', 'cqa-card__formula');
@@ -552,7 +554,7 @@ export function mount(CQA = window.CQA) {
     const calculation = element('details', 'cqa-card__calculation');
     calculation.append(element('summary', '', answers.incomplete ? 'Данные попытки оценки' : 'Расчёт и веса'));
     if (!answers.incomplete) {
-      calculation.append(sections, formula);
+      calculation.append(formula);
       const weights = element('div', 'cqa-card__weights-slot'); weights.id = 'cqa-weights'; calculation.append(weights);
     }
     calculation.append(receipt(current));

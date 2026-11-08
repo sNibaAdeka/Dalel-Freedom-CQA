@@ -488,6 +488,18 @@ def test_cascade_escalates_whole_dialogue_when_a_criterion_needs_review():
     assert out["C1"]["tokens_in"] > 0 and out["C1"]["raw"]["votes"][0]["model"] == "mock:strong"
 
 
+def test_cascade_always_escalates_calls_when_configured():
+    preset = dict(CASCADE, escalate={"model": "mock:strong", "when": "needs_review_or_call"})
+    h = ByModel(cheap=Script(), strong=Script())
+    llm.set_mock(h)
+    out = E.evaluate(dict(CONV, channel="call"), CHECKLIST, "fast", preset=preset, as_models=False)
+    assert h.models == ["cheap", "strong"] and all(r["raw"]["cascade"]["call_escalation"] for r in out)
+    h2 = ByModel(cheap=Script(), strong=Script())
+    llm.set_mock(h2)
+    E.evaluate(CONV, CHECKLIST, "fast", preset=preset, as_models=False)  # a chat without doubts stays on the cheap model
+    assert h2.models == ["cheap"]
+
+
 def test_cascade_keeps_first_answer_when_stronger_model_gives_none():
     cheap = Script(per_run={"C6": [{"answer": 7, "confidence": 0.3, "evidence": [{"message_id": OP2, "quote": "Рада помочь."}]}]})
 

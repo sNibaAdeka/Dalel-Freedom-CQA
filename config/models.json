@@ -116,7 +116,7 @@
         "model": "openai:anthropic/claude-haiku-5.5",
         "votes": 1,
         "temperatures": [0.0],
-        "escalate": {"model": "openai:google/gemini-4-argon", "when": "needs_review"}
+        "escalate": {"model": "openai:google/gemini-4-argon", "when": "needs_review_or_call"}
       }
     },
     "routing": {

@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -127,6 +128,23 @@ def guidance_for(criterion: dict, readings: dict | str | None = None) -> tuple[l
     return out, reading
 
 
+def checks_for(criterion: dict) -> dict | None:
+    """Sub-check spec ({rule, fields}) for the unchanged organizer criterion, or None. The final answer for such a
+    criterion is computed by cqa.checks from the model's sub-check flags (calibration v7.1)."""
+    entry = load_overlay().get("criteria", {}).get(criterion.get("id"))
+    if entry and overlay_matches(entry, criterion):
+        spec = entry.get("checks")
+        if isinstance(spec, dict) and spec.get("rule") and isinstance(spec.get("fields"), dict) and spec["fields"]:
+            return spec
+    return None
+
+
+def _checks_example(spec: dict | None) -> dict | None:
+    if not spec:
+        return None
+    return {k: ("<id или пустая строка>" if k.endswith("_id") else "<true|false>") for k in spec["fields"]}
+
+
 # ---------------------------------------------------------------- rendering
 def _fmt_sec(sec: float | None) -> str:
     if sec is None:
@@ -135,9 +153,37 @@ def _fmt_sec(sec: float | None) -> str:
     return f"{sec // 60:02d}:{sec % 60:02d}"
 
 
+_HOLD_END = re.compile(r"больше не находится на удержании|снят с удержания|no longer on hold|off hold|ұстаудан шығарылды", re.I)
+_HOLD_START = re.compile(r"на удержании|on hold|ұстауда", re.I)
+
+
+def hold_spans(conv: dict) -> list[tuple[int, int]]:
+    """(start_idx, end_idx) of call segments while the client was on hold (system events). The operator's talk with
+    colleagues/traders in between was not heard by the client and is not graded (guidance C5/C6)."""
+    spans, start = [], None
+    for m in conv.get("messages") or []:
+        if m.get("speaker") != "system":
+            continue
+        text = str(m.get("text", ""))
+        if _HOLD_END.search(text):
+            if start is not None:
+                spans.append((start, m["idx"]))
+            start = None
+        elif _HOLD_START.search(text) and start is None:
+            start = m["idx"]
+    return spans
+
+
 def render_transcript(conv: dict) -> str:
     lines = []
+    spans = hold_spans(conv) if conv.get("channel") == "call" else []
     for m in conv["messages"]:
+        span = next((s for s in spans if s[0] < m["idx"] < s[1]), None)
+        if span:  # collapse the on-hold segment into one marker line (also ~shorter prompts for calls)
+            if m["idx"] == span[0] + 1:
+                hidden = span[1] - span[0] - 1
+                lines.append(f"[… удержание: {hidden} реплик(и) разговора оператора с коллегами опущены — клиент их не слышал, не оценивай …]")
+            continue
         ts = m.get("ts_raw", "") if conv.get("channel") == "chat" else _fmt_sec(m.get("t_sec"))
         role = ROLE.get(m["speaker"], m["speaker"].upper())
         text = " ".join(str(m["text"]).split())
@@ -189,14 +235,22 @@ def criterion_block(criterion: dict, readings: dict | str | None = None) -> str:
     if guidance:
         out.append("Как применять:")
         out += [f"- {g}" for g in guidance]
+    spec = checks_for(c)
+    if spec:
+        out.append("Подпроверки — ОБЯЗАТЕЛЬНО заполни объект \"checks\" в ответе по этому критерию (итоговый ответ по ним "
+                   "вычисляет код по формуле чек-листа; answer всё равно укажи):")
+        out += [f"- {k}: {v}" for k, v in spec["fields"].items()]
     out.append("Допустимые значения answer: " + ", ".join(json.dumps(a, ensure_ascii=False) for a in allowed_answers(c)))
     return "\n".join(out)
 
 
-def _schema_item(criterion_id: str) -> str:
+def _schema_item(criterion_id: str, spec: dict | None = None) -> str:
+    checks = _checks_example(spec)
     return (
         "{\n"
         f'  "criterion_id": "{criterion_id}",\n'
+        + (f'  "checks": {json.dumps(checks, ensure_ascii=False)},\n' if checks else "")
+        +
         '  "analysis": "2–6 коротких предложений: что требует критерий, что именно произошло в диалоге (с id реплик), какой ответ из этого следует",\n'
         '  "answer": <одно из допустимых значений>,\n'
         '  "evidence": [{"message_id": "<id реплики>", "quote": "<дословный фрагмент текста этой реплики>"}],\n'
@@ -209,11 +263,14 @@ def _schema_item(criterion_id: str) -> str:
     )
 
 
-def _compact_schema_item(criterion_id: str) -> str:
+def _compact_schema_item(criterion_id: str, spec: dict | None = None) -> str:
     # Keep analysis: some guidance explicitly requires details there (and, in
     # uncertain cases, a warning in BOTH analysis and explanation).
+    head = {"criterion_id": criterion_id}
+    if spec:
+        head["checks"] = _checks_example(spec)
     return json.dumps({
-        "criterion_id": criterion_id,
+        **head,
         "analysis": "<только сведения, прямо требуемые в analysis разделом «Как применять», иначе пустая строка>",
         "answer": "<одно из допустимых значений; балл — число>",
         "evidence": [{"message_id": "<id>", "quote": "<короткий дословный фрагмент>"}],
@@ -244,6 +301,15 @@ def facts_block(facts: list[str]) -> str:
     return "ФАКТЫ О СТРУКТУРЕ ДИАЛОГА (вычислены кодом, проверь по тексту):\n" + "\n".join(f"- {f}" for f in facts)
 
 
+def precedents_block(conv: dict, criteria: list[dict]) -> str:
+    """Similar labelled DEV dialogues (calibration v7.1), only when a local bank exists; see cqa.precedents."""
+    try:
+        from .. import precedents
+    except Exception:
+        return ""
+    return precedents.block(conv, criteria)
+
+
 def _header(conv: dict) -> str:
     ch = {"chat": "чат", "call": "звонок (расшифровка речи)"}.get(conv.get("channel"), conv.get("channel"))
     return f"ДИАЛОГ {conv['id']} · канал: {ch} · язык набора: {conv.get('language') or '?'} · реплик: {len(conv['messages'])}"
@@ -253,7 +319,7 @@ def build_single(conv: dict, criterion: dict, facts: list[str] | None = None, re
                  errors: list[str] | None = None) -> tuple[str, str]:
     """Prompt for one criterion. The transcript comes first (shared prefix -> provider-side prompt caching)."""
     parts = [_header(conv), render_transcript(conv), facts_block(facts or []), criterion_block(criterion, readings),
-             "Оцени этот критерий. Верни JSON строго по схеме:\n" + _schema_item(criterion["id"])]
+             "Оцени этот критерий. Верни JSON строго по схеме:\n" + _schema_item(criterion["id"], checks_for(criterion))]
     if errors:
         parts.append("Твой предыдущий ответ отклонён проверкой:\n" + "\n".join(f"- {e}" for e in errors)
                      + "\nИсправь ошибки и верни полный JSON заново.")
@@ -266,8 +332,12 @@ def build_batch(conv: dict, criteria: list[dict], facts: list[str] | None = None
     blocks = "\n\n".join(criterion_block(c, readings) for c in criteria)
     ids = ", ".join(c["id"] for c in criteria)
     item_schema = _compact_schema_item if compact else _schema_item
-    schema = '{"criteria": [\n' + ",\n".join(item_schema(c["id"]) for c in criteria[:1]) + ",\n  … по одному объекту на каждый критерий: " + ids + "\n]}"
-    parts = [_header(conv), render_transcript(conv), facts_block(facts or []), blocks,
+    schema = '{"criteria": [\n' + ",\n".join(item_schema(c["id"], checks_for(c)) for c in criteria[:1]) + ",\n  … по одному объекту на каждый критерий: " + ids + "\n]}"
+    with_checks = [c for c in criteria if checks_for(c)]
+    if with_checks:
+        schema += ("\nДля критериев " + ", ".join(c["id"] for c in with_checks) + " добавь в их объект поле \"checks\" с подпроверками: "
+                   + "; ".join(c["id"] + ": " + json.dumps(_checks_example(checks_for(c)), ensure_ascii=False) for c in with_checks))
+    parts = [_header(conv), render_transcript(conv), facts_block(facts or []), precedents_block(conv, criteria), blocks,
              COMPACT_OUTPUT_RULES if compact else "",
              f"Оцени КАЖДЫЙ критерий ({ids}) независимо. Верни JSON строго по схеме:\n" + schema]
     return SYSTEM, "\n\n".join(p for p in parts if p)
@@ -281,10 +351,11 @@ def build_arbiter(conv: dict, criterion: dict, votes: list[dict], facts: list[st
         ans = json.dumps(v.get("answer"), ensure_ascii=False)
         why = (v.get("analysis") or v.get("explanation") or "").strip().replace("\n", " ")
         lines.append(f"Эксперт {i}: answer={ans}. Обоснование: {why[:700]}")
-    parts = [_header(conv), render_transcript(conv), facts_block(facts or []), criterion_block(criterion, readings),
+    parts = [_header(conv), render_transcript(conv), facts_block(facts or []), precedents_block(conv, [criterion]),
+             criterion_block(criterion, readings),
              "Независимые эксперты разошлись во мнениях:\n" + "\n".join(lines)
              + "\nТы — арбитр. Не голосуй большинством: перепроверь сам по тексту диалога и правилам критерия, какой ответ верен.",
-             "Верни JSON строго по схеме:\n" + _schema_item(criterion["id"])]
+             "Верни JSON строго по схеме:\n" + _schema_item(criterion["id"], checks_for(criterion))]
     return SYSTEM, "\n\n".join(p for p in parts if p)
 
 

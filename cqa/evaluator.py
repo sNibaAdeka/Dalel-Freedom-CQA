@@ -29,6 +29,7 @@ from typing import Any, Callable, Iterable
 
 from rapidfuzz import fuzz
 
+from . import checks as checks_mod
 from . import llm, rules
 from . import prompts as P
 
@@ -367,13 +368,27 @@ def validate_item(item: dict, conv: dict, criterion: dict, require_evidence: boo
     if not isinstance(item, dict):
         return {"answer": None, "errors": ["ответ не является JSON-объектом критерия"], "notes": [], "evidence": []}
     answer, err = normalize_answer(item.get("answer"), criterion)
+    na_reason = (item.get("na_reason") or "").strip() or None
+    explanation = (item.get("explanation") or "").strip()
+    spec = P.checks_for(criterion)
+    if spec:  # calibration v7.1: the checklist formula is applied in code to the model's sub-checks
+        decided = checks_mod.apply(spec.get("rule"), conv, item.get("checks"))
+        if decided:
+            code_answer, _ = normalize_answer(decided[0], criterion)
+            if code_answer is not None:
+                if answer is not None and answer_key(code_answer) != answer_key(answer):
+                    notes.append(f"ответ модели {answer!r} заменён правилом чек-листа ({spec['rule']}): {decided[1]}")
+                answer, err = code_answer, None
+                if answer == "na":
+                    na_reason = decided[1]
+                explanation = decided[1] + (f" {explanation}" if explanation else "")
+        else:
+            notes.append("подпроверки не заполнены — использован ответ модели")
     if err:
         errors.append(err)
     evidence, ev_err, ev_notes = validate_evidence(item.get("evidence") or [], conv)
     notes += ev_notes
     rng, rng_err = validate_range(item.get("checked_range"), conv)
-    na_reason = (item.get("na_reason") or "").strip() or None
-    explanation = (item.get("explanation") or "").strip()
     if answer is not None and not require_evidence:
         notes += ev_err + rng_err
         if answer == "na" and not na_reason:
@@ -412,7 +427,8 @@ def validate_item(item: dict, conv: dict, criterion: dict, require_evidence: boo
         conf = None
     return {"answer": answer, "evidence": evidence, "checked_range": rng, "na_reason": na_reason if answer == "na" else None,
             "explanation": explanation, "analysis": (item.get("analysis") or "").strip(), "suggestion": (item.get("suggestion") or None),
-            "self_confidence": conf, "errors": errors, "notes": notes}
+            "self_confidence": conf, "errors": errors, "notes": notes,
+            **({"checks": item.get("checks")} if spec and isinstance(item.get("checks"), dict) else {})}
 
 
 # ================================================================ model calls
@@ -696,11 +712,15 @@ def _cascade(conv: dict, crits: list[dict], facts: list[str], pre: dict, temp: f
     # {"C3": ["yes", "no"]} = identification was applicable, i.e. the operator touched the client's account data.
     policy = [f"{cid}={first[cid].get('answer')}" for cid, vals in (esc.get("when_answers") or {}).items()
               if cid in first and first[cid].get("answer") in vals]
-    info = {"first_model": pre["model"], "escalate_model": esc["model"], "when": esc.get("when", "needs_review"),
-            "escalated": bool(flagged or policy), "flagged": flagged, "policy": policy,
-            "first_answers": {cid: r.get("answer") for cid, r in first.items()}}
+    when = esc.get("when", "needs_review")
+    # calls (noisy ASR, ~8% of dialogues) always go to the stronger model when configured: the hardest cases get the
+    # best model at a small share of the total time and cost
+    call_escalation = "call" in str(when) and conv.get("channel") == "call"
+    info = {"first_model": pre["model"], "escalate_model": esc["model"], "when": when,
+            "escalated": bool(flagged or policy) or call_escalation, "flagged": flagged, "policy": policy,
+            "call_escalation": call_escalation, "first_answers": {cid: r.get("answer") for cid, r in first.items()}}
     flagged = flagged or policy
-    if not flagged:
+    if not flagged and not call_escalation:
         for r in first.values():
             r["raw"]["cascade"] = info
             r["model"] = f"{r['model']} (каскад: без эскалации)"
