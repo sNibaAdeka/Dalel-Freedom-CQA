@@ -490,6 +490,21 @@ function metricCard(doc, r, title) {
   if (r.latency?.note && !['cached', 'mixed'].includes(r.cache)) card.append(node(doc, 'p', 'cqa-quality__profile-description', r.latency.note));
   return card;
 }
+function calibrationCard(doc, c) {
+  const card = node(doc, 'article', 'cqa-quality__metric-card cqa-quality__metric-card--calibration');
+  const labelled = c.counts.total - (c.counts.unlabelled || 0);
+  card.append(node(doc, 'h2', '', c.label), node(doc, 'p', 'cqa-quality__metric-value', formatPercent(c.counts.matched, labelled)));
+  card.append(node(doc, 'p', 'cqa-quality__metric-support', `${fraction(c.counts.matched, labelled)} ячеек с эталоном · ${dialogueCount(c.dialogues)}`));
+  const facts = node(doc, 'dl', 'cqa-quality__quick-facts');
+  for (const [label, value] of [
+    ['MAE итога', c.mae != null ? `${number(c.mae)} · n=${c.mae_n}` : 'не измерено'],
+    ['Цена / диалог', c.cost_usd_per_dialogue != null ? `${number(c.cost_usd_per_dialogue, 4)} USD (источник)` : 'не восстановлена'],
+    ['Контроль FBroker', c.control || '—'],
+  ]) { const pair = node(doc, 'div'); pair.append(node(doc, 'dt', '', label), node(doc, 'dd', '', value)); facts.append(pair); }
+  card.append(facts);
+  if (c.note) card.append(node(doc, 'p', 'cqa-quality__profile-description', c.note));
+  return card;
+}
 function localMetricCard(doc, profile, measured) {
   if (measured) {
     const card = metricCard(doc, measured, `Локально · ${profile.label}`);
@@ -563,8 +578,9 @@ export function bentoStats(payload, referenceId = 'silver') {
   const tiles = [];
   const constant = payload?.baselines?.constant;
   const constantRatio = typeof constant?.agreement === 'number' ? constant.agreement : ratio(constant?.counts);
-  if (constantRatio != null) tiles.push({ id: 'constant', label: 'Константа', value: pct1(constantRatio),
-    note: constant?.counts ? `всегда самый частый ответ · ${constant.counts.matched} из ${constant.counts.total - (constant.counts.unlabelled || 0)}` : 'всегда самый частый ответ' });
+  const lift = cloud?.counts && constant?.counts ? cloud.counts.matched - constant.counts.matched : null;
+  if (constantRatio != null) tiles.push({ id: 'constant', label: 'Базовый уровень без ИИ', value: pct1(constantRatio),
+    note: lift != null && lift > 0 ? `всегда самый частый ответ · Дәлел точнее на ${lift} ответов` : 'всегда самый частый ответ' });
   const kz = (payload?.subsamples ?? []).find(row => row.id === 'kz-all')?.references?.[referenceId];
   if (kz && kz.labelled > 0) tiles.push({ id: 'kz', label: 'Казахские чаты', value: pct1(kz.matched / kz.labelled), note: `${kz.matched} из ${kz.labelled} ответов` });
   const cloudCost = perDialogueUsd(cloud), cascadeCost = perDialogueUsd(cascade);
@@ -610,7 +626,8 @@ function renderAnalyst(doc, result, payload = null) {
     if (cloud) cards.append(metricCard(doc, cloud, modelLabel(cloud)));
     if (cascade && cascade !== cloud) cards.append(metricCard(doc, cascade, 'Каскад'));
     if (routing && routing !== cloud) cards.append(metricCard(doc, routing, 'Маршрутизация'));
-    if (result.profile_catalog?.local) cards.append(localMetricCard(doc, result.profile_catalog.local, findProfile('local', rows)));
+    // Local model card removed from the screen at the team's request; Alim's calibration (the control configuration) shown instead.
+    if (payload?.calibrations?.alim) cards.append(calibrationCard(doc, payload.calibrations.alim));
     if (cards.children.length > 2) cards.classList.add('cqa-quality__cards--profiles');
     body.append(cards, node(doc, 'p', 'cqa-quality__decision', recommendation(result, cloud, cascade)));
     const recorded = [cloud, cascade, routing].filter(r => r?.cost_audit?.method === 'stored_full_cost' && r.cost?.count);

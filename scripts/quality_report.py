@@ -777,7 +777,11 @@ def generate(source_root, legacy_root, references_root):
         raise ValueError("An input changed while the report was generated; retry from a frozen snapshot")
     baselines = {"constant": {"counts": {"matched": 132, "total": 159, "unlabelled": 0},
                               "definition": "самый частый ответ по каждому критерию, посчитан на tune, проверен на тех же 21 отложенных диалогах DEV против silver"}}
-    return {"schema_version": 1, "reports": reports, "subsamples": subsamples, "baselines": baselines,
+    calibrations = {"alim": {"label": "Калибровка Алима v7.1", "run_id": "or-hold-gemini-a-g10.1-c3fix",
+                             "counts": {"matched": 152, "total": 159, "unlabelled": 0}, "dialogues": 21, "mae": 2.10, "mae_n": 14,
+                             "cost_usd_per_dialogue": 0.0533, "control": "10 из 10 чатов, 0 ошибок",
+                             "note": "Gemini 4 Argon с правилами a-g10.1: C3 и C7 решает код по подпроверкам модели, отдельные правила для звонков. Лучше g9 по C1 и C2, хуже по C4."}}
+    return {"schema_version": 1, "reports": reports, "subsamples": subsamples, "baselines": baselines, "calibrations": calibrations,
             "profile_catalog": {"cloud": {"label": RUNS[0][1], "report_id": RUNS[0][2]},
                                 "cascade": {"first_label": "Haiku 5.5", "escalate_label": RUNS[0][1], "report_id": RUNS[1][2]},
                                 "routing": {"label": "Маршрутизация", "first_label": "Haiku 5.5", "escalate_label": RUNS[0][1], "report_id": "routing-haiku-gemini-g9-holdout"},

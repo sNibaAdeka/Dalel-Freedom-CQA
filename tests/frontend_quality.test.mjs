@@ -523,18 +523,18 @@ function storedCostAudit(overrides = {}) {
   };
 }
 
-test('quality shows four profiles and explicit local measurement and operating-cost limits', async t => {
-  const { host } = setup(t, async () => fourProfileFixture()); await settle();
+test('quality shows the three cloud profiles and, instead of the local model, the control calibration card', async t => {
+  const payload = fourProfileFixture();
+  payload.calibrations = { alim: { label: 'Калибровка Алима v7.1', counts: { matched: 152, total: 159, unlabelled: 0 }, dialogues: 21, mae: 2.1, mae_n: 14, cost_usd_per_dialogue: 0.0533, control: '10 из 10 чатов, 0 ошибок', note: 'Правила a-g10.1.' } };
+  const { host } = setup(t, async () => payload); await settle();
   const cards = descendants(host, 'div').find(el => el.className.split(' ').includes('cqa-quality__cards'));
   assert.equal(cards.children.length, 4);
   assert.match(cards.textContent, /Маршрутизация/);
-  const local = cards.children[3];
-  assert.match(local.textContent, /Локально.*Synthetic local model/);
-  assert.match(local.textContent, /Качество и время на этом наборе не проверены/);
-  assert.match(local.textContent, /API \/ диалог0 USD/);
-  assert.match(local.textContent, /Сервер и эксплуатацияне рассчитаны/);
-  assert.match(local.textContent, /Нулевой тариф API не означает нулевую полную стоимость/);
-  assert.doesNotMatch(local.textContent, /0%|100%|0 с/);
+  assert.doesNotMatch(cards.textContent, /Локально/);
+  const calibration = cards.children[3];
+  assert.match(calibration.textContent, /Калибровка Алима v7\.1/);
+  assert.match(calibration.textContent, /95,6%/);
+  assert.match(calibration.textContent, /Контроль FBroker10 из 10 чатов, 0 ошибок/);
 });
 
 test('routing comparison follows selected reference without additional API reads', async t => {
@@ -550,22 +550,12 @@ test('routing comparison follows selected reference without additional API reads
   assert.equal(calls(), 1);
 });
 
-test('a local catalogue without explicit API cost cannot acquire a zero tariff', async t => {
-  const payload = fourProfileFixture(); delete payload.profile_catalog.local.api_cost;
-  const { host } = setup(t, async () => payload); await settle();
-  const local = descendants(host, 'article').find(el => el.className.includes('unmeasured'));
-  assert.match(local.textContent, /API \/ диалогне указано/);
-  assert.doesNotMatch(local.textContent, /0 USD|Нулевой тариф/);
+test('the local catalogue entry is not rendered as a card on the quality screen', async t => {
+  const { host } = setup(t, async () => fourProfileFixture()); await settle();
+  assert.equal(descendants(host, 'article').filter(el => el.className.includes('unmeasured')).length, 0);
+  assert.doesNotMatch(host.textContent, /Synthetic local model/);
 });
 
-test('a measured local profile uses its own report instead of a fabricated unknown result', async t => {
-  const payload = fourProfileFixture(); payload.profile_catalog.local.report_id = 'haiku-silver';
-  const { host } = setup(t, async () => payload); await settle();
-  const cards = descendants(host, 'div').find(el => el.className.split(' ').includes('cqa-quality__cards'));
-  const local = cards.children[3];
-  assert.match(local.textContent, /72,7%/);
-  assert.doesNotMatch(local.textContent, /Качество и время на этом наборе не проверены/);
-});
 
 test('reported complete-cost fields remain visible when model token allocation is absent', async t => {
   const payload = fourProfileFixture();
