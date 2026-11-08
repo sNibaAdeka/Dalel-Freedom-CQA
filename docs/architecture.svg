@@ -63,7 +63,7 @@
   <text x="988" y="464" class="body">Сервер в доверенном контуре</text>
   <text x="988" y="505" class="body">Облачный fallback запрещён</text>
   <text x="988" y="541" class="small">При сбое — ошибка, не облако</text>
-  <text x="988" y="572" class="small">Качество профиля не измерено*</text>
+  <text x="988" y="572" class="small">62,3% на holdout — ниже константы 83%*</text>
 
   <path d="M253 592 V624 H1180 V592 M720 592 V624 M253 624 V654" class="route"/>
   <rect x="48" y="654" width="410" height="199" rx="16" class="card"/>

@@ -240,8 +240,9 @@
   .cqa-root.gl-theme .cqa-card__header { padding: 16px; }
   .cqa-root.gl-theme .cqa-card__title { font-size: 20px; }
 }
-.cqa-root.gl-theme.projector { --ws-room-shade: var(--gl-base); }
-.cqa-root.gl-theme.projector .cqa-workspace { background: var(--gl-surface); }
+/* Projector keeps the glass scene (room photo at the edges) but panels stay near-opaque for contrast. */
+.cqa-root.gl-theme.projector { --ws-room-shade: color-mix(in srgb, var(--gl-base) 45%, transparent); }
+.cqa-root.gl-theme.projector .cqa-workspace { background: color-mix(in srgb, var(--gl-surface) 93%, transparent); }
 .cqa-root.gl-theme.projector .cqa-card__total strong { font-size: 56px; }
 .cqa-root.gl-theme.projector .cqa-card__total--incomplete strong { font-size: 28px; }
 .cqa-root.gl-theme.projector .cqa-card__message-text { font-size: 19px; }

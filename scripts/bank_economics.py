@@ -71,7 +71,7 @@ def markdown(quality_bytes: bytes, models_bytes: bytes) -> str:
         fresh_seconds = economics.get("mean_seconds_per_dialogue") if economics.get("latency_provenance", {}).get("projection_allowed") is True else None
         lines.append(f"| {label} | {number(n, 0)} | {number(kzt)} | {number(usd)} | {number(report_rates[profile])} | {number(fresh_seconds, 2)} | {agreement} | {interval} | {review} |")
         provenance = economics.get("cost_provenance", {})
-        notes.append(f"- **{label}**: {provenance.get('coverage_note') or ('Только $0 API; оборудование, электричество, сопровождение, качество и скорость не измерены.' if profile == 'local' else 'Полнота исторических цен не подтверждена.')}")
+        notes.append(f"- **{label}**: {provenance.get('coverage_note') or ('Только $0 API; оборудование, электричество и сопровождение не измерены; качество 62,3% (ниже константы 83%) и 341 с/диалог измерены офлайн.' if profile == 'local' else 'Полнота исторических цен не подтверждена.')}")
         latency_note = economics.get("latency_provenance", {}).get("note")
         if latency_note:
             notes.append(f"  Время: {latency_note}")

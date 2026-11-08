@@ -288,7 +288,8 @@ def test_two_generations_are_identical_reconcile_and_exclude_raw_data(tmp_path):
             for count_key, value in report["counts"].items():
                 assert sum(group["counts"][count_key] for group in report[group_key]) == value
         assert report["sample"]["untouched"] is False
-        assert report["cache"] == "unknown"
+        # the local qwen run is a fresh offline measurement by protocol; every other fixture run stays unknown
+        assert report["cache"] == ("fresh" if report["run_id"] in Q.FRESH_OFFLINE_RUNS else "unknown")
 
 
 def test_stability_exposes_configuration_difference_and_missing_cells():

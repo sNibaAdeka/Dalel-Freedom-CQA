@@ -550,7 +550,7 @@ function renderAnalyst(doc, result) {
     const rows = result.reports.filter(r => r.reference.id === reference.select.value);
     const cloud = findProfile('cloud', rows) ?? rows[0], cascade = findProfile('cascade', rows), routing = findProfile('routing', rows);
     body.replaceChildren();
-    provenanceNote.textContent = [referenceLabels[cloud.reference.type], cloud.sample.dev_reused ? 'DEV использован повторно' : splitLabels[cloud.sample.split], cloud.reference.type === 'human' ? 'независимость разметки требует проверки' : 'независимая человеческая точность не измерена'].join(' · ');
+    provenanceNote.textContent = [referenceLabels[cloud.reference.type], cloud.sample.dev_reused ? 'DEV использован повторно' : splitLabels[cloud.sample.split], cloud.reference.type === 'human' ? 'независимость разметки требует проверки' : 'независимая человеческая точность не измерена · Gemini 95,6% — верхняя оценка; константа 83,0%'].join(' · ');
     const cards = node(doc, 'div', 'cqa-quality__cards');
     if (cloud) cards.append(metricCard(doc, cloud, modelLabel(cloud)));
     if (cascade && cascade !== cloud) cards.append(metricCard(doc, cascade, 'Каскад'));

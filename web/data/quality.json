@@ -7660,7 +7660,7 @@
       "mode": "fast",
       "guidance_version": "m1-g9",
       "checklist_version": "1",
-      "cache": "unknown",
+      "cache": "fresh",
       "cache_provenance": "Inferred from cost_kzt=0<cost_kzt_full (cached), 0<cost_kzt<cost_kzt_full (mixed), equal positive costs (fresh); zero/zero is unknown. Semantics from llm.py cache branch; slim log has no explicit cache flag.",
       "reference": {
         "id": "silver",
@@ -7716,7 +7716,7 @@
         "p50_seconds": 337.75,
         "p95_seconds": 419.55,
         "mean_seconds": 341.50047619,
-        "note": "Время записанного CLI-прогона; при cached это время повтора кэша, живое время не измерено.",
+        "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша).",
         "count": 21,
         "scope": "cli_wall",
         "method": "nearest_rank"
@@ -7774,14 +7774,14 @@
         "cost_per_dialogue_usd": 0.0,
         "cost_per_pair_kzt": 0.0,
         "cost_per_pair_usd": 0.0,
-        "mean_seconds_per_dialogue": null,
-        "mean_seconds_per_pair": null,
+        "mean_seconds_per_dialogue": 341.50047619,
+        "mean_seconds_per_pair": 42.68755952,
         "recorded_mean_seconds_per_dialogue": 341.50047619,
         "latency_provenance": {
-          "cache_state": "unknown",
-          "projection_allowed": false,
+          "cache_state": "fresh",
+          "projection_allowed": true,
           "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-          "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+          "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
         },
         "p50_seconds": 337.75,
         "p95_seconds": 419.55,
@@ -7813,14 +7813,14 @@
             "cost_per_dialogue_usd": 0.0,
             "cost_per_pair_kzt": 0.0,
             "cost_per_pair_usd": 0.0,
-            "mean_seconds_per_dialogue": null,
-            "mean_seconds_per_pair": null,
+            "mean_seconds_per_dialogue": 394.555,
+            "mean_seconds_per_pair": 49.319375,
             "recorded_mean_seconds_per_dialogue": 394.555,
             "latency_provenance": {
-              "cache_state": "unknown",
-              "projection_allowed": false,
+              "cache_state": "fresh",
+              "projection_allowed": true,
               "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+              "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
             },
             "p50_seconds": 372.51,
             "p95_seconds": 416.6,
@@ -7852,14 +7852,14 @@
             "cost_per_dialogue_usd": 0.0,
             "cost_per_pair_kzt": 0.0,
             "cost_per_pair_usd": 0.0,
-            "mean_seconds_per_dialogue": null,
-            "mean_seconds_per_pair": null,
+            "mean_seconds_per_dialogue": 335.91578947,
+            "mean_seconds_per_pair": 41.98947368,
             "recorded_mean_seconds_per_dialogue": 335.91578947,
             "latency_provenance": {
-              "cache_state": "unknown",
-              "projection_allowed": false,
+              "cache_state": "fresh",
+              "projection_allowed": true,
               "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+              "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
             },
             "p50_seconds": 337.1,
             "p95_seconds": 423.17,
@@ -15999,7 +15999,7 @@
       "mode": "fast",
       "guidance_version": "m1-g9",
       "checklist_version": "1",
-      "cache": "unknown",
+      "cache": "fresh",
       "cache_provenance": "Inferred from cost_kzt=0<cost_kzt_full (cached), 0<cost_kzt<cost_kzt_full (mixed), equal positive costs (fresh); zero/zero is unknown. Semantics from llm.py cache branch; slim log has no explicit cache flag.",
       "reference": {
         "id": "gold_v2",
@@ -16055,7 +16055,7 @@
         "p50_seconds": 337.75,
         "p95_seconds": 419.55,
         "mean_seconds": 341.50047619,
-        "note": "Время записанного CLI-прогона; при cached это время повтора кэша, живое время не измерено.",
+        "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша).",
         "count": 21,
         "scope": "cli_wall",
         "method": "nearest_rank"
@@ -16113,14 +16113,14 @@
         "cost_per_dialogue_usd": 0.0,
         "cost_per_pair_kzt": 0.0,
         "cost_per_pair_usd": 0.0,
-        "mean_seconds_per_dialogue": null,
-        "mean_seconds_per_pair": null,
+        "mean_seconds_per_dialogue": 341.50047619,
+        "mean_seconds_per_pair": 42.68755952,
         "recorded_mean_seconds_per_dialogue": 341.50047619,
         "latency_provenance": {
-          "cache_state": "unknown",
-          "projection_allowed": false,
+          "cache_state": "fresh",
+          "projection_allowed": true,
           "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-          "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+          "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
         },
         "p50_seconds": 337.75,
         "p95_seconds": 419.55,
@@ -16152,14 +16152,14 @@
             "cost_per_dialogue_usd": 0.0,
             "cost_per_pair_kzt": 0.0,
             "cost_per_pair_usd": 0.0,
-            "mean_seconds_per_dialogue": null,
-            "mean_seconds_per_pair": null,
+            "mean_seconds_per_dialogue": 394.555,
+            "mean_seconds_per_pair": 49.319375,
             "recorded_mean_seconds_per_dialogue": 394.555,
             "latency_provenance": {
-              "cache_state": "unknown",
-              "projection_allowed": false,
+              "cache_state": "fresh",
+              "projection_allowed": true,
               "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+              "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
             },
             "p50_seconds": 372.51,
             "p95_seconds": 416.6,
@@ -16191,14 +16191,14 @@
             "cost_per_dialogue_usd": 0.0,
             "cost_per_pair_kzt": 0.0,
             "cost_per_pair_usd": 0.0,
-            "mean_seconds_per_dialogue": null,
-            "mean_seconds_per_pair": null,
+            "mean_seconds_per_dialogue": 335.91578947,
+            "mean_seconds_per_pair": 41.98947368,
             "recorded_mean_seconds_per_dialogue": 335.91578947,
             "latency_provenance": {
-              "cache_state": "unknown",
-              "projection_allowed": false,
+              "cache_state": "fresh",
+              "projection_allowed": true,
               "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+              "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
             },
             "p50_seconds": 337.1,
             "p95_seconds": 423.17,
@@ -24338,7 +24338,7 @@
       "mode": "fast",
       "guidance_version": "m1-g9",
       "checklist_version": "1",
-      "cache": "unknown",
+      "cache": "fresh",
       "cache_provenance": "Inferred from cost_kzt=0<cost_kzt_full (cached), 0<cost_kzt<cost_kzt_full (mixed), equal positive costs (fresh); zero/zero is unknown. Semantics from llm.py cache branch; slim log has no explicit cache flag.",
       "reference": {
         "id": "gold_v2_full",
@@ -24394,7 +24394,7 @@
         "p50_seconds": 337.75,
         "p95_seconds": 419.55,
         "mean_seconds": 341.50047619,
-        "note": "Время записанного CLI-прогона; при cached это время повтора кэша, живое время не измерено.",
+        "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша).",
         "count": 21,
         "scope": "cli_wall",
         "method": "nearest_rank"
@@ -24452,14 +24452,14 @@
         "cost_per_dialogue_usd": 0.0,
         "cost_per_pair_kzt": 0.0,
         "cost_per_pair_usd": 0.0,
-        "mean_seconds_per_dialogue": null,
-        "mean_seconds_per_pair": null,
+        "mean_seconds_per_dialogue": 341.50047619,
+        "mean_seconds_per_pair": 42.68755952,
         "recorded_mean_seconds_per_dialogue": 341.50047619,
         "latency_provenance": {
-          "cache_state": "unknown",
-          "projection_allowed": false,
+          "cache_state": "fresh",
+          "projection_allowed": true,
           "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-          "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+          "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
         },
         "p50_seconds": 337.75,
         "p95_seconds": 419.55,
@@ -24491,14 +24491,14 @@
             "cost_per_dialogue_usd": 0.0,
             "cost_per_pair_kzt": 0.0,
             "cost_per_pair_usd": 0.0,
-            "mean_seconds_per_dialogue": null,
-            "mean_seconds_per_pair": null,
+            "mean_seconds_per_dialogue": 394.555,
+            "mean_seconds_per_pair": 49.319375,
             "recorded_mean_seconds_per_dialogue": 394.555,
             "latency_provenance": {
-              "cache_state": "unknown",
-              "projection_allowed": false,
+              "cache_state": "fresh",
+              "projection_allowed": true,
               "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+              "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
             },
             "p50_seconds": 372.51,
             "p95_seconds": 416.6,
@@ -24530,14 +24530,14 @@
             "cost_per_dialogue_usd": 0.0,
             "cost_per_pair_kzt": 0.0,
             "cost_per_pair_usd": 0.0,
-            "mean_seconds_per_dialogue": null,
-            "mean_seconds_per_pair": null,
+            "mean_seconds_per_dialogue": 335.91578947,
+            "mean_seconds_per_pair": 41.98947368,
             "recorded_mean_seconds_per_dialogue": 335.91578947,
             "latency_provenance": {
-              "cache_state": "unknown",
-              "projection_allowed": false,
+              "cache_state": "fresh",
+              "projection_allowed": true,
               "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-              "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."
+              "note": "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
             },
             "p50_seconds": 337.1,
             "p95_seconds": 423.17,

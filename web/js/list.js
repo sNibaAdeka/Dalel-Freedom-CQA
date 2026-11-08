@@ -258,7 +258,8 @@ export function mount(CQA = window.CQA) {
     icon.append(element("span", "", channel));
     top.append(icon, element("span", "cq-list-language", row.language));
     const id = element("span", "cq-list-id", row.id); id.title = row.id;
-    const statusNode = element("span", `cq-list-status is-${status}`, statusLabels[status]);
+    const statusNode = element("span", `cq-list-status is-${status}`);
+    statusNode.append(element("span", "cq-list-status-text", statusLabels[status]));
     if (row.critical) {
       const diamond = element('span', 'cq-list-diamond');
       diamond.innerHTML = '<svg viewBox="0 0 24 24" role="img" aria-label="Грубая ошибка"><path d="M12 2 22 12 12 22 2 12Z M12 7v6m0 3v.1"/></svg>';

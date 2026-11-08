@@ -452,8 +452,15 @@ def review_metrics(run, ids, criteria):
             "review_basis": "Any final criterion needs_review=true; escalation is not a review flag."}
 
 
+FRESH_OFFLINE_RUNS = {"local-m4-qwen25-7b-hold-g9"}
+FRESH_OFFLINE_NOTE = "Время свежего офлайн-прогона на MacBook Air M4 (живое время, без кэша)."
+
+
 def cache_state(run, ids):
-    """Use stored charged/full cost semantics only; zero/zero is ambiguous."""
+    """Use stored charged/full cost semantics only; zero/zero is ambiguous.
+    Runs measured fresh offline on a local model are fresh by protocol (cost is 0, so it cannot be inferred)."""
+    if run.get("meta", {}).get("name") in FRESH_OFFLINE_RUNS:
+        return "fresh"
     states = []
     for cid in ids:
         row = run["rows"].get(cid, {})
@@ -495,7 +502,7 @@ def economics_metrics(run, ids, criteria, config):
             "recorded_mean_seconds_per_dialogue": round(mean, 8) if mean is not None else None,
             "latency_provenance": {"cache_state": cache, "projection_allowed": projection_allowed,
                                    "basis": "Inferred from charged cost_kzt versus cost_kzt_full and llm.py cache branch; no explicit cache flag in slim artifact.",
-                                   "note": "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."},
+                                   "note": FRESH_OFFLINE_NOTE if run.get("meta", {}).get("name") in FRESH_OFFLINE_RUNS else "Время записанного CLI-прогона; повтор кэша, смешанный или неизвестный кэш не измеряют живую скорость. Даже fresh-сумма даёт серийную оценку, не throughput."},
             "p50_seconds": nearest_rank(valid_walls, .5), "p95_seconds": nearest_rank(valid_walls, .95),
             "timed_dialogues": len(valid_walls), **review_metrics(run, ids, criteria),
             "currency_fx": audit["currency_conversion"], "cost_provenance": provenance,
@@ -548,7 +555,8 @@ def make_report(run, label, report_id, reference, reference_id, reference_hash, 
               "score_mae": score_mae(run, reference, ids, criteria),
               "latency": {"p50_seconds": nearest_rank(wall, .5), "p95_seconds": nearest_rank(wall, .95),
                           "mean_seconds": round(sum(wall) / len(ids), 8) if len(wall) == len(ids) and ids else None,
-                          "note": ("Сквозное время вызова API на диалог; при cached это время повтора кэша, живое время не измерено."
+                          "note": (FRESH_OFFLINE_NOTE if meta["name"] in FRESH_OFFLINE_RUNS else
+                                   "Сквозное время вызова API на диалог; при cached это время повтора кэша, живое время не измерено."
                                    if source_kind(meta) == "api" else
                                    "Время записанного CLI-прогона; при cached это время повтора кэша, живое время не измерено."),
                           "count": len(wall), "scope": "api_e2e" if source_kind(meta) == "api" else "cli_wall", "method": "nearest_rank"},
@@ -838,7 +846,7 @@ def snapshot(payload):
             lines.append(f"| {profile} / {channel} | {econ['dialogues']} | {price} | {mean} | {econ['p50_seconds']} / {econ['p95_seconds']} | {econ['review_count']}/{econ['review_known_dialogues']} | {pct(econ['review_fraction'])} |")
         usage = report["model_usage"]
         usage_notes.append(f"{profile}: сохранённые model labels показывают Gemini в {usage['gemini_dialogues']}/{usage['known_dialogues']} диалогов, эскалацию в {usage['escalated_dialogues']}, прямой маршрут звонка в {usage['direct_routed_calls']}. Кэш: {report['cache']}. Это не полная телеметрия всех provider calls.")
-    lines += ["", *["- " + note for note in usage_notes], "", "В таблице показано записанное wall time. Для cached/mixed/unknown скорость живого расчёта и её проекция на большой объём остаются неизвестными; калькулятор получает null вместо ложной скорости из кэша.", "", "Локальный Ollama: внешняя API-плата отсутствует по конфигурации; оборудование, электроэнергия, скорость, качество и доля ручной проверки не измерены."]
+    lines += ["", *["- " + note for note in usage_notes], "", "В таблице показано записанное wall time. Для cached/mixed/unknown скорость живого расчёта и её проекция на большой объём остаются неизвестными; калькулятор получает null вместо ложной скорости из кэша.", "", "Локальный Ollama: внешняя API-плата отсутствует по конфигурации; оборудование, электроэнергия и доля ручной проверки не измерены. Качество и время измерены на holdout: 62,3% (ниже константы 83,0%), 341 с на диалог в свежем офлайн-прогоне — только офлайн-резерв."]
     lines += ["", "ДИ групп с менее чем двумя информативными диалогами не выводится. Малые языковые и канальные подвыборки не подтверждают обобщение на новые диалоги. Сценарии/переводы могут зависеть друг от друга: кластеризация по диалогу не устраняет эту зависимость. MAE использует только полные пары всех критериев, N/A перераспределяет веса; критический флаг не добавляет баллы.", "", "## Воспроизведение", "", "```sh", "python scripts/quality_report.py --source-root /path/to/w-int --legacy-root /path/to/w-m1 --references-root /path/to/agents/reports", "python -m pytest -q tests/test_quality_report.py", "```", "", "SHA256 входов записаны в `quality.json`: `methodology.inputs`, `report.source.sha256`, `report.reference.sha256`. Полные JSONL, цитаты и ID реплик в отчёт не попадают. Два запуска при неизменных входах дают одинаковые JSON и Markdown."]
     return "\n".join(lines) + "\n"
 

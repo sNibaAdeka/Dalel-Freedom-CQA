@@ -32,5 +32,5 @@ export function modeCopy(config, health, unavailable = false) {
   if (unavailable) return { mode: 'unavailable', title: 'Сервер недоступен', description: 'Не удалось подключиться к сервису оценки. Проверьте запуск сервера и обновите страницу.' };
   if (!health) return { mode: 'connecting', title: 'Подключение к серверу', description: 'Проверяем соединение с сервисом оценки.' };
   if (health.provider === 'mock') return { mode: 'mock', title: 'Сервер · тестовый оценщик', description: 'Оценки получены в тестовом режиме и не отражают качество реальной модели.' };
-  return { mode: 'live', title: 'Сервер подключён', description: health.evaluator === false || health.runs === false ? 'Данные доступны. Запуск оценки пока недоступен на сервере.' : `Результаты и решения сохраняются на сервере.${health.model ? ` Модель: ${health.model}.` : ''}` };
+  return { mode: 'live', title: 'Сервер подключён', description: health.evaluator === false || health.runs === false ? 'Данные доступны. Запуск оценки пока недоступен на сервере.' : (health.model ? `Модель: ${health.model}` : 'Результаты сохраняются на сервере.') };
 }
