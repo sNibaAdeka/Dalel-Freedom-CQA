@@ -563,12 +563,14 @@ export function bentoStats(payload, referenceId = 'silver') {
   const tiles = [];
   const constant = payload?.baselines?.constant;
   const constantRatio = typeof constant?.agreement === 'number' ? constant.agreement : ratio(constant?.counts);
-  if (constantRatio != null) tiles.push({ id: 'constant', label: 'Константа', value: pct1(constantRatio) });
+  if (constantRatio != null) tiles.push({ id: 'constant', label: 'Константа', value: pct1(constantRatio),
+    note: constant?.counts ? `всегда самый частый ответ · ${constant.counts.matched} из ${constant.counts.total - (constant.counts.unlabelled || 0)}` : 'всегда самый частый ответ' });
   const kz = (payload?.subsamples ?? []).find(row => row.id === 'kz-all')?.references?.[referenceId];
-  if (kz && kz.labelled > 0) tiles.push({ id: 'kz', label: 'Казахские чаты', value: pct1(kz.matched / kz.labelled) });
+  if (kz && kz.labelled > 0) tiles.push({ id: 'kz', label: 'Казахские чаты', value: pct1(kz.matched / kz.labelled), note: `${kz.matched} из ${kz.labelled} ответов` });
   const cloudCost = perDialogueUsd(cloud), cascadeCost = perDialogueUsd(cascade);
-  if (cloudCost != null) tiles.push({ id: 'price', label: 'Цена диалога', value: usd3(cloudCost) });
-  if (cascadeCost != null) tiles.push({ id: 'cascade', label: 'Каскад', value: usd3(cascadeCost) });
+  if (cloudCost != null) tiles.push({ id: 'price', label: 'Цена диалога', value: usd3(cloudCost), note: 'за диалог, Gemini 4 Argon' });
+  if (cascadeCost != null) tiles.push({ id: 'cascade', label: 'Каскад Haiku → Gemini', value: usd3(cascadeCost),
+    note: 'за диалог · Haiku, при сомнении Gemini' });
   return { primary, tiles };
 }
 function renderBento(doc, stats) {
@@ -581,6 +583,7 @@ function renderBento(doc, stats) {
   for (const tile of stats.tiles) {
     const el = node(doc, 'article', 'cqa-quality__bento-tile'); el.setAttribute('data-bento', tile.id);
     el.append(node(doc, 'p', 'cqa-quality__bento-label', tile.label), node(doc, 'p', 'cqa-quality__bento-value', tile.value));
+    if (tile.note) el.append(node(doc, 'p', 'cqa-quality__bento-sub', tile.note));
     grid.append(el);
   }
   return grid;

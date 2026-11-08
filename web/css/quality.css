@@ -201,3 +201,7 @@
   .cqa-quality__bento-tile--primary { grid-row: span 2; }
 }
 @media (prefers-reduced-motion: reduce) { .cqa-quality__bento-tile { animation: none; } }
+
+/* Bento tile sublines: one quiet line of detail under each number. */
+.cqa-root .cqa-quality__bento-sub { margin: 6px 0 0; font-size: 14px; line-height: 1.35; color: var(--muted); }
+.cqa-root.projector .cqa-quality__bento-sub { font-size: 16px; }

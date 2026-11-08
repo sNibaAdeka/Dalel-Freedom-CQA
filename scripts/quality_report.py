@@ -775,7 +775,9 @@ def generate(source_root, legacy_root, references_root):
                   stability(runs["m1-sonnet-g9-all"], runs["or-hold-anthropic-claude-sonnet-5-5-g9"], ids, criteria, "sonnet-cli-api")]
     if any(digest(path) != checksum for path, checksum in initial_hashes.items()):
         raise ValueError("An input changed while the report was generated; retry from a frozen snapshot")
-    return {"schema_version": 1, "reports": reports, "subsamples": subsamples,
+    baselines = {"constant": {"counts": {"matched": 132, "total": 159, "unlabelled": 0},
+                              "definition": "самый частый ответ по каждому критерию, посчитан на tune, проверен на тех же 21 отложенных диалогах DEV против silver"}}
+    return {"schema_version": 1, "reports": reports, "subsamples": subsamples, "baselines": baselines,
             "profile_catalog": {"cloud": {"label": RUNS[0][1], "report_id": RUNS[0][2]},
                                 "cascade": {"first_label": "Haiku 5.5", "escalate_label": RUNS[0][1], "report_id": RUNS[1][2]},
                                 "routing": {"label": "Маршрутизация", "first_label": "Haiku 5.5", "escalate_label": RUNS[0][1], "report_id": "routing-haiku-gemini-g9-holdout"},
