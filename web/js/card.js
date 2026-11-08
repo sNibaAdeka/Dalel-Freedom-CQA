@@ -430,7 +430,9 @@ export function mount(CQA = window.CQA) {
     if (changed) row.append(element('p', 'cqa-card__review-change', `Исходная оценка ИИ: ${labels[evaluation.answer] || format(evaluation.answer)}. После решения: ${labels[answer] || format(answer)}.`));
     if (!critical) {
       const meta = element('div', 'cqa-card__criterion-meta');
-      meta.append(element('strong', '', answer === 'na' ? 'Исключён из расчёта' : `${format(line?.points)} / ${format(line?.max_points ?? criterion.max_points)} балла`), element('span', '', `Вес ${format(line?.weight ?? criterion.weight)} → ${format(line?.weight_effective)}%`));
+      const points = element('strong', 'cqa-card__points', answer === 'na' ? 'Исключён из расчёта' : '');
+      if (answer !== 'na') points.append(element('span', 'cqa-card__points-earned', format(line?.points)), element('span', 'cqa-card__points-max', ` / ${format(line?.max_points ?? criterion.max_points)} балла`));
+      meta.append(points, element('span', '', `Вес ${format(line?.weight ?? criterion.weight)} → ${format(line?.weight_effective)}%`));
       row.append(meta);
       if (numeric(line?.contribution) && answer !== 'na' && !dialogueAnswerState(current).incomplete) row.append(element('p', 'cqa-card__contribution', `Вклад в итог: ${format(line.contribution, 2)} из 100`));
     }
@@ -540,6 +542,8 @@ export function mount(CQA = window.CQA) {
     const total = element('div', `cqa-card__total${answers.incomplete ? ' cqa-card__total--incomplete' : ''}`);
     if (answers.incomplete) total.append(element('strong', '', 'Не рассчитан'));
     else total.append(element('strong', '', format(score.total, digits)), element('span', '', '/ 100'));
+    // Mockup ring: the share of 100 is drawn as a conic gradient around the number (CSS reads --score).
+    if (!answers.incomplete && numeric(score.total)) { total.classList.add('cqa-card__total--ring'); total.style.setProperty?.('--score', String(Math.max(0, Math.min(100, Number(score.total))))); }
     scoreBox.append(scoreHeading, total);
     if (answers.incomplete || unresolvedFailure || recovering) {
       const checkingFull = !answers.incomplete && !unresolvedFailure && recovering;

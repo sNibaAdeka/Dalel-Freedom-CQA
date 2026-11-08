@@ -2,13 +2,23 @@
    Photo lives locally; no third-party requests or customer data in the backdrop. */
 :root {
   --ws-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23334450' stroke-width='1.5'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
-  --ws-brand: #334450;
+  --ws-brand: #0f5c2e;
   --ws-brand-ink: #ffffff;
-  --ws-brand-hover: #283945;
-  --ws-brand-soft: #e8edf2;
-  --ws-positive: #3d5364;
-  --ws-positive-bg: #e8eef3;
-  --ws-focus: #3b5a73;
+  --ws-brand-hover: #0b4a24;
+  --ws-brand-soft: #e5f2ea;
+  --ws-positive: #17663a;
+  --ws-positive-bg: #e6f4ea;
+  --ws-focus: #1a6b3a;
+  --ws-rail-bg: #0f4d2a;
+  --ws-rail-ink: #ffffff;
+  --ws-rail-hover: #1d6a3c;
+  --ws-rail-active: #2f7d4f;
+  --ws-ring: #1f8a4c;
+  --ws-ring-track: #dde7e0;
+  --ws-amber: #fde7b0;
+  --ws-amber-line: #c98a00;
+  --ws-amber-ink: #6b4200;
+  --ws-amber-bg: #fdf1d6;
   --ws-muted-surface: #edf0f2;
   --ws-room-shade: #e7ebee7a;
   --ws-stage-shadow: #24372e24;
@@ -325,3 +335,13 @@
   .cqa-root.gl-theme.projector :is(.cqa-role-group button, .cqa-header .cqa-button) { font-size: 17px; }
   .cqa-root.gl-theme.projector .cqa-navigation .cqa-tabs button { font-size: 16px; }
 }
+
+/* Corporate green shell (organizers' mockup): dark green rail with white icons, lighter active pill.
+   Doubled .cqa-root beats the glass material rule, whose :is() carries a two-class argument. */
+.cqa-root.cqa-root.gl-theme .gl-rail { background: var(--ws-rail-bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.cqa-root.cqa-root.gl-theme .gl-rail::before { opacity: 0; }
+.cqa-root.cqa-root.gl-theme .gl-rail .gl-rail-button { color: var(--ws-rail-ink); background: transparent; box-shadow: none; }
+.cqa-root.cqa-root.gl-theme .gl-rail .gl-rail-button:hover { background: var(--ws-rail-hover); }
+.cqa-root.cqa-root.gl-theme .gl-rail .gl-rail-button:is([aria-current='page'], [aria-pressed='true'], [aria-expanded='true']) { background: var(--ws-rail-active); color: var(--ws-rail-ink); box-shadow: none; }
+.cqa-root.cqa-root.gl-theme .gl-rail .gl-rail-divider { background: color-mix(in srgb, var(--ws-rail-ink) 28%, transparent); }
+.cqa-root.cqa-root.gl-theme .gl-rail .gl-rail-button:focus-visible { outline-color: var(--ws-rail-ink); box-shadow: none; }

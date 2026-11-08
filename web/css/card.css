@@ -284,3 +284,43 @@
 .cqa-root.gl-theme.projector .cqa-card__message-head, .cqa-root.gl-theme.projector details.cqa-card__message > summary, .cqa-root.gl-theme.projector .cqa-card__score-heading h3, .cqa-root.gl-theme.projector .cqa-card__version, .cqa-root.gl-theme.projector .cqa-card__criterion-meta, .cqa-root.gl-theme.projector .cqa-card__verified-summary { font-size: 16px; }
 .cqa-root.gl-theme.projector .cqa-card__criterion-title, .cqa-root.gl-theme.projector .cqa-card__calculation > summary { font-size: 18px; }
 .cqa-root.gl-theme.projector .cqa-card__title { font-size: 28px; }
+
+/* Organizers' mockup: green score ring, compact criteria rows, amber quote band. Tokens live in workspace-polish.css :root. */
+.cqa-root.gl-theme .cqa-card__total.cqa-card__total--ring {
+  --ring-size: 172px; --ring-width: 14px;
+  position: relative; isolation: isolate; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  width: var(--ring-size); height: var(--ring-size); margin: 8px 0 14px; border-radius: 50%;
+  background: conic-gradient(var(--ws-ring, var(--yes)) calc(var(--score, 0) * 1%), var(--ws-ring-track, var(--line)) 0);
+}
+.cqa-root.gl-theme .cqa-card__total.cqa-card__total--ring::before { content: ''; position: absolute; inset: var(--ring-width); z-index: -1; border-radius: 50%; background: var(--surface); }
+.cqa-root.gl-theme .cqa-card__total.cqa-card__total--ring strong { font-size: 46px; line-height: 1; font-weight: 700; color: var(--ink); letter-spacing: -.03em; }
+.cqa-root.gl-theme .cqa-card__total.cqa-card__total--ring span { font-size: 15px; font-weight: 600; color: var(--ink); }
+.cqa-root.gl-theme.projector .cqa-card__total.cqa-card__total--ring { --ring-size: 220px; --ring-width: 18px; }
+.cqa-root.gl-theme.projector .cqa-card__total.cqa-card__total--ring strong { font-size: 60px; }
+.cqa-root.gl-theme.projector .cqa-card__total.cqa-card__total--ring span { font-size: 20px; }
+
+/* Criteria: small status square (green yes, amber no/partial) + name + points right-aligned. */
+.cqa-root.gl-theme .cqa-card__criterion { padding-block: 12px; }
+.cqa-root.gl-theme .cqa-card__criterion--yes .cqa-card__criterion-number, .cqa-root.gl-theme .cqa-card__criterion--clear .cqa-card__criterion-number { background: var(--ws-positive-bg, var(--yes-bg)); color: var(--yes); box-shadow: inset 0 0 0 1.5px var(--yes); font-weight: 700; }
+.cqa-root.gl-theme :is(.cqa-card__criterion--no, .cqa-card__criterion--partial) .cqa-card__criterion-number { background: var(--ws-amber-bg, var(--partial-bg)); color: var(--ws-amber-ink, var(--partial)); box-shadow: inset 0 0 0 1.5px var(--ws-amber-line, var(--partial)); font-weight: 700; }
+.cqa-root.gl-theme .cqa-card__criterion--critical .cqa-card__criterion-number { background: var(--no-bg); color: var(--no); box-shadow: inset 0 0 0 1.5px var(--no); font-weight: 700; }
+.cqa-root.gl-theme .cqa-card__answer--no, .cqa-root.gl-theme .cqa-card__answer--partial { color: var(--ws-amber-ink, var(--partial)); background: var(--ws-amber-bg, var(--partial-bg)); }
+.cqa-root.gl-theme .cqa-card__criterion-meta { align-items: baseline; }
+.cqa-root.gl-theme .cqa-card__criterion-meta .cqa-card__points { order: 2; margin-left: auto; font-size: 15px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme .cqa-card__points-earned { font-weight: 700; color: var(--yes); }
+.cqa-root.gl-theme :is(.cqa-card__criterion--no, .cqa-card__criterion--partial) .cqa-card__points-earned { color: var(--ws-amber-ink, var(--partial)); }
+
+/* Transcript: bold green operator name, cited replica in a soft amber band. */
+.cqa-root.gl-theme .cqa-card__message--operator .cqa-card__message-head strong { color: var(--yes); font-weight: 700; }
+.cqa-root.gl-theme .cqa-card__quote-mark { background: var(--ws-amber, var(--card-quote)); border-bottom-color: var(--ws-amber-line, var(--yes)); color: var(--ink); }
+
+/* Projector: bigger, high-contrast type for criteria and transcript (read from the back of the room). */
+.cqa-root.gl-theme.projector .cqa-card__criterion-title { font-size: 20px; font-weight: 600; color: var(--ink); }
+.cqa-root.gl-theme.projector .cqa-card__criterion-number { min-width: 34px; height: 34px; font-size: 17px; }
+.cqa-root.gl-theme.projector .cqa-card__answer { font-size: 16px; font-weight: 700; padding: 6px 14px; }
+.cqa-root.gl-theme.projector .cqa-card__criterion-meta { font-size: 17px; color: var(--ink); }
+.cqa-root.gl-theme.projector .cqa-card__criterion-meta .cqa-card__points { font-size: 22px; }
+.cqa-root.gl-theme.projector .cqa-card__message-text { font-size: 20px; line-height: 1.5; color: var(--ink); }
+.cqa-root.gl-theme.projector .cqa-card__message-head { font-size: 16px; color: var(--ink); }
+.cqa-root.gl-theme.projector .cqa-card__explanation { font-size: 18px; line-height: 1.5; color: var(--ink); }
+.cqa-root.gl-theme.projector .cqa-card__contribution { display: none; }
