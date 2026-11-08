@@ -10,6 +10,7 @@ from typing import Optional
 from api.repo import pick_eval, eval_id
 from cqa import audio as audio_mod
 from cqa import engine
+from cqa import speech as speech_mod
 from cqa.ingest import public_view
 from cqa.models import ChecklistVersion
 
@@ -80,8 +81,10 @@ def detail(state, conv: dict, version: Optional[ChecklistVersion] = None, trace:
     result = score_of(version, conv["id"], evals, decisions)
     row = engine.summarize(conv, result if evals else None, evals).model_dump(mode="json")
     shown = conv
+    speech_block = None
     if conv.get("channel") == "call":
-        lead, method, _ = audio_mod.lead_for(conv, state.calibration)
+        lead, method, cal = audio_mod.lead_for(conv, state.calibration)
+        speech_block = speech_mod.cached_speech_metrics(conv, cal)  # informational, never in the score
         shown = audio_mod.with_playback_offsets(conv, lead)
         shown = {**shown, "meta": {**shown.get("meta", {}), "audio_lead_sec": lead, "audio_offset_method": method}}
     out = public_view(shown)
@@ -99,6 +102,7 @@ def detail(state, conv: dict, version: Optional[ChecklistVersion] = None, trace:
         "tokens_out": sum(int(e.get("tokens_out") or 0) for e in evals),
         "from_cache": sum(1 for e in evals if e.get("from_cache") or e.get("cache_hit")),
         "models": sorted({e.get("model") for e in evals if e.get("model")}),
+        "speech_metrics": speech_block,
     })
     return out
 

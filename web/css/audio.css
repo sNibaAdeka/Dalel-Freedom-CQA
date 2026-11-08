@@ -16,3 +16,14 @@
 .cqa-root .cqa-audio[data-state="loading"] .cqa-audio__status { animation: cqa-audio-loading 1.2s ease-in-out infinite alternate; }
 @keyframes cqa-audio-loading { from { opacity: 1; } to { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) { .cqa-root .cqa-audio[data-state="loading"] .cqa-audio__status { animation: none; } }
+
+/* Minimal glass pass: soft surface instead of an outlined box; the 2 s pre-roll hint is implied. Tokens only. */
+.cqa-root.gl-theme .cqa-audio { padding: 14px 16px; border: 0; border-radius: 17px; background: var(--min-fill, var(--surface-subtle)); box-shadow: var(--min-edge, none); }
+.cqa-root.gl-theme .cqa-audio__heading h3 { font-size: 15px; font-weight: 500; letter-spacing: -.02em; }
+.cqa-root.gl-theme .cqa-audio__hint { display: none; }
+.cqa-root.gl-theme .cqa-audio__media { margin-top: 8px; }
+.cqa-root.gl-theme .cqa-audio__speed { font-size: 13px; }
+.cqa-root.gl-theme .cqa-audio select { border: 0; border-radius: 9px; background-color: var(--min-chip, var(--surface)); box-shadow: var(--min-edge, none); }
+.cqa-root.gl-theme .cqa-audio__status { margin-top: 8px; font-size: 13px; }
+.cqa-root.gl-theme .cqa-audio__cue { margin-top: 8px; }
+.cqa-root.gl-theme.projector .cqa-audio__status, .cqa-root.gl-theme.projector .cqa-audio__speed { font-size: 16px; }

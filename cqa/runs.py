@@ -63,6 +63,15 @@ def _reusable_modes(mode: str) -> list[str]:
     return [m + suffix for m in REUSABLE_MODES.get(base, [base])]
 
 
+def _review_fields(ev: Optional[CriterionEval], status_of: Callable[[Optional[CriterionEval]], str]) -> dict:
+    """needs_review / evidence_valid / validation_status of the model answer behind one score line (CQA-02)."""
+    if ev is None:
+        return {"needs_review": True, "evidence_valid": None, "validation_status": "missing"}
+    return {"needs_review": bool(ev.needs_review),
+            "evidence_valid": all(x.valid for x in ev.evidence) if ev.evidence else None,
+            "validation_status": status_of(ev)}
+
+
 def _profile_modes(mode: str) -> list[str]:
     """Both scoring modes in the same profile, independent of the requested evaluation mode."""
     _, sep, profile = mode.partition(":")
@@ -314,10 +323,15 @@ class RunManager:
                 result = engine.score(cl, reused + fresh, run["_decisions"][conv_id], conv_id=conv_id, strict=False)
                 if result.missing:
                     raise ValueError(f"Нет допустимого ответа по {', '.join(result.missing)}")
+                # CQA-02: record the acceptance state of every model answer in the immutable run snapshot so the
+                # export can tell an accepted answer from a rejected/flagged one (accepted|needs_review|rejected|missing)
+                from .review import validation_status  # local import: cqa.review imports this module
+                used = {ev.criterion_id: ev for ev in reused + fresh}
                 with self._lock:
                     row["score"] = result.model_dump(mode="json")
-                    row["answers"] = [line.model_dump(mode="json", include={
-                        "criterion_id", "answer", "original_answer", "source", "points", "weight", "critical_hit"})
+                    row["answers"] = [{**line.model_dump(mode="json", include={
+                        "criterion_id", "answer", "original_answer", "source", "points", "weight", "critical_hit"}),
+                        **_review_fields(used.get(line.criterion_id), validation_status)}
                         for line in result.lines]
                     row["new_total"] = result.total
                     row["status"] = "done"

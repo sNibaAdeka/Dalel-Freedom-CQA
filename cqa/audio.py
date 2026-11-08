@@ -34,6 +34,7 @@ LEAD_MID_CALL = 0.7        # fitted lead of p4-ru-002 (recording started 30 s in
 CHARS_PER_SEC = 12.0       # speech rate used to estimate the start of an utterance from its end
 REFRESH_MARGIN = 120       # seconds before ``se`` when a cached link is refreshed
 DEFAULT_TTL = 50 * 60      # when the link has no ``se``
+PAUSE_SEC = 3.0            # a "long" pause for the informational speech block (cqa.speech)
 
 _SRC_RE = re.compile(r"<(?:audio|source)\b[^>]*?\ssrc\s*=\s*([\"'])(.*?)\1", re.I | re.S)
 
@@ -166,7 +167,8 @@ def fit_lead(ends: list[float], silence_starts: list[float], tol: float = 1.0,
     return round(median(plateau), 2), round(best / len(ends), 3)
 
 
-def detect_silences(mp3: Path, noise: str = "-35dB", min_dur: float = 0.5) -> list[tuple[float, float]]:
+def silence_profile(mp3: Path, noise: str = "-35dB", min_dur: float = 0.5) -> tuple[list[tuple[float, float]], float | None]:
+    """ffmpeg silencedetect: ([(start, end|None)], duration of the file in seconds or None)."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         raise RuntimeError("ffmpeg is not installed")
@@ -176,7 +178,29 @@ def detect_silences(mp3: Path, noise: str = "-35dB", min_dur: float = 0.5) -> li
     starts = [float(x) for x in re.findall(r"silence_start: ([\d.]+)", proc.stderr)]
     ends = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", proc.stderr)]
     ends += [None] * (len(starts) - len(ends))  # trailing silence runs to the end of the file
-    return list(zip(starts, ends))
+    dur = re.search(r"Duration: (\d+):(\d+):([\d.]+)", proc.stderr)
+    duration = int(dur.group(1)) * 3600 + int(dur.group(2)) * 60 + float(dur.group(3)) if dur else None
+    return list(zip(starts, ends)), duration
+
+
+def detect_silences(mp3: Path, noise: str = "-35dB", min_dur: float = 0.5) -> list[tuple[float, float]]:
+    return silence_profile(mp3, noise, min_dur)[0]
+
+
+def silence_stats(silences: list, duration: float | None, threshold: float = PAUSE_SEC) -> dict | None:
+    """Informational summary (``cqa.speech``) of silencedetect intervals [(start, end|None)] of a recording."""
+    if not duration or duration <= 0:
+        return None
+    lengths = []
+    for start, end in silences:
+        end = duration if end is None else min(float(end), duration)
+        if end > start:
+            lengths.append(end - float(start))
+    total = sum(lengths)
+    return {"duration_sec": round(duration, 1), "silence_sec": round(total, 1),
+            "silence_share": round(min(1.0, total / duration), 3),
+            "pauses_over_3s": sum(1 for x in lengths if x > threshold),
+            "longest_silence_sec": round(max(lengths), 1) if lengths else 0.0}
 
 
 class CalibrationStore:
@@ -221,7 +245,7 @@ def calibrate(conv: dict, resolver: AudioResolver, store: CalibrationStore, down
                 with mp3.open("wb") as fh:
                     for chunk in resp.iter_bytes():
                         fh.write(chunk)
-        silences = detect_silences(mp3)
+        silences, duration = silence_profile(mp3)
         ends = [m["rec_sec"] for m in conv["messages"]
                 if m.get("rec_sec") is not None and m["speaker"] in ("client", "operator", "bot")]
         lead, hit = fit_lead(ends, [s for s, _ in silences])
@@ -230,7 +254,8 @@ def calibrate(conv: dict, resolver: AudioResolver, store: CalibrationStore, down
                      "note": "VAD alignment below 50%"}
         else:
             value = {"lead_sec": lead, "hit_rate": hit, "method": "vad"}
-        value.update({"n_turns": len(ends), "computed_at": _iso(datetime.now(timezone.utc))})
+        value.update({"n_turns": len(ends), "computed_at": _iso(datetime.now(timezone.utc)),
+                      "silence": silence_stats(silences, duration)})
         store.put(conv["id"], value)
         return value
     except Exception:
@@ -277,7 +302,7 @@ def payload(conv: dict, resolver: AudioResolver, store: CalibrationStore | None 
                 "error": "Это чат: записи нет."}
     link = resolver.resolve(conv["id"], conv.get("audio_url"))
     lead, method, cal = lead_for(conv, store)
-    if calibrate and store is not None and cal is None and link["src"]:
+    if calibrate and store is not None and (cal is None or "silence" not in cal) and link["src"]:
         calibrate_in_background(conv, resolver, store)
     return {"conv_id": conv["id"], "src": link["src"], "expires_at": link["expires_at"],
             "offsets": playback_offsets(conv, lead), "gaps": meta.get("recording_gaps", []),

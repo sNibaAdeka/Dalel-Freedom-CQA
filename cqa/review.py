@@ -24,13 +24,50 @@ from typing import Any, Callable, Iterable, Optional
 from pydantic import ValidationError
 
 from .checklist_store import ChecklistStore
-from .db import Database, get_db
+from .db import AppealAlreadyDecidedError, Database, get_db
 from .models import (Appeal, AppealCreate, ChecklistVersion, Conversation, Criterion, CriterionEval, Decision,
                      DecisionCreate, DecisionResult, Score, now_iso)
 from .runs import conversation_score, current_evals
 
 __all__ = ["ReviewService", "ReviewError", "DOSSIER_SYSTEM", "DOSSIER_PROMPT_VERSION", "build_dossier_prompt",
            "validate_dossier", "LLMCall"]
+
+# -- export acceptance state (strict review CQA-02): a preliminary answer must never look final in any export
+VALIDATION_STATES = ("accepted", "needs_review", "rejected", "missing")
+_REJECTED_REASONS = ("ответ модели не прошёл проверку", "оценка не получена", "нет доказательства")
+
+
+def validation_status(ev: Optional[CriterionEval]) -> str:
+    """accepted | needs_review | rejected | missing for one stored model answer.
+
+    rejected = the validator finally refused the answer or its evidence (or a cited quote is not verbatim);
+    needs_review = valid evidence but flagged for a human (low confidence, rule disagreement, critical hit...).
+    The evaluator's structured fields win: ``validation_status`` (valid / rejected / failed) and ``provisional``;
+    the reason-prefix heuristics below only cover evaluations stored before those fields existed."""
+    if ev is None or ev.answer is None:
+        return "missing"
+    declared = getattr(ev, "validation_status", None)
+    if declared == "failed":
+        return "missing"
+    if declared == "rejected" or (getattr(ev, "provisional", False) is True and declared != "valid"):
+        return "rejected"
+    if declared == "valid":
+        if any(not e.valid for e in ev.evidence):
+            return "rejected"
+        return "needs_review" if ev.needs_review else "accepted"
+    explicit = (getattr(ev, "__pydantic_extra__", None) or {}).get("validation_status")
+    if explicit in VALIDATION_STATES:
+        return explicit
+    if any(not e.valid for e in ev.evidence) or any(
+            str(r).startswith(_REJECTED_REASONS) for r in ev.review_reasons or []):
+        return "rejected"
+    return "needs_review" if ev.needs_review else "accepted"
+
+
+def export_status(source: Optional[str], validation: str) -> str:
+    """final when a reviewer decided the criterion or the model answer was accepted; otherwise preliminary."""
+    return "final" if source == "decision" or validation == "accepted" else "preliminary"
+
 
 DOSSIER_PROMPT_VERSION = "dossier-v1"
 LLMCall = Callable[[str, str], tuple]
@@ -416,13 +453,15 @@ class ReviewService:
                             reason=data.reason, conv_id=appeal.conv_id, criterion_id=criterion.id,
                             criterion_hash=appeal.criterion_hash, old_answer=current, created_at=now_iso(),
                             reviewer=reviewer, checklist_version=appeal.checklist_version)
-        self.db.add_decision(decision)
-        appeal = self.db.update_appeal(appeal.id, status="decided", decision_id=decision.id,
-                                       decided_at=decision.created_at)
+        # PROD-02: compare-and-set in ONE transaction (appeal still open -> decision + close + audit). A parallel
+        # reviewer or a retried request that lost the race gets 409 and nothing is written for it.
+        try:
+            appeal, decision = self.db.decide_appeal(decision, audit={
+                "appeal_id": appeal.id, "criterion_id": criterion.id, "action": data.action,
+                "reason": data.reason, "old_answer": current, "new_answer": answer})
+        except AppealAlreadyDecidedError as exc:
+            raise ReviewError(str(exc), 409) from None
         after = self.conversation_score(appeal.conv_id, active)
-        self.db.add_audit("decision", decision.id, "decision.saved",
-                          {"appeal_id": appeal.id, "criterion_id": criterion.id, "action": data.action,
-                           "reason": data.reason, "old_answer": current, "new_answer": answer}, conv_id=appeal.conv_id)
         self.db.add_audit("decision", decision.id, "score.recalculated",
                           {"appeal_id": appeal.id, "old_total": before.total, "new_total": after.total,
                            "version": active.version}, conv_id=appeal.conv_id)
@@ -439,7 +478,10 @@ class ReviewService:
                   "explanation": snap.get("explanation"), "ts": snap.get("created_at")},
                  {"step": "appeal", "title": "Апелляция", "comment": appeal.comment,
                   "message_ids": appeal.message_ids, "ts": appeal.created_at}]
-        decision = next((d for d in self.db.list_decisions(conv_id=appeal.conv_id) if d.appeal_id == appeal.id), None)
+        mine = [d for d in self.db.list_decisions(conv_id=appeal.conv_id) if d.appeal_id == appeal.id]
+        # The decision the appeal points to is the one the engine applies (legacy DBs may hold a duplicate).
+        pinned = getattr(appeal, "decision_id", None)
+        decision = next((d for d in mine if d.id == pinned), mine[-1] if mine else None)
         if decision is not None:
             steps.append({"step": "decision", "title": "Решение проверяющего", "action": decision.action,
                           "old_answer": decision.old_answer, "new_answer": decision.new_answer,

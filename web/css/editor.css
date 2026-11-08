@@ -417,3 +417,149 @@
 }
 
 .cqa-root .cqa-ed__preview-hint { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: .8125em; line-height: 1.5; }
+
+/* ---------- calm glass pass (jury / projector): soft fills instead of outlines, fewer words.
+   Only explanatory copy is hidden; controls, validation, warnings and statuses stay visible. */
+.cqa-root .cqa-ed {
+  --ed-fill: var(--ws-control, var(--surface));
+  --ed-fill-soft: var(--ws-panel-soft, var(--surface-subtle));
+  --ed-hair: color-mix(in srgb, var(--ink) 12%, transparent);
+  --ed-field-line: color-mix(in srgb, var(--ink) 50%, transparent);
+  --ed-edge: inset 0 1px 0 color-mix(in srgb, var(--gl-hi, var(--surface)) var(--gl-edge, 65%), transparent);
+  --ed-soft-shadow: 0 14px 30px -26px color-mix(in srgb, var(--ink) 45%, transparent);
+}
+/* explanatory copy only */
+.cqa-root .cqa-ed .cqa-ed__hint,
+.cqa-root .cqa-ed .cqa-ed__kbd,
+.cqa-root .cqa-ed .cqa-ed__change-note,
+.cqa-root .cqa-ed .cqa-ed__version-name,
+.cqa-root .cqa-ed .cqa-ed__subtitle:has(.cqa-ed__chip) > span:not([class]),
+.cqa-root .cqa-ed .cqa-ed__dialog--wide .cqa-ed__dialog-lead { display: none; }
+
+/* versions rail: no frame, the current version is a white chip */
+.cqa-root .cqa-ed .cqa-ed__versions { background: transparent; border: 0; }
+.cqa-root .cqa-ed .cqa-ed__aside-title { margin-bottom: 10px; font-size: .8125em; font-weight: 500; }
+.cqa-root .cqa-ed .cqa-ed__version-list { gap: 4px; }
+.cqa-root .cqa-ed .cqa-ed__version { gap: 4px; padding: 12px 14px; border: 0; border-radius: 17px; background: transparent; box-shadow: none; }
+.cqa-root .cqa-ed .cqa-ed__version:hover { background: var(--ed-fill-soft); }
+.cqa-root .cqa-ed .cqa-ed__version[aria-current="true"] { border: 0; background: var(--ed-fill); box-shadow: var(--ed-edge), var(--ed-soft-shadow); }
+.cqa-root .cqa-ed .cqa-ed__version.cqa-ed__version--draft { border: 1px dashed var(--partial); }
+.cqa-root .cqa-ed .cqa-ed__version-top strong { font-family: var(--font); font-size: 1.125em; font-weight: 500; letter-spacing: -.035em; }
+.cqa-root .cqa-ed .cqa-ed__version-note { font-size: .8125em; color: var(--muted); -webkit-line-clamp: 2; }
+.cqa-root .cqa-ed .cqa-ed__version-date { font-size: .75em; }
+
+/* header */
+.cqa-root .cqa-ed .cqa-ed__main { gap: 20px; }
+.cqa-root .cqa-ed .cqa-ed__head { align-items: center; }
+.cqa-root .cqa-ed .cqa-ed__head h1 { font-size: 1.75em; font-weight: 500; letter-spacing: -.035em; }
+.cqa-root .cqa-ed .cqa-ed__subtitle { margin-top: 10px; }
+.cqa-root .cqa-ed .cqa-ed__actions { gap: 4px; }
+
+/* buttons: one dark primary, one white pill for the key demo action, the rest are text buttons */
+.cqa-root .cqa-ed .cqa-ed__btn { border: 0; border-radius: 9px; background: transparent; font-size: .9375em; font-weight: 500; }
+.cqa-root .cqa-ed .cqa-ed__btn:hover { background: var(--ed-fill-soft); }
+.cqa-root .cqa-ed .cqa-ed__btn--primary { background: var(--brand); color: var(--brand-ink); box-shadow: var(--ed-soft-shadow); }
+.cqa-root .cqa-ed .cqa-ed__btn--primary:hover { background: var(--brand-hover); }
+.cqa-root .cqa-ed .cqa-ed__btn--accent { padding-inline: 18px; border-radius: 30px; background: var(--ed-fill); color: var(--ink); box-shadow: var(--ed-edge), var(--ed-soft-shadow); }
+.cqa-root .cqa-ed .cqa-ed__btn--accent:hover { background: var(--surface); }
+.cqa-root .cqa-ed .cqa-ed__btn--quiet:hover { background: var(--surface-muted); }
+.cqa-root .cqa-ed .cqa-ed__btn--danger { color: var(--no); }
+.cqa-root .cqa-ed .cqa-ed__btn--danger:hover { background: var(--no-bg); }
+.cqa-root .cqa-ed .cqa-ed__btn--danger-solid { background: var(--no); color: var(--surface); }
+.cqa-root .cqa-ed .cqa-ed__icon-btn { border: 0; border-radius: 9px; }
+.cqa-root .cqa-ed :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* chips: filled, no outlines */
+.cqa-root .cqa-ed .cqa-ed__chip { border: 0; border-radius: 30px; padding-inline: 9px; font-weight: 500; }
+.cqa-root .cqa-ed .cqa-ed__chip--weight { background: var(--surface-muted); }
+.cqa-root .cqa-ed .cqa-ed__chip--na { border: 0; }
+.cqa-root .cqa-ed .cqa-ed__step-chip { border: 0; background: var(--surface-muted); font-weight: 500; }
+.cqa-root .cqa-ed .cqa-ed__step-chip.is-invalid { box-shadow: inset 0 0 0 1px var(--no); }
+
+/* summary line and notices */
+.cqa-root .cqa-ed .cqa-ed__summary { padding: 0 2px; border: 0; background: transparent; gap: 4px 20px; }
+.cqa-root .cqa-ed .cqa-ed__notice { border-color: transparent; border-radius: 17px; padding: 12px 16px; box-shadow: var(--ed-edge); }
+.cqa-root .cqa-ed .cqa-ed__notice--info { background: var(--ed-fill); }
+
+/* criteria: soft panels, muted section label, hairline rows */
+.cqa-root .cqa-ed .cqa-ed__criteria { gap: 16px; }
+.cqa-root .cqa-ed .cqa-ed__section { border: 0; border-radius: 17px; background: var(--ed-fill); box-shadow: var(--ed-edge), var(--ed-soft-shadow); }
+.cqa-root .cqa-ed .cqa-ed__section-head { padding: 16px 21px 6px; border: 0; background: transparent; }
+.cqa-root .cqa-ed .cqa-ed__section-head h2 { font-size: .8125em; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.cqa-root .cqa-ed .cqa-ed__section-weight { font-size: .8125em; }
+.cqa-root .cqa-ed .cqa-ed__section-foot { border-top: 1px solid var(--ed-hair); }
+.cqa-root .cqa-ed .cqa-ed__item { border-top: 1px solid var(--ed-hair); }
+.cqa-root .cqa-ed .cqa-ed__item:first-child { border-top: 0; }
+.cqa-root .cqa-ed .cqa-ed__item-title { font-weight: 500; letter-spacing: -.015em; }
+.cqa-root .cqa-ed .cqa-ed__desc { font-size: .9375em; -webkit-line-clamp: 1; }
+.cqa-root .cqa-ed .cqa-ed__item-body { border: 0; border-radius: 17px; background: var(--ed-fill-soft); box-shadow: var(--ed-edge); }
+.cqa-root .cqa-ed .cqa-ed__details dt { font-size: .8125em; font-weight: 500; }
+
+/* side panels (diff, run) */
+.cqa-root .cqa-ed .cqa-ed__panel { gap: 14px; padding: 21px; border: 0; border-radius: 17px; background: var(--ed-fill); box-shadow: var(--ed-edge), var(--ed-soft-shadow); }
+.cqa-root .cqa-ed .cqa-ed__panel-head h2 { font-weight: 500; letter-spacing: -.035em; }
+.cqa-root .cqa-ed .cqa-ed__diff-list { gap: 0; }
+.cqa-root .cqa-ed .cqa-ed__diff-item { padding: 12px 0; border: 0; border-top: 1px solid var(--ed-hair); border-radius: 0; }
+.cqa-root .cqa-ed .cqa-ed__diff-item:first-child { border-top: 0; }
+.cqa-root .cqa-ed .cqa-ed__stats > div { background: var(--ed-fill-soft); box-shadow: var(--ed-edge); }
+.cqa-root .cqa-ed .cqa-ed__stats dt { font-size: .75em; }
+.cqa-root .cqa-ed .cqa-ed__stats dd { font-size: 1.5em; font-weight: 500; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+
+/* form controls */
+.cqa-root .cqa-ed .cqa-ed__label { font-weight: 500; }
+.cqa-root .cqa-ed .cqa-ed__input, .cqa-root .cqa-ed .cqa-ed__select { border-color: var(--ed-field-line); border-radius: 9px; background-color: var(--surface); }
+.cqa-root .cqa-ed .cqa-ed__input[aria-invalid="true"] { border-color: var(--no); }
+.cqa-root .cqa-ed .cqa-ed__input[readonly] { background-color: var(--surface-muted); }
+.cqa-root .cqa-ed .cqa-ed__segments { border: 0; border-radius: 30px; padding: 4px; background: var(--surface-muted); }
+.cqa-root .cqa-ed .cqa-ed__segment { border-radius: 30px; font-weight: 500; }
+.cqa-root .cqa-ed .cqa-ed__group { border: 0; border-radius: 17px; background: var(--ed-fill-soft); box-shadow: var(--ed-edge); }
+.cqa-root .cqa-ed .cqa-ed__lint { border: 0; border-radius: 17px; background: var(--ed-fill-soft); box-shadow: var(--ed-edge); }
+.cqa-root .cqa-ed .cqa-ed__callout { border-radius: 9px; }
+
+/* sticky action bar: a floating glass bar */
+.cqa-root .cqa-ed .cqa-ed__bar {
+  bottom: 12px; margin: 0 0 12px; padding: 12px 21px; border: 0; border-radius: 20px;
+  background: color-mix(in srgb, var(--gl-surface, var(--surface)) 94%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1); backdrop-filter: blur(18px) saturate(1.1);
+  box-shadow: var(--ed-edge), 0 18px 40px -26px color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.cqa-root .cqa-ed .cqa-ed__bar-status { font-size: .8125em; }
+.cqa-root .cqa-ed .cqa-ed__preview-hint { font-size: .8125em; }
+
+/* dialogs (replace wizard, import, confirm) */
+.cqa-root .cqa-ed .cqa-ed__dialog { border: 0; border-radius: 27px; background: var(--gl-surface, var(--surface)); box-shadow: var(--ed-edge), 0 30px 80px -30px color-mix(in srgb, var(--ink) 55%, transparent); }
+.cqa-root .cqa-ed .cqa-ed__dialog-head { padding: 18px 16px 4px 28px; border: 0; background: var(--gl-surface, var(--surface)); }
+.cqa-root .cqa-ed .cqa-ed__dialog-head h2 { font-size: 1.375em; font-weight: 500; letter-spacing: -.035em; }
+.cqa-root .cqa-ed .cqa-ed__dialog-lead { padding-inline: 28px; }
+.cqa-root .cqa-ed .cqa-ed__dialog-body { gap: 20px; padding: 16px 28px 24px; }
+.cqa-root .cqa-ed .cqa-ed__dialog > .cqa-ed__dialog-actions { padding: 14px 28px 22px; border: 0; background: var(--gl-surface, var(--surface)); box-shadow: 0 -14px 24px -22px color-mix(in srgb, var(--ink) 40%, transparent); }
+.cqa-root .cqa-ed .cqa-ed__dialog--small { padding: 24px 28px; }
+.cqa-root .cqa-ed .cqa-ed__dialog--small > .cqa-ed__dialog-actions { padding: 0; box-shadow: none; }
+.cqa-root .cqa-ed .cqa-ed__wiz-subtitle { font-size: 1.0625em; font-weight: 500; letter-spacing: -.02em; }
+.cqa-root .cqa-ed .cqa-ed__was-box, .cqa-root .cqa-ed .cqa-ed__impact { gap: 6px; padding: 16px 18px; border: 0; border-radius: 17px; background: color-mix(in srgb, var(--ink) 5%, transparent); box-shadow: var(--ed-edge); }
+.cqa-root .cqa-ed .cqa-ed__was-box > p:first-child { font-size: .8125em; color: var(--muted); }
+@media (max-width: 767px) {
+  .cqa-root .cqa-ed .cqa-ed__bar { margin-inline: calc(var(--ed-pad) * -.5); padding-inline: 16px; }
+  .cqa-root .cqa-ed .cqa-ed__dialog-head { padding-left: 20px; }
+  .cqa-root .cqa-ed .cqa-ed__dialog-body, .cqa-root .cqa-ed .cqa-ed__dialog > .cqa-ed__dialog-actions { padding-inline: 20px; }
+}
+/* the workspace scrolls (≥769px): the bar sinks into the workspace padding so it sits flush with the
+   scroll edge and no criterion row peeks out beneath it. --ed-bar-sink mirrors that padding. */
+@media (min-width: 769px) {
+  .cqa-root .cqa-ed { --ed-bar-sink: var(--sh-gap, 16px); }
+  .cqa-root .cqa-ed .cqa-ed__bar { bottom: calc(var(--ed-bar-sink) * -1); margin-bottom: calc(var(--ed-bar-sink) * -1); border-radius: 20px 20px 0 0; }
+}
+@media (min-width: 1024px) and (min-height: 650px) {
+  .cqa-root.projector .cqa-ed { --ed-bar-sink: 10px; }
+}
+/* phone: a sticky bar would cover a third of the screen and the header actions — keep it in flow */
+@media (max-width: 699px) {
+  .cqa-root .cqa-ed .cqa-ed__bar { position: static; margin: 16px 0 0; border-radius: 20px; }
+}
+/* budget block (same component as on the board): inputs, forecast and warning stay, the caveat prose goes */
+.cqa-root .cqa-ed .cqa-ed__budget .cqa-economics__note { display: none; }
+.cqa-root .cqa-ed .cqa-ed__budget .cqa-economics > p:not([class]) { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+/* status chips under the title stay projector-readable */
+.cqa-root .cqa-ed .cqa-ed__chip { font-size: max(.8125em, 13px); }
+.cqa-root.projector .cqa-ed .cqa-ed__chip { font-size: 15px; }
+.cqa-root .cqa-ed .cqa-ed__was-box :is(.cqa-ed__chip--weight, .cqa-ed__chip:not([class*="cqa-ed__chip--"])) { background: var(--surface); }

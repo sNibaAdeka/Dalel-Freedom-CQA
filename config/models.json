@@ -10,7 +10,7 @@
   "providers": {
     "openai": {
       "base_url_env": "CQA_BASE_URL",
-      "base_url_default": "https://api.deepseek.com",
+      "base_url_default": "https://openrouter.ai/api/v1",
       "api_key_env": "CQA_API_KEY",
       "timeout_s": 150,
       "concurrency": 12,

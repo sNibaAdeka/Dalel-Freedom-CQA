@@ -23,6 +23,9 @@ def rule_mock(system: str, user: str, model: str, temperature: float, run: int) 
         block = c.group(0)
         critical = "НАРУШЕНИЕ ВЫЯВЛЕНО" in block
         nums = [float(a) for a in allowed if re.fullmatch(r"-?\d+(\.\d+)?", a)]
+        rng_m = re.search(r"число от (-?\d+(?:\.\d+)?) до (-?\d+(?:\.\d+)?)", c.group("allowed"))
+        if rng_m and not critical:  # numeric criterion: the top of the range, like the top step of a scale
+            nums = [float(rng_m.group(2))]
         if critical:
             answer = "no" if "no" in allowed else allowed[0]
         elif nums:

@@ -24,3 +24,18 @@
 @media (min-width: 1024px) { .cqa-economics:not(.cqa-economics--budget) > .cqa-economics__fields { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .cqa-root.projector .cqa-economics { font-size: 1.125rem; }
 @media (prefers-reduced-motion: reduce) { .cqa-economics * { animation: none; transition: none; scroll-behavior: auto; } }
+/* Minimal glass pass: soft surface instead of a white slab, hairlines instead of boxes, quiet notes. */
+.cqa-root.gl-theme .cqa-economics { padding: 4px 21px; border: 0; border-radius: 17px; background: var(--ws-control); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent), 0 10px 28px -22px var(--ws-stage-shadow); }
+.cqa-root.gl-theme .cqa-economics--budget { padding-block: 16px; }
+.cqa-root.gl-theme .cqa-economics summary { margin-inline: -8px; border-radius: 9px; font-weight: 500; letter-spacing: -.02em; }
+.cqa-root.gl-theme .cqa-economics[open] { padding-bottom: 21px; }
+.cqa-root.gl-theme .cqa-economics__field label { color: var(--muted); font-size: .867em; font-weight: 500; }
+.cqa-root.gl-theme .cqa-economics__field input { border-color: color-mix(in srgb, var(--ink) 22%, transparent); border-radius: 9px; background: var(--surface); font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme .cqa-economics__note { font-size: .867em; line-height: 1.5; }
+.cqa-root.gl-theme .cqa-economics__results { gap: 16px; margin-top: 16px; }
+.cqa-root.gl-theme .cqa-economics__profile { padding: 18px; border: 0; border-radius: 17px; background: var(--surface); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent); }
+.cqa-root.gl-theme .cqa-economics__profile h3 { font-weight: 500; letter-spacing: -.02em; }
+.cqa-root.gl-theme .cqa-economics__profile dl > div { border-block-end-color: color-mix(in srgb, var(--ink) 10%, transparent); }
+.cqa-root.gl-theme .cqa-economics__profile dt { font-size: .867em; }
+.cqa-root.gl-theme .cqa-economics__profile dd { font-weight: 500; }
+.cqa-root.gl-theme .cqa-economics__button { border-radius: 9px; border-color: color-mix(in srgb, var(--ink) 22%, transparent); font-weight: 500; }

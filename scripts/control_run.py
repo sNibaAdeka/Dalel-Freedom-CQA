@@ -37,6 +37,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from cqa import engine, ingest, llm  # noqa: E402
+from cqa.models import Score  # noqa: E402
+from cqa.review import export_status, validation_status  # noqa: E402
 from cqa.runs import current_evals  # noqa: E402
 
 RESULTS = ROOT / "results"
@@ -64,6 +66,61 @@ def _label(answer: Any) -> str:
 
 def _num(x: Any) -> Any:
     return int(x) if isinstance(x, float) and x.is_integer() else x
+
+
+def _csv_safe(value: Any) -> Any:
+    """Spreadsheet formula guard for text cells (=, +, -, @ also after whitespace/invisible chars), like the API export."""
+    if not isinstance(value, str):
+        return value
+    import unicodedata
+    i = 0
+    while i < len(value) and (value[i].isspace() or unicodedata.category(value[i]) in ("Cc", "Cf")):
+        i += 1
+    if (any(unicodedata.category(ch) in ("Cc", "Cf") for ch in value[:i])
+            or value[i:i + 1] in ("=", "+", "-", "@", "＝", "＋", "－", "＠")):
+        return "'" + value
+    return value
+
+
+def _run_id_of(ev: Any) -> Optional[str]:
+    return (getattr(ev, "__pydantic_extra__", None) or {}).get("run_id")
+
+
+class _RunCapture:
+    """Keeps an in-memory copy of every evaluation THIS process saves during the run, keyed by its run_id.
+
+    The evaluations table is upserted per (conv, hash, prompt, mode): a later run B (another process, the UI) may
+    overwrite run A's rows before A's files are written. The export of run A must come from A's own snapshot
+    (strict review PROD-01), so explanations/evidence/trace are taken from these copies, not re-read from the table."""
+
+    def __init__(self, db: Any):
+        self.db, self.by_run = db, {}
+        self._had = "save_eval" in vars(db)
+        self._orig = db.save_eval
+
+    def __enter__(self) -> "_RunCapture":
+        orig = self._orig
+
+        def save_eval(ev: Any) -> Any:
+            saved = orig(ev)
+            rid = _run_id_of(saved) or _run_id_of(ev)
+            if rid:
+                self.by_run.setdefault(rid, {})[(saved.conv_id, saved.criterion_id)] = saved.model_copy(deep=True)
+            return saved
+        self.db.save_eval = save_eval
+        return self
+
+    def __exit__(self, *exc: Any) -> None:
+        if self._had:
+            self.db.save_eval = self._orig
+        else:
+            try:
+                del self.db.save_eval
+            except AttributeError:
+                pass
+
+    def evals(self, run_id: Optional[str], conv_id: str) -> dict[str, Any]:
+        return {cid: ev for (conv, cid), ev in (self.by_run.get(run_id) or {}).items() if conv == conv_id}
 
 
 def _preset(mode: str, profile: Optional[str]) -> dict:
@@ -224,9 +281,15 @@ def run_control(state, group_id: str, *, records: Any = None, source: str = "aut
         return {"dry_run": True, "status": "dry-run", "group_id": group_id, "conversations": n_selected, "version": cl.version,
                 "profile": profile, "model": model, "mode": mode, "warnings": warnings, "plan": "\n".join(plan_text),
                 "source": src}
-    base_eval_id = state.db.max_eval_id()              # answers of THIS run are exactly the rows written after this
-    st = state.runs.start_run(version=cl.version, conv_ids=conv_ids, mode=key, profile=profile, live=True, force=True,
-                              wait=True)
+    # Decisions as the run sees them (start_run pins the same list): a reviewer decision saved AFTER this point
+    # never leaks into this run's export (strict review PROD-01).
+    decisions_at_start = {cid: state.db.list_decisions(conv_id=cid) for cid in conv_ids}
+    run_db = getattr(state.runs, "db", state.db)
+    with _RunCapture(run_db) as capture:
+        st = state.runs.start_run(version=cl.version, conv_ids=conv_ids, mode=key, profile=profile, live=True,
+                                  force=True, wait=True)
+    run_id = st.get("run_id")
+    snap_rows = {r["id"]: r for r in st["per_conv"]}
     errors = {r["id"]: r.get("error") for r in st["per_conv"] if r.get("status") == "error" or r.get("error")}
 
     conversations, csv_rows, traces = [], [], []
@@ -237,23 +300,38 @@ def run_control(state, group_id: str, *, records: Any = None, source: str = "aut
         def ext(mid: Optional[str]) -> Optional[str]:  # organizers' message ids even after an id rename
             return f"{source_id}:{mid.split(':')[-1]}" if mid else mid
 
+        # PROD-01: only THIS run's own answers -- the in-memory copies written by run_id (a later run B may already
+        # have overwritten the table rows), falling back to table rows still stamped with this run_id. A dialogue with
+        # a partial failure keeps the answers of this run; the missing criterion shows "нет ответа" + the error,
+        # total stays None. Older answers are never passed off as fresh.
+        own = capture.evals(run_id, cid)
         stored = current_evals(state.db, cid, cl, modes=[key])
-        # Only answers produced by THIS live run may be exported -- judged by evaluations row id (> max id before the
-        # run), not by seconds in created_at. A dialogue with a partial failure keeps the answers of this run; the
-        # missing criterion shows "нет ответа" + the error, total stays None. Older answers are never passed off as fresh.
-        fresh = state.db.eval_keys_since(cid, base_eval_id)
-        evals = [e for e in stored if (e.criterion_hash, e.prompt_version, e.mode) in fresh]
-        stale = len(stored) - len(evals)
-        result = engine.score(cl, evals, state.db.list_decisions(conv_id=cid), conv_id=cid, strict=False)
+        for e in stored:
+            if run_id and _run_id_of(e) == run_id:
+                own.setdefault(e.criterion_id, e)
+        evals = [own[c.id] for c in cl.criteria if c.id in own]
+        stale = sum(1 for e in stored if _run_id_of(e) != run_id)
+        snap = snap_rows.get(cid) or {}
+        if snap.get("status") == "done" and isinstance(snap.get("score"), dict):
+            result = Score.model_validate(snap["score"])   # the run's immutable score (decisions pinned at its start)
+        else:
+            result = engine.score(cl, evals, decisions_at_start.get(cid, []), conv_id=cid, strict=False)
         by_eval = {e.criterion_id: e for e in evals}
         crit_rows = []
         for line in result.lines:
             ev = by_eval.get(line.criterion_id)
             evidence = [{"message_id": ext(x.message_id), "quote": x.quote, "valid": x.valid} for x in (ev.evidence if ev else [])]
+            validation = validation_status(ev)
             row = {"criterion_id": line.criterion_id, "title": line.title, "answer": _num(line.answer),
                    "answer_label": _label(line.answer), "points": _num(line.points), "max_points": _num(line.max_points),
                    "weight_effective": round(line.weight_effective, 4), "is_na": line.is_na,
                    "critical": line.critical, "critical_hit": line.critical_hit,
+                   "source": line.source,
+                   # CQA-02: acceptance state next to the answer -- a rejected/flagged model answer is preliminary
+                   "status": export_status(line.source, validation) if line.answer is not None else "missing",
+                   "validation_status": validation,
+                   "evidence_valid": (all(x.valid for x in ev.evidence) if ev.evidence else None) if ev else None,
+                   "review_reasons": list(ev.review_reasons) if ev else [],
                    "explanation": ev.explanation if ev else "", "evidence": evidence,
                    "checked_range": [ext(x) for x in ev.checked_range] if ev and ev.checked_range else None,
                    "na_reason": ev.na_reason if ev else None, "confidence": ev.confidence if ev else None,
@@ -261,6 +339,10 @@ def run_control(state, group_id: str, *, records: Any = None, source: str = "aut
                    "prompt_version": ev.prompt_version if ev else None,
                    "error": None if ev else errors.get(cid)}
             crit_rows.append(row)
+        # dialogue level: the total is preliminary while any criterion is not final (rejected/flagged/missing answer)
+        preliminary = result.total is None or any(r["status"] != "final" for r in crit_rows)
+        for row in crit_rows:
+            evidence = row["evidence"]
             csv_rows.append({"conversation_id": source_id, "channel": conv["channel"], "language": conv["language"],
                              "criterion_id": row["criterion_id"], "title": row["title"], "answer": row["answer_label"],
                              "points": "" if row["points"] is None else row["points"], "weight": row["max_points"],
@@ -268,18 +350,25 @@ def run_control(state, group_id: str, *, records: Any = None, source: str = "aut
                              "evidence_message_ids": " ".join(e["message_id"] or "" for e in evidence),
                              "na_reason": row["na_reason"] or "", "confidence": row["confidence"], "error": row["error"] or "",
                              "needs_review": row["needs_review"], "total": "" if result.total is None else result.total,
-                             "critical": result.critical})
+                             "critical": result.critical, "status": row["status"],
+                             "validation_status": row["validation_status"],
+                             "evidence_valid": "" if row["evidence_valid"] is None else row["evidence_valid"],
+                             "preliminary": preliminary})
         for ev in evals:
             traces.append({"conversation_id": source_id, "internal_id": cid, "criterion_id": ev.criterion_id,
                            "criterion_hash": ev.criterion_hash, "prompt_version": ev.prompt_version, "mode": ev.mode,
                            "provider": ev.provider, "model": ev.model, "created_at": ev.created_at,
                            "latency_ms": ev.latency_ms, "tokens_in": ev.tokens_in, "tokens_out": ev.tokens_out,
-                           "cost_usd": ev.cost_usd, "cost_kzt": ev.cost_kzt, "raw": ev.raw})
+                           "cost_usd": ev.cost_usd, "cost_kzt": ev.cost_kzt, "run_id": _run_id_of(ev), "raw": ev.raw})
         conversations.append({"conversation_id": source_id, "internal_id": cid, "group_id": conv["group_id"],
                               "channel": conv["channel"], "language": conv["language"], "total": result.total,
-                              "status": result.status, "critical": result.critical,
+                              # CQA-02: a computed total that still rests on a rejected/flagged model answer is
+                              # "provisional", never "complete" next to preliminary=true
+                              "status": "provisional" if (preliminary and result.status == "complete") else result.status,
+                              "score_status": result.status, "critical": result.critical,
                               "critical_criteria": result.critical_criteria, "sections": result.sections,
-                              "needs_review": any(e.needs_review for e in evals), "criteria": crit_rows,
+                              "needs_review": any(e.needs_review for e in evals), "preliminary": preliminary,
+                              "result_status": "preliminary" if preliminary else "final", "criteria": crit_rows,
                               "formula_steps": result.formula_steps, "cost_kzt": round(sum(e.cost_kzt for e in evals), 4),
                               "latency_ms": sum(e.latency_ms for e in evals),
                               "models": sorted({e.model for e in evals if e.model}), "error": errors.get(cid),
@@ -314,7 +403,10 @@ def run_control(state, group_id: str, *, records: Any = None, source: str = "aut
     # top-level summary of the FILE as it is now (after --ids merges too), so nobody has to read run.status of run 1
     doc["summary"] = {"status": "completed" if not failed and st["status"] == "completed" else "failed",
                       "conversations": len(conversations), "evaluated": len(totals), "failed": len(failed),
-                      "failed_ids": [c["conversation_id"] for c in failed]}
+                      "failed_ids": [c["conversation_id"] for c in failed],
+                      # CQA-02: dialogues whose total is not final (an answer rejected by the validator or flagged)
+                      "preliminary": sum(1 for c in conversations if c.get("preliminary", True)),
+                      "preliminary_ids": [c["conversation_id"] for c in conversations if c.get("preliminary", True)]}
     if existing is not None:
         doc["run"] = {**doc["run"], "status_after_reruns": doc["summary"]["status"]}
     paths["json"].write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -322,7 +414,7 @@ def run_control(state, group_id: str, *, records: Any = None, source: str = "aut
     with paths["csv"].open("w", encoding="utf-8-sig", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
-        writer.writerows(csv_rows)
+        writer.writerows({k: _csv_safe(v) for k, v in r.items()} for r in csv_rows)
     with paths["trace"].open("w", encoding="utf-8") as fh:
         for t in traces:
             fh.write(json.dumps(t, ensure_ascii=False, default=str) + "\n")

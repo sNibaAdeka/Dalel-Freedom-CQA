@@ -100,12 +100,15 @@ def test_csv_columns_bom_unicode_and_criterion_values(env, snapshot):
     assert response.headers["content-type"] == "text/csv; charset=utf-8"
     rows = csv_rows(response)
     assert list(rows[0]) == ["conv_id", "group", "lang", "channel", "checklist_version", "run_id", "run_status",
-                             "criterion_id", "answer", "original_answer", "total", "critical", "status"]
+                             "criterion_id", "answer", "original_answer", "total", "critical", "status",
+                             "answer_status", "preliminary"]
     assert len(rows) == 4
     assert rows[0] == {"conv_id": "диалог-Қазақ", "group": "CTRL-Қазақ", "lang": "KZ", "channel": "chat",
                        "checklist_version": "7", "run_id": "run-export-test", "run_status": "completed",
                        "criterion_id": "C1", "answer": "yes", "original_answer": "no",
-                       "total": "83.33", "critical": "True", "status": "done"}
+                       "total": "83.33", "critical": "True", "status": "done",
+                       # CQA-02: C1 is a reviewer decision (final); the model answers carry no recorded validation
+                       "answer_status": "final", "preliminary": "True"}
     assert rows[1]["answer"] == "na" and rows[2]["answer"] == "15"
     assert rows[3]["criterion_id"] == "C8" and rows[3]["critical"] == "True"
 
@@ -298,7 +301,7 @@ def test_csv_quotes_do_not_create_extra_cells_or_records(env, snapshot):
     row["group_id"] = 'Контроль, "тест"\nҚазақ'
     save(env, snapshot)
     rows = csv_rows(download(env, snapshot, "csv"))
-    assert len(rows) == 4 and all(len(item) == 13 for item in rows)
+    assert len(rows) == 4 and all(len(item) == 15 for item in rows)
     assert rows[0]["conv_id"] == row["id"] and rows[0]["group"] == row["group_id"]
 
 

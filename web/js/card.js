@@ -31,6 +31,19 @@ function icon(name) {
   return svg;
 }
 
+/** «Речь оператора» (calls only): one informational line; it never changes the score. */
+export function speechLine(metrics) {
+  if (!metrics || typeof metrics !== 'object') return null;
+  const parts = [
+    `Темп: ${numeric(metrics.tempo_wpm) ? `${format(metrics.tempo_wpm, 0)} слов/мин` : '—'}`,
+    `Паузы > ${format(metrics.pause_threshold_sec ?? 3, 1)} с: ${numeric(metrics.pauses_over_3s) ? metrics.pauses_over_3s : '—'}`,
+    `Самая длинная: ${numeric(metrics.longest_pause_sec) ? `${format(metrics.longest_pause_sec, 1)} с` : '—'}`,
+  ];
+  if (numeric(metrics.silence_share)) parts.push(`Тишина в записи: ${format(metrics.silence_share * 100, 0)}%`);
+  const note = typeof metrics.note === 'string' && metrics.note ? metrics.note : 'по записи и транскрипту, на балл не влияет';
+  return { text: parts.join(' · '), note };
+}
+
 /** The cascade trace is present only for results produced by that profile. */
 export function cascadeState(evaluation) {
   const trace = evaluation?.raw?.cascade;
@@ -500,6 +513,12 @@ export function mount(CQA = window.CQA) {
     const audio = element('div', 'cqa-card__audio-slot'); audio.id = 'cqa-audio';
     if (detail.channel === 'call') audio.append(element('p', 'cqa-card__audio-fallback', 'Запись: время реплик доступно в транскрипте.'));
     left.append(audio);
+    const speech = detail.channel === 'call' ? speechLine(detail.speech_metrics) : null;
+    if (speech) {
+      const row = element('p', 'cqa-card__speech');
+      row.append(element('span', 'cqa-card__speech-label', 'Речь оператора'), element('span', 'cqa-card__speech-values', speech.text), element('span', 'cqa-card__speech-note', speech.note));
+      left.append(row);
+    }
     rangeStatus = element('p', 'cqa-card__range-status'); rangeStatus.hidden = true; left.append(rangeStatus);
     transcript = element('div', 'cqa-card__transcript-scroll'); transcript.tabIndex = 0; transcript.setAttribute('aria-label', 'Реплики разговора');
     content = element('div', 'cqa-card__transcript-content');

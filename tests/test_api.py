@@ -219,6 +219,17 @@ def test_detail_shape_and_no_signed_links(client):
     assert client.get("/api/conversations/missing").status_code == 404
 
 
+def test_speech_metrics_only_for_opened_calls(client):
+    ingest(client)
+    call = client.get("/api/conversations/t-call-001").json()["speech_metrics"]
+    assert call["informational"] is True and call["affects_score"] is False
+    assert call["source"] == "transcript" and call["silence_share"] is None   # no cached audio profile
+    assert {"tempo_wpm", "pauses_over_3s", "longest_pause_sec", "note"} <= set(call)
+    assert call["pauses_over_3s"] >= 1 and "на балл не влияет" in call["note"]
+    assert client.get("/api/conversations/t-ru-001").json()["speech_metrics"] is None
+    assert all("speech_metrics" not in row for row in client.get("/api/conversations").json())
+
+
 def test_upload_single_record_body(client):
     out = client.post("/api/ingest?group_id=UPLOAD", json=SYNTH[0])
     assert out.status_code == 200 and out.json()["count"] == 1

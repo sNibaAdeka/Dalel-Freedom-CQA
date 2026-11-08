@@ -102,3 +102,108 @@
 
 .cqa-root .cqa-board__model-guide { margin-block: 8px 12px; padding: 12px 12px 0; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--ink); background: var(--surface-subtle); overflow-wrap: anywhere; }
 .cqa-root .cqa-board__model-guide p { margin: 0 0 12px; line-height: 1.55; font-size: .875em; }
+
+/* ---------- calm glass pass (jury / projector): form controls + one forecast line.
+   Only explanatory copy is hidden; controls, warnings, errors, progress and results stay visible. */
+.cqa-root .cqa-board {
+  --bd-fill: var(--ws-control, var(--surface));
+  --bd-fill-soft: var(--ws-panel-soft, var(--surface-subtle));
+  --bd-hair: color-mix(in srgb, var(--ink) 12%, transparent);
+  --bd-field-line: color-mix(in srgb, var(--ink) 50%, transparent);
+  --bd-edge: inset 0 1px 0 color-mix(in srgb, var(--gl-hi, var(--surface)) var(--gl-edge, 65%), transparent);
+  --bd-shadow: 0 14px 30px -26px color-mix(in srgb, var(--ink) 45%, transparent);
+}
+/* explanatory copy only: subtitle, model essay, «Перед запуском» policy, activation/spend notes, field help, empty-state prose */
+.cqa-root .cqa-board .cqa-board__intro,
+.cqa-root .cqa-board .cqa-board__model-guide > p,
+.cqa-root .cqa-board .cqa-board__plan > h2,
+.cqa-root .cqa-board .cqa-board__plan-policy,
+.cqa-root .cqa-board #cqa-board-activation-hint,
+.cqa-root .cqa-board .cqa-board__form > p.cqa-board__hint:not([id]),
+.cqa-root .cqa-board .cqa-board__field > small.cqa-board__hint,
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics__note,
+.cqa-root .cqa-board .cqa-board__empty p { display: none; }
+
+.cqa-root .cqa-board .cqa-board__head { align-items: center; margin-bottom: 24px; }
+.cqa-root .cqa-board h1 { margin: 0; font-weight: 500; letter-spacing: -.035em; }
+.cqa-root .cqa-board h2 { font-weight: 500; letter-spacing: -.035em; }
+
+/* buttons: dark primary, text buttons for everything secondary */
+.cqa-root .cqa-board .cqa-board__button { border-color: transparent; border-radius: 9px; background: transparent; font-weight: 500; }
+.cqa-root .cqa-board .cqa-board__button:hover:not(:disabled) { border-color: transparent; background: var(--bd-fill); }
+.cqa-root .cqa-board .cqa-board__button--primary { padding-inline: 22px; background: var(--brand); color: var(--brand-ink); border-color: var(--brand); box-shadow: var(--bd-shadow); }
+.cqa-root .cqa-board .cqa-board__button--primary:hover:not(:disabled) { background: var(--brand-hover); border-color: var(--brand-hover); }
+
+/* run form: one soft panel, muted labels above values */
+.cqa-root .cqa-board .cqa-board__form { padding: 24px; border: 0; border-radius: 17px; background: var(--bd-fill); box-shadow: var(--bd-edge), var(--bd-shadow); }
+.cqa-root .cqa-board .cqa-board__fields { margin-bottom: 10px; }
+.cqa-root .cqa-board .cqa-board__label { font-size: .8125em; font-weight: 500; color: var(--muted); }
+.cqa-root .cqa-board .cqa-board__field select, .cqa-root .cqa-board .cqa-board__field input { border-color: var(--bd-field-line); border-radius: 9px; background-color: var(--surface); }
+.cqa-root .cqa-board #cqa-board-model-hint { margin: 0; font-size: .8125em; }
+.cqa-root .cqa-board .cqa-board__model-guide { margin: 0; padding: 0; border: 0; background: transparent; }
+.cqa-root .cqa-board .cqa-board__model-guide summary { padding: 10px 0; font-size: .875em; font-weight: 500; color: var(--muted); }
+.cqa-root .cqa-board .cqa-board__model-guide details[open] { padding: 0 0 4px; }
+.cqa-root .cqa-board .cqa-board__check { margin: 4px 0; font-size: .9375em; }
+/* «Перед запуском» → a single forecast line */
+.cqa-root .cqa-board .cqa-board__plan { margin: 2px 0 6px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.cqa-root .cqa-board .cqa-board__plan-hint { margin: 0; font-size: .875em; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+/* budget block inside the board: inputs and warning stay, prose goes */
+.cqa-root .cqa-board .cqa-board__budget { margin-top: 12px; }
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics { padding: 16px 0 0; border: 0; border-top: 1px solid var(--bd-hair); border-radius: 0; background: transparent; }
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics h3 { margin: 0 0 12px; font-size: .8125em; font-weight: 500; color: var(--muted); }
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics__field label { font-size: .8125em; font-weight: 500; color: var(--muted); }
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics__field input { border-color: var(--bd-field-line); border-radius: 9px; }
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics > p:not([class]) { margin: 12px 0 0; font-size: .875em; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics__warning { margin: 6px 0 0; padding: 0; border: 0; background: transparent; color: var(--partial); font-size: .875em; }
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics__warning:empty { display: none; }
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics__button { border-radius: 9px; }
+
+.cqa-root .cqa-board .cqa-board__actions { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--bd-hair); }
+.cqa-root .cqa-board .cqa-board__selection { font-weight: 500; font-variant-numeric: tabular-nums; }
+.cqa-root .cqa-board .cqa-board__rerun { margin-top: 8px; border-top: 0; }
+.cqa-root .cqa-board .cqa-board summary { font-weight: 500; }
+.cqa-root .cqa-board .cqa-board__import { margin: 12px 0 24px; border-block: 0; }
+
+/* results: soft panel, big numbers, hairline rows */
+.cqa-root .cqa-board .cqa-board__results { padding: 24px; border: 0; border-radius: 17px; background: var(--bd-fill); box-shadow: var(--bd-edge), var(--bd-shadow); }
+.cqa-root .cqa-board .cqa-board__run-head h2 { margin-bottom: 4px; }
+.cqa-root .cqa-board .cqa-board__run-head .cqa-board__hint { font-size: .8125em; }
+.cqa-root .cqa-board .cqa-board__run-plan { padding: 0; border: 0; background: transparent; color: var(--muted); font-size: .875em; }
+.cqa-root .cqa-board progress { -webkit-appearance: none; appearance: none; height: 6px; border: 0; border-radius: 30px; overflow: hidden; background: var(--surface-muted); }
+.cqa-root .cqa-board progress::-webkit-progress-bar { background: var(--surface-muted); border-radius: 30px; }
+.cqa-root .cqa-board progress::-webkit-progress-value { background: var(--yes); border-radius: 30px; }
+.cqa-root .cqa-board progress::-moz-progress-bar { background: var(--yes); border-radius: 30px; }
+.cqa-root .cqa-board .cqa-board__stats { gap: 16px; margin: 24px 0 8px; border-block: 0; }
+.cqa-root .cqa-board .cqa-board__stats > div { padding: 0; border: 0; }
+.cqa-root .cqa-board .cqa-board__stats dt { font-size: .8125em; }
+.cqa-root .cqa-board .cqa-board__stats dd { font-size: 2em; font-weight: 500; letter-spacing: -.04em; line-height: 1.1; }
+.cqa-root .cqa-board .cqa-board__result-note { font-size: .875em; }
+.cqa-root .cqa-board .cqa-board__exports { gap: 4px; }
+.cqa-root .cqa-board .cqa-board__exports .cqa-board__hint { font-size: .8125em; }
+.cqa-root .cqa-board .cqa-board__grid { border-top: 1px solid var(--bd-hair); }
+.cqa-root .cqa-board .cqa-board__tile { border-bottom-color: var(--bd-hair); }
+.cqa-root .cqa-board .cqa-board__tile-scores > strong { font-size: 1.35em; font-weight: 500; letter-spacing: -.04em; }
+.cqa-root .cqa-board .cqa-board__empty { padding: 16px 0; }
+.cqa-root .cqa-board .cqa-board__empty h2 { color: var(--muted); font-size: 1.0625em; }
+@media (max-width: 768px) {
+  .cqa-root .cqa-board .cqa-board__form, .cqa-root .cqa-board .cqa-board__results { padding: 16px; }
+  .cqa-root .cqa-board .cqa-board__stats dd { font-size: 1.5em; }
+}
+/* the start button must be on screen at 1440×900: the selection line + «Оценить по vN» ride a soft bar
+   pinned flush to the workspace scroll edge (≥769px, where the workspace scrolls). --bd-sink mirrors
+   the workspace padding so nothing peeks out below the bar. */
+.cqa-root .cqa-board .cqa-board__budget .cqa-economics h3 { display: none; }
+@media (min-width: 769px) {
+  .cqa-root .cqa-board { --bd-sink: var(--sh-gap, 16px); }
+  .cqa-root .cqa-board .cqa-board__actions {
+    position: sticky; bottom: calc(var(--bd-sink) * -1); z-index: 3;
+    margin-inline: -12px; padding: 12px; border-top: 0; border-radius: 17px 17px 0 0;
+    background: color-mix(in srgb, var(--gl-surface, var(--surface)) 94%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1); backdrop-filter: blur(18px) saturate(1.1);
+    box-shadow: var(--bd-edge), 0 -14px 30px -26px color-mix(in srgb, var(--ink) 45%, transparent);
+  }
+}
+@media (min-width: 1024px) and (min-height: 650px) {
+  .cqa-root.projector .cqa-board { --bd-sink: 10px; }
+}

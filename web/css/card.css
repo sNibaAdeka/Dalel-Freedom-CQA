@@ -33,6 +33,8 @@
 .cqa-root .cqa-card__handoff { flex-shrink: 0; margin: 0 24px 12px; padding: 10px 12px; background: var(--card-context); border-radius: 6px; color: var(--muted); font-size: .875em; }
 .cqa-root .cqa-card__audio-slot { flex-shrink: 0; margin: 0 20px; }
 .cqa-root .cqa-card__audio-fallback { font-size: .875em; color: var(--muted); }
+.cqa-root .cqa-card__speech { flex-shrink: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin: 0 24px 8px; font-size: .8125em; line-height: 1.5; color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cqa-root .cqa-card__speech-label { font-weight: 600; color: var(--ink); }
 .cqa-root .cqa-card__transcript-scroll { flex: 1; min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .cqa-root .cqa-card__transcript-content { position: relative; padding: 4px 28px 24px 22px; }
 .cqa-root .cqa-card__message { position: relative; margin: 12px 0; padding: 12px 14px; border-inline-start: 2px solid var(--line); border-radius: 0 5px 5px 0; background: var(--surface); scroll-margin: 24px; overflow-wrap: anywhere; }
@@ -189,3 +191,96 @@
 .cqa-root .cqa-card__cascade { margin: 10px 0; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface-subtle); color: var(--ink); font-size: .875em; overflow-wrap: anywhere; }
 .cqa-root .cqa-card__cascade summary { min-height: 44px; padding: 12px; cursor: pointer; font-weight: 600; }
 .cqa-root .cqa-card__cascade p { padding: 0 12px 12px; margin: 0; line-height: 1.55; }
+
+/* Minimal glass pass: hairlines instead of boxes, quiet meta, one big number. Tokens only. */
+.cqa-root.gl-theme .cqa-card {
+  --min-hair: color-mix(in srgb, var(--ink) 11%, transparent);
+  --min-fill: color-mix(in srgb, var(--surface) 55%, transparent);
+  --min-chip: color-mix(in srgb, var(--surface) 88%, transparent);
+  --min-edge: inset 0 1px 0 color-mix(in srgb, var(--surface) 92%, transparent);
+  --min-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 10px 24px -18px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.cqa-root.gl-theme .cqa-card__header { padding: 20px 24px 16px; border-bottom: 1px solid var(--min-hair); }
+.cqa-root.gl-theme .cqa-card__title { font-size: 24px; font-weight: 500; letter-spacing: -.035em; }
+.cqa-root.gl-theme .cqa-card__subtitle { margin-top: 4px; font-size: 13px; }
+.cqa-root.gl-theme .cqa-card__results { border-inline-start: 1px solid var(--min-hair); }
+.cqa-root.gl-theme .cqa-card__panel-heading { padding: 18px 24px 6px; }
+.cqa-root.gl-theme .cqa-card__panel-heading h3 { font-size: 15px; font-weight: 500; letter-spacing: -.02em; }
+.cqa-root.gl-theme .cqa-card__panel-heading > span { display: none; }
+.cqa-root.gl-theme .cqa-card__handoff { margin: 0 24px 6px; padding: 0; background: transparent; border-radius: 0; color: var(--muted); font-size: 13px; }
+.cqa-root.gl-theme .cqa-card__audio-slot { margin: 6px 24px 4px; }
+.cqa-root.gl-theme .cqa-card__speech { margin: 0 24px 6px; font-size: 13px; }
+/* Transcript: no side rules or outlines; the operator (who is evaluated) gets the soft chip. */
+.cqa-root.gl-theme .cqa-card__transcript-content { padding: 4px 24px 24px; }
+.cqa-root.gl-theme .cqa-card__message { margin: 4px 0; padding: 12px 16px; border-inline-start: 0; border-radius: 17px; background: transparent; box-shadow: none; }
+.cqa-root.gl-theme .cqa-card__message--operator { background: var(--min-chip); box-shadow: var(--min-edge), var(--min-shadow); }
+.cqa-root.gl-theme .cqa-card__message--bot, .cqa-root.gl-theme .cqa-card__message--system { padding: 0 16px; background: transparent; }
+.cqa-root.gl-theme .cqa-card__message-head { font-size: 13px; }
+.cqa-root.gl-theme .cqa-card__message-head strong { font-weight: 600; }
+.cqa-root.gl-theme details.cqa-card__message > summary { font-size: 13px; color: var(--muted); }
+.cqa-root.gl-theme details.cqa-card__message > summary strong { color: var(--muted); font-weight: 500; }
+.cqa-root.gl-theme .cqa-card__message-text { margin-top: 4px; font-size: 15px; line-height: 1.6; }
+.cqa-root.gl-theme .cqa-card__listen { margin-top: 4px; font-size: 13px; }
+/* Score: muted label above one big number. */
+.cqa-root.gl-theme .cqa-card__score-summary { padding: 20px 24px 8px; border-bottom: 1px solid var(--min-hair); }
+.cqa-root.gl-theme .cqa-card__score-heading h3 { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.cqa-root.gl-theme .cqa-card__version { font-size: 13px; }
+.cqa-root.gl-theme .cqa-card__total { margin: 6px 0 12px; }
+.cqa-root.gl-theme .cqa-card__total strong { font-size: 60px; line-height: 1; font-weight: 500; letter-spacing: -.04em; }
+.cqa-root.gl-theme .cqa-card__total--incomplete strong { font-size: 28px; line-height: 1.25; letter-spacing: -0.02em; }
+.cqa-root.gl-theme .cqa-card__total span { font-size: 15px; }
+.cqa-root.gl-theme .cqa-card__critical { gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--critical-bg); color: var(--critical); box-shadow: var(--min-edge); font-size: 15px; font-weight: 600; }
+.cqa-root.gl-theme .cqa-card__verified-summary { margin: 10px 0 4px; font-size: 13px; font-weight: 500; }
+.cqa-root.gl-theme .cqa-card__calculation { border-top: 1px solid var(--min-hair); }
+.cqa-root.gl-theme .cqa-card__critical + .cqa-card__verified-summary + .cqa-card__calculation,
+.cqa-root.gl-theme .cqa-card__verified-summary + .cqa-card__calculation { margin-top: 8px; }
+.cqa-root.gl-theme .cqa-card__calculation > summary { font-size: 15px; font-weight: 500; color: var(--ink); }
+.cqa-root.gl-theme .cqa-card__calculation > summary::after { color: var(--muted); font-weight: 400; }
+.cqa-root.gl-theme .cqa-card__sections { margin: 8px 0 16px; font-size: 14px; }
+.cqa-root.gl-theme .cqa-card__sections dd { font-weight: 500; }
+.cqa-root.gl-theme .cqa-card__formula { border-top: 1px solid var(--min-hair); }
+.cqa-root.gl-theme .cqa-card__formula summary { font-weight: 500; }
+.cqa-root.gl-theme .cqa-card__receipt { border-top: 1px solid var(--min-hair); }
+.cqa-root.gl-theme .cqa-card__receipt summary { font-weight: 500; }
+/* Criteria: a hairline-separated list, not a stack of cards. */
+.cqa-root.gl-theme .cqa-card__criterion { margin: 0; padding: 16px 24px; border: 0; border-bottom: 1px solid var(--min-hair); border-radius: 0; background: transparent; }
+.cqa-root.gl-theme .cqa-card__criterion--missing { border-inline-start: 3px solid var(--no); }
+.cqa-root.gl-theme .cqa-card__criterion-heading { gap: 12px; }
+.cqa-root.gl-theme .cqa-card__criterion-number { min-width: 28px; height: 28px; border-radius: 9px; background: var(--min-fill); box-shadow: var(--min-edge); color: var(--muted); font-weight: 500; }
+.cqa-root.gl-theme .cqa-card__criterion-title { font-size: 15px; font-weight: 500; letter-spacing: -.01em; }
+.cqa-root.gl-theme .cqa-card__answer { padding: 4px 12px; border: 0; border-radius: 30px; font-size: 13px; font-weight: 600; background: var(--min-fill); }
+.cqa-root.gl-theme .cqa-card__answer--yes { background: var(--yes-bg); }
+.cqa-root.gl-theme .cqa-card__answer--no, .cqa-root.gl-theme .cqa-card__answer--missing { background: var(--no-bg); }
+.cqa-root.gl-theme .cqa-card__answer--partial { background: var(--partial-bg); }
+.cqa-root.gl-theme .cqa-card__answer--critical { background: var(--critical-bg); }
+.cqa-root.gl-theme .cqa-card__answer--clear, .cqa-root.gl-theme .cqa-card__answer--na { background: var(--surface-muted); }
+.cqa-root.gl-theme .cqa-card__criterion-meta { margin: 10px 0 4px; font-size: 13px; }
+.cqa-root.gl-theme .cqa-card__criterion-meta strong { font-weight: 500; }
+.cqa-root.gl-theme .cqa-card__contribution { margin: 0 0 6px; font-size: 13px; }
+.cqa-root.gl-theme .cqa-card__explanation { margin: 10px 0; font-size: 15px; line-height: 1.6; }
+.cqa-root.gl-theme .cqa-card__evidence { margin: 12px 0; padding-left: 14px; border-left: 2px solid color-mix(in srgb, var(--yes) 55%, transparent); }
+.cqa-root.gl-theme .cqa-card__evidence--invalid { border-left-color: var(--no); }
+.cqa-root.gl-theme .cqa-card__evidence blockquote { margin-bottom: 4px; font-size: 15px; line-height: 1.55; }
+.cqa-root.gl-theme .cqa-card__verified { font-size: 13px; }
+/* Secondary actions read as text buttons: no outline box, still 44px tall. */
+.cqa-root.gl-theme .cqa-card__proof-button, .cqa-root.gl-theme .cqa-card__range-button, .cqa-root.gl-theme .cqa-card__appeal { margin-top: 2px; padding: 8px 0; border-color: transparent; background: transparent; color: var(--yes); font-size: 14px; font-weight: 600; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: .25em; }
+.cqa-root.gl-theme .cqa-card__appeal { color: var(--ink); }
+.cqa-root.gl-theme .cqa-card__proof-button:hover, .cqa-root.gl-theme .cqa-card__range-button:hover, .cqa-root.gl-theme .cqa-card__appeal:hover { background: transparent; text-decoration-color: currentColor; }
+.cqa-root.gl-theme .cqa-card__suggestion { margin-top: 8px; padding: 0; border: 0; border-radius: 0; }
+.cqa-root.gl-theme .cqa-card__suggestion summary { padding: 12px 0; font-weight: 500; }
+.cqa-root.gl-theme .cqa-card__suggestion small { display: none; }
+.cqa-root.gl-theme .cqa-card__criterion-footer { margin-top: 8px; }
+.cqa-root.gl-theme .cqa-card__confidence { font-size: 13px; }
+.cqa-root.gl-theme .cqa-card__na-reason { border-left-color: var(--min-hair); }
+.cqa-root.gl-theme .cqa-card__flag-clear { padding: 10px 14px; border-left: 0; border-radius: 12px; background: var(--min-fill); box-shadow: var(--min-edge); }
+.cqa-root.gl-theme .cqa-card__pending-summary { border: 0; border-radius: 17px; background: var(--min-fill); box-shadow: var(--min-edge); }
+.cqa-root.gl-theme .cqa-card__missing-summary { border-radius: 0 17px 17px 0; }
+.cqa-root.gl-theme .cqa-card__cascade { border: 0; border-radius: 12px; background: var(--min-fill); box-shadow: var(--min-edge); }
+.cqa-root.gl-theme .cqa-card__range-status { margin: 4px 24px 8px; border-radius: 12px; background: var(--min-fill); box-shadow: var(--min-edge); }
+.cqa-root.gl-theme .cqa-card .is-criterion-focus { box-shadow: inset 3px 0 var(--yes); background: var(--min-fill); }
+.cqa-root.gl-theme .cqa-card__mobile-tabs { border-bottom-color: var(--min-hair); }
+/* Projector: keep its bigger type; only spacing follows the minimal pass. */
+.cqa-root.gl-theme.projector .cqa-card__message-text, .cqa-root.gl-theme.projector .cqa-card__explanation { font-size: 19px; }
+.cqa-root.gl-theme.projector .cqa-card__message-head, .cqa-root.gl-theme.projector details.cqa-card__message > summary, .cqa-root.gl-theme.projector .cqa-card__score-heading h3, .cqa-root.gl-theme.projector .cqa-card__version, .cqa-root.gl-theme.projector .cqa-card__criterion-meta, .cqa-root.gl-theme.projector .cqa-card__verified-summary { font-size: 16px; }
+.cqa-root.gl-theme.projector .cqa-card__criterion-title, .cqa-root.gl-theme.projector .cqa-card__calculation > summary { font-size: 18px; }
+.cqa-root.gl-theme.projector .cqa-card__title { font-size: 28px; }

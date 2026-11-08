@@ -120,3 +120,54 @@
   .cqa-quality__analysis-panel .cqa-quality__table th:nth-child(2) { width: 57%; }
   .cqa-quality--analyst .cqa-quality__intro { display: none; }
 }
+/* Minimal glass pass (jury/projector): soft surfaces instead of outlined boxes, fewer words, bigger numbers.
+   Sizes in em so projector mode scales them. Honesty lines stay visible as one quiet line;
+   methodology lives in the existing <details>. */
+.cqa-root.gl-theme .cqa-quality--analyst { font-size: .9375rem; line-height: 1.45; }
+.cqa-root.gl-theme.projector .cqa-quality--analyst { font-size: 1.0625rem; }
+.cqa-root.gl-theme .cqa-quality__header h1 { font-weight: 500; letter-spacing: -.035em; }
+.cqa-root.gl-theme .cqa-quality .cqa-quality__refresh { border: 0; border-radius: 9px; font-weight: 500; padding-inline: 18px; }
+.cqa-root.gl-theme .cqa-quality--analyst .cqa-quality__status { margin: 0 0 16px; color: var(--muted); font-size: .934em; font-weight: 400; }
+.cqa-root.gl-theme .cqa-quality__toolbar { gap: 8px 16px; margin-bottom: 16px; }
+.cqa-root.gl-theme .cqa-quality__toolbar > .cqa-quality__compact-note { flex: 1 1 100%; order: 2; font-size: .867em; line-height: 1.45; }
+.cqa-root.gl-theme .cqa-quality__select-label { color: var(--muted); font-size: .867em; font-weight: 500; }
+.cqa-root.gl-theme .cqa-quality__select { border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent); border-radius: 9px; background-color: var(--ws-control); color: var(--ink); font-size: 1.154em; font-weight: 500; }
+.cqa-root.gl-theme :is(.cqa-quality__metric-card, .cqa-quality__analysis-panel) {
+  padding: 21px; border: 0; border-radius: 17px; background: var(--ws-control);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent), 0 10px 28px -22px var(--ws-stage-shadow);
+}
+.cqa-root.gl-theme .cqa-quality__cards { gap: 16px; }
+.cqa-root.gl-theme .cqa-quality__metric-card:first-child { border: 0; background: var(--surface); }
+.cqa-root.gl-theme .cqa-quality__metric-card h2 { margin: 0 0 6px; color: var(--muted); font-size: .867em; font-weight: 500; letter-spacing: 0; }
+.cqa-root.gl-theme .cqa-quality__metric-value { font-size: 2.933em; font-weight: 500; letter-spacing: -.04em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme.projector .cqa-quality__metric-value { font-size: 3.2em; }
+.cqa-root.gl-theme .cqa-quality__metric-card--unmeasured .cqa-quality__metric-value { font-size: 1.6em; letter-spacing: -.02em; }
+.cqa-root.gl-theme .cqa-quality__cards--profiles .cqa-quality__interval { margin-top: 6px; color: var(--muted); font-size: .867em; font-weight: 400; font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme .cqa-quality__metric-support { margin: 2px 0 14px; font-size: .867em; }
+.cqa-root.gl-theme .cqa-quality__quick-facts { gap: 6px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+.cqa-root.gl-theme .cqa-quality__quick-facts dt { font-size: .867em; }
+.cqa-root.gl-theme .cqa-quality__quick-facts dd { font-weight: 500; font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme .cqa-quality__cards--profiles { gap: 12px; }
+.cqa-root.gl-theme .cqa-quality__cards--profiles .cqa-quality__metric-card { padding: 20px 18px; }
+.cqa-root.gl-theme .cqa-quality__cards--profiles .cqa-quality__quick-facts > div { gap: 4px 8px; }
+.cqa-root.gl-theme .cqa-quality__cards--profiles .cqa-quality__quick-facts dt { flex: 1 1 auto; }
+.cqa-root.gl-theme .cqa-quality__cards--profiles .cqa-quality__quick-facts dd { flex: 0 0 auto; font-size: .934em; white-space: nowrap; }
+/* Per-card latency notes repeat the «Кэш / Смешанный кэш» label and the methodology in <details>; keep only the local cost caveat. */
+.cqa-root.gl-theme .cqa-quality__cards--profiles .cqa-quality__metric-card:not(:last-child) .cqa-quality__profile-description,
+.cqa-root.gl-theme .cqa-quality__cards--profiles .cqa-quality__metric-card:last-child .cqa-quality__profile-description:not(:last-child) { display: none; }
+.cqa-root.gl-theme .cqa-quality__profile-description { margin-top: 10px; color: var(--muted); font-size: .867em; }
+.cqa-root.gl-theme .cqa-quality__decision { margin: 16px 0 4px; padding: 0; border: 0; background: none; color: var(--muted); font-size: .934em; line-height: 1.5; }
+.cqa-root.gl-theme .cqa-quality__cost-provenance { margin: 0 0 16px; font-size: .867em; }
+.cqa-root.gl-theme .cqa-quality__analysis-grid { gap: 16px; }
+.cqa-root.gl-theme .cqa-quality__analysis-panel h2 { margin: 0 0 10px; font-size: 1.067em; font-weight: 500; letter-spacing: -.02em; }
+.cqa-root.gl-theme .cqa-quality__analysis-panel .cqa-quality__table caption { font-size: .867em; }
+.cqa-root.gl-theme .cqa-quality__analysis-panel .cqa-quality__table :is(th, td) { padding: 7px 6px; border-block-end-color: color-mix(in srgb, var(--ink) 10%, transparent); }
+.cqa-root.gl-theme .cqa-quality__analysis-panel .cqa-quality__table thead th { background: none; font-size: .867em; font-weight: 500; }
+.cqa-root.gl-theme .cqa-quality__analysis-panel .cqa-quality__table tbody td:nth-child(2) { font-weight: 500; }
+.cqa-root.gl-theme .cqa-quality__analysis-panel .cqa-quality__table tbody tr:last-child > * { border-block-end: 0; }
+.cqa-root.gl-theme .cqa-quality__analysis-panel .cqa-quality__compact-note { margin-top: 10px; font-size: .867em; }
+.cqa-root.gl-theme :is(.cqa-quality__paired-result, .cqa-quality__stability li) { font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme .cqa-quality__stability li + li { margin-top: 4px; padding-top: 8px; border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent); }
+.cqa-root.gl-theme .cqa-quality__details { border-block-start-color: color-mix(in srgb, var(--ink) 12%, transparent); }
+.cqa-root.gl-theme .cqa-quality__details summary { border-radius: 9px; font-weight: 500; }
+.cqa-root.gl-theme :is(.cqa-quality__all-reports, .cqa-quality__economics) { margin-top: 16px; }

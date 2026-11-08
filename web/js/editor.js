@@ -188,7 +188,6 @@ export function validate(checklist) {
     const type = c.answer_type;
     const critical = !!c.critical;
     if (!ANSWER_TYPES.includes(type)) at('error', 'answer_type', 'Выберите тип ответа: Да/Нет, Шкала или Число.');
-    else if (type === 'numeric') at('error', 'answer_type', 'Тип «Число» оценщик пока не поддерживает: выберите «Шкала» и задайте ступени.');
     else if (type !== 'binary') validateScale(c, at);
     if (critical && ANSWER_TYPES.includes(type) && type !== 'binary') at('error', 'answer_type', 'Грубая ошибка задаётся только как Да/Нет. Смените тип или снимите отметку «Грубая ошибка».');
     const weight = toNumber(c.weight);
@@ -1372,8 +1371,6 @@ export function mount(CQA = typeof window !== 'undefined' ? window.CQA : undefin
     const ids = fieldIds(prefix, 'answer_type');
     const group = el('div', { class: 'cqa-ed__segments' });
     for (const type of ANSWER_TYPES) {
-      // «Число» is not supported by the evaluator yet: hide it unless an imported criterion already uses it.
-      if (type === 'numeric' && ui.answer_type !== 'numeric') continue;
       const id = `${prefix}-type-${type}`;
       group.append(el('label', { class: 'cqa-ed__segment', for: id },
         el('input', { type: 'radio', id, name: `${prefix}-type`, value: type, checked: ui.answer_type === type, 'data-field': 'answer_type', 'data-uid': ui.uid, 'data-focus-key': `${ui.uid}:answer_type:${type}`, 'aria-describedby': ids.msg }),

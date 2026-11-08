@@ -401,6 +401,11 @@ class CriterionEval(BaseModel):
     latency_ms: int = 0
     needs_review: bool = False
     review_reasons: list[str] = Field(default_factory=list)
+    # Evidence acceptance (strict review CQA-02), separate from low confidence: "valid" = evidence passed final
+    # validation; "rejected" = answer kept for the reviewer but its evidence failed -> provisional, not an accepted
+    # grade; "failed" = no answer. None = evaluation stored before this field existed.
+    validation_status: Optional[Literal["valid", "rejected", "failed"]] = None
+    provisional: bool = False
     raw: Any = None                             # raw model output(s) for tracing
     created_at: Optional[str] = None
 

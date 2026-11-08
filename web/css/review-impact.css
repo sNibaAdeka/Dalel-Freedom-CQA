@@ -58,3 +58,23 @@
   .cqa-root .cqa-review-impact__focus { transition: none; }
   .cqa-root .cqa-review-impact__focus:active { transform: none; }
 }
+
+/* Minimal glass pass: no white slab, one title, quiet hairline list. Tokens only. */
+.cqa-root.gl-theme .cqa-review-impact { --impact-surface: color-mix(in srgb, var(--surface) 55%, transparent); padding: 20px 24px; border-bottom: 1px solid color-mix(in srgb, var(--ink) 11%, transparent); background: transparent; }
+.cqa-root.gl-theme .cqa-review-impact__title { margin-bottom: 10px; font-size: 15px; font-weight: 500; letter-spacing: -.02em; }
+.cqa-root.gl-theme .cqa-review-impact__title + .cqa-review-impact__note { display: none; }
+.cqa-root.gl-theme .cqa-review-impact__order { margin-top: 4px; font-size: 13px; font-weight: 500; }
+.cqa-root.gl-theme .cqa-review-impact__list { gap: 0; }
+.cqa-root.gl-theme .cqa-review-impact__item + .cqa-review-impact__item { border-top: 1px solid color-mix(in srgb, var(--ink) 11%, transparent); padding-top: 4px; }
+.cqa-root.gl-theme .cqa-review-impact__focus { border: 0; border-radius: 12px; padding: 10px 12px; }
+.cqa-root.gl-theme .cqa-review-impact__name { font-size: 15px; font-weight: 500; }
+.cqa-root.gl-theme .cqa-review-impact__value { font-size: 14px; font-weight: 600; }
+.cqa-root.gl-theme .cqa-review-impact__reason { padding: 0 12px; font-size: 13px; }
+.cqa-root.gl-theme .cqa-review-impact__critical { margin-top: 8px; padding: 2px 0 10px; border-inline-start: 0; border-radius: 17px; background: var(--impact-surface); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 92%, transparent); }
+.cqa-root.gl-theme .cqa-review-impact__critical[data-flag-state='hit'] { background: var(--critical-bg); }
+.cqa-root.gl-theme .cqa-review-impact__unavailable, .cqa-root.gl-theme .cqa-review-impact__empty { margin-top: 10px; padding: 0; background: transparent; color: var(--muted); font-size: 13px; }
+.cqa-root.gl-theme .cqa-review-impact__scenarios { margin: 4px 12px 0; }
+.cqa-root.gl-theme .cqa-review-impact-loading { border-radius: 17px; background: color-mix(in srgb, var(--surface) 55%, transparent); }
+.cqa-root.gl-theme.projector .cqa-review-impact__title, .cqa-root.gl-theme.projector .cqa-review-impact__name { font-size: 18px; }
+.cqa-root.gl-theme.projector .cqa-review-impact__reason, .cqa-root.gl-theme.projector .cqa-review-impact__value, .cqa-root.gl-theme.projector .cqa-review-impact__empty { font-size: 16px; }
+.cqa-root.gl-theme .cqa-review-impact__note, .cqa-root.gl-theme .cqa-review-impact__order { display: none; }

@@ -3,7 +3,7 @@ evaluated without code changes.
 
 Inputs are normalized dicts (see cqa.evaluator.as_conversation / as_criterion):
   conversation: {id, channel: chat|call, language, messages: [{id, idx, speaker, text, ts_raw, t_sec}]}
-  criterion:    {id, title, description, answer_type: binary|scale, scale, scale_labels, na_allowed, na_rule,
+  criterion:    {id, title, description, answer_type: binary|scale|numeric, scale, scale_labels, na_allowed, na_rule,
                  guidance: [str], critical, critical_rule, critical_when, section, hash}
 
 Calibrated interpretations ("readings") live as data in guidance_v1.json, keyed by criterion id + hash: they apply only
@@ -96,13 +96,48 @@ def _norm_text(s) -> str:
     return " ".join(str(s or "").split()).lower()
 
 
+OFFICIAL_CHECKLIST = HERE.parents[1] / "data" / "checklists" / "v1.json"
+_official_cache: dict = {}
+
+
+def _official_contracts() -> dict:
+    """{criterion id: {hash, title, description}} of the organizer checklist; the hash is RECOMPUTED (full semantic
+    contract: wording, guidance, N/A rule, scale, critical rule), never trusted from the file."""
+    from ..models import criterion_hash
+
+    try:
+        mtime = OFFICIAL_CHECKLIST.stat().st_mtime
+    except OSError:
+        return {}
+    if _official_cache.get("mtime") != mtime:
+        try:
+            raw = json.loads(OFFICIAL_CHECKLIST.read_text(encoding="utf-8"))
+            contracts = {str(c["id"]): {"hash": criterion_hash(c), "title": c.get("title"), "description": c.get("description")}
+                         for c in raw.get("criteria") or [] if isinstance(c, dict) and c.get("id")}
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            contracts = {}
+        _official_cache.update(mtime=mtime, contracts=contracts)
+    return _official_cache["contracts"]
+
+
 def overlay_matches(entry: dict, criterion: dict) -> bool:
-    """Overlay applies to the unchanged organizer criterion only: same hash, or (if the hash scheme changed) the same
-    title and description. A criterion replaced through the UI gets none of it."""
-    if entry.get("hash") and entry["hash"] == criterion.get("hash"):
+    """Overlay (guidance lines AND code sub-checks C3/C7) applies only to the unchanged organizer criterion: its full
+    semantic hash, recomputed here (a caller's cached "hash" is ignored), equals the overlay's own hash or the hash of
+    the official criterion the overlay was written for. Changing guidance, the N/A rule, the scale or the critical rule
+    detaches the overlay; changing only weight/section keeps it (they are not part of the semantic hash)."""
+    from ..models import criterion_hash
+
+    try:
+        actual = criterion_hash(criterion)
+    except (TypeError, ValueError, AttributeError, KeyError):
+        return False
+    if entry.get("hash") and str(entry["hash"]) == actual:
         return True
-    return bool(entry.get("title")) and _norm_text(entry.get("title")) == _norm_text(criterion.get("title")) \
-        and _norm_text(entry.get("description")) == _norm_text(criterion.get("description"))
+    official = _official_contracts().get(str(criterion.get("id")))
+    # Legacy overlay entries carry a pre-criterion_hash 12-char hash: they are pinned to the official wording.
+    return bool(official) and bool(entry.get("title")) and actual == official["hash"] \
+        and _norm_text(entry.get("title")) == _norm_text(official.get("title")) \
+        and _norm_text(entry.get("description")) == _norm_text(official.get("description"))
 
 
 def guidance_for(criterion: dict, readings: dict | str | None = None) -> tuple[list[str], str | None]:
@@ -191,9 +226,25 @@ def render_transcript(conv: dict) -> str:
     return "\n".join(lines)
 
 
+def numeric_range(criterion: dict) -> tuple:
+    """(min, max) of a numeric criterion: the scale bounds (one value = 0..value), as in cqa.models.check_answer."""
+    vals = [float(v) for v in (criterion.get("scale") or [])]
+    if not vals:
+        return 0, 0
+    lo = min(vals) if len(vals) > 1 else 0.0
+    return _num(lo), _num(max(vals))
+
+
+def numeric_text(criterion: dict) -> str:
+    lo, hi = numeric_range(criterion)
+    return f"число от {lo} до {hi}"
+
+
 def allowed_answers(criterion: dict) -> list:
     if criterion.get("answer_type") == "scale":
         vals = [_num(v) for v in (criterion.get("scale") or [])]
+    elif criterion.get("answer_type") == "numeric":
+        vals = [numeric_text(criterion)]
     else:
         vals = ["yes", "no"]
     if criterion.get("na_allowed"):
@@ -212,6 +263,9 @@ def criterion_block(criterion: dict, readings: dict | str | None = None) -> str:
     if c.get("answer_type") == "scale":
         steps = [_num(v) for v in (c.get("scale") or [])]
         out.append("Тип ответа: шкала, допустимые ступени: " + ", ".join(str(s) for s in steps) + (" или N/A" if c.get("na_allowed") else ""))
+    elif c.get("answer_type") == "numeric":
+        out.append("Тип ответа: " + numeric_text(c) + " включительно (answer — JSON-число, не строка)"
+                   + (" или N/A" if c.get("na_allowed") else ""))
     else:
         out.append("Тип ответа: да / нет" + (" / N/A" if c.get("na_allowed") else " (N/A не разрешён)"))
     out.append(f"Формулировка чек-листа: {c.get('description', '').strip()}")
@@ -221,6 +275,10 @@ def criterion_block(criterion: dict, readings: dict | str | None = None) -> str:
         for s in sorted((c.get("scale") or []), key=lambda x: -float(x)):
             lab = labels.get(str(_num(s))) or labels.get(str(s)) or labels.get(_num(s)) or ""
             out.append(f"  {_num(s)} — {lab}")
+    elif c.get("answer_type") == "numeric" and labels:
+        out.append("Ориентиры диапазона:")
+        for k, lab in sorted(labels.items(), key=lambda kv: -float(kv[0])):
+            out.append(f"  {_num(k)} — {lab}")
     if c.get("na_allowed"):
         out.append(f"Условие N/A: {c.get('na_rule') or 'не указано — ставь N/A только если критерий явно неприменим'}")
     else:
@@ -240,7 +298,10 @@ def criterion_block(criterion: dict, readings: dict | str | None = None) -> str:
         out.append("Подпроверки — ОБЯЗАТЕЛЬНО заполни объект \"checks\" в ответе по этому критерию (итоговый ответ по ним "
                    "вычисляет код по формуле чек-листа; answer всё равно укажи):")
         out += [f"- {k}: {v}" for k, v in spec["fields"].items()]
-    out.append("Допустимые значения answer: " + ", ".join(json.dumps(a, ensure_ascii=False) for a in allowed_answers(c)))
+    if c.get("answer_type") == "numeric":
+        out.append("Допустимые значения answer: " + numeric_text(c) + (", \"na\"" if c.get("na_allowed") else ""))
+    else:
+        out.append("Допустимые значения answer: " + ", ".join(json.dumps(a, ensure_ascii=False) for a in allowed_answers(c)))
     return "\n".join(out)
 
 

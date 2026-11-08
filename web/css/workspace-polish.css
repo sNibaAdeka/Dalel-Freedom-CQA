@@ -59,7 +59,7 @@
   filter: saturate(.6);
 }
 .cqa-root.gl-theme :is(.cqa-header, .cqa-workspace, .cqa-tabs, .gl-rail) {
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent), inset 0 0 0 1px color-mix(in srgb, var(--gl-hi) 22%, transparent), 0 20px 52px -25px var(--ws-stage-shadow);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent), 0 18px 48px -28px var(--ws-stage-shadow);
 }
 .cqa-root.gl-theme .cqa-header { padding: 8px 16px; gap: 10px; }
 .cqa-root.gl-theme .cqa-brand { gap: 10px; }
@@ -120,10 +120,10 @@
 .cqa-root.gl-theme .cqa-card__total strong { font-weight: 500; font-size: 48px; }
 .cqa-root.gl-theme .cqa-card__total--incomplete strong { font-size: clamp(1.25rem, 4vw, 1.75rem); }
 .cqa-root.gl-theme .cqa-card__score-summary { padding: 20px 22px 0; }
-.cqa-root.gl-theme .cqa-card__criterion { margin: 10px 12px; border: 1px solid var(--ws-panel-line); background: var(--ws-control); border-radius: 14px; padding: 12px 14px; }
+.cqa-root.gl-theme .cqa-card__criterion { margin: 10px 12px; border: 0; background: var(--ws-control); border-radius: 14px; padding: 12px 14px; box-shadow: inset 0 1px 0 var(--ws-panel-line); }
 .cqa-root.gl-theme .cqa-card__criterion--missing { border-inline-start: 3px solid var(--no); }
 .cqa-root.gl-theme .cqa-card__button { border-radius: 10px; }
-.cqa-root.gl-theme :is(.cqa-board__form, .cqa-board__notice, .cqa-quality__report) { background: var(--ws-control); border: 1px solid var(--ws-panel-line); border-radius: 17px; box-shadow: 0 8px 22px -20px var(--ws-stage-shadow); }
+.cqa-root.gl-theme :is(.cqa-board__form, .cqa-board__notice, .cqa-quality__report) { background: var(--ws-control); border: 0; border-radius: 17px; box-shadow: inset 0 1px 0 var(--ws-panel-line), 0 8px 22px -20px var(--ws-stage-shadow); }
 .cqa-root.gl-theme :is(.cqa-quality__caveats, .cqa-board__plan) { background: var(--ws-panel-soft); border-radius: 0 12px 12px 0; }
 .cqa-root.gl-theme .cqa-quality__report { padding: 20px; }
 .cqa-root.gl-theme .cqa-quality__heading h1, .cqa-root.gl-theme .cqa-board h1 { font-weight: 500; font-size: 28px; letter-spacing: -.04em; }
@@ -257,4 +257,71 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .cqa-root.gl-theme *, .cqa-root.gl-theme *::before, .cqa-root.gl-theme *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* ---------- Minimal shell for the jury: fewer frames, less text, more air ----------
+   One header surface carries two lines (brand + roles + view, then a quiet status line
+   with the checklist version). Surfaces separate by soft fill + inset highlight, not 1px frames. */
+.cqa-root.gl-theme {
+  --t-label: 13px; --t-meta: 14px; --t-ui: 15px; --t-body: 16px; --t-title: 22px; --t-display: 48px;
+  --t-head-weight: 500; --t-head-track: -.035em; --t-num-track: -.04em;
+  --sh-gap: 16px; --sh-pad: 21px; --sh-sub-h: 44px; --sh-control-r: 9px; --sh-pill-r: 30px;
+  --sh-track: color-mix(in srgb, var(--gl-ink) 7%, transparent);
+  --sh-chip-shadow: 0 1px 2px var(--ws-stage-soft-shadow), 0 6px 14px -8px var(--ws-stage-shadow);
+  --sh-panel-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent), 0 1px 2px var(--ws-stage-soft-shadow);
+}
+.cqa-root.gl-theme .cqa-brand small { display: none; }
+.cqa-root.gl-theme .cqa-brand strong { font-size: 24px; font-weight: 600; letter-spacing: var(--t-num-track); }
+.cqa-root.gl-theme .cqa-brand-mark { width: 34px; height: 34px; }
+.cqa-root.gl-theme .cqa-role-group { padding: 3px; gap: 2px; border: 0; border-radius: var(--sh-pill-r); background: var(--sh-track); }
+.cqa-root.gl-theme .cqa-role-group button { min-height: 44px; border-radius: var(--sh-pill-r); font-weight: 500; color: var(--ink); }
+.cqa-root.gl-theme .cqa-role-group button[aria-pressed='true'] { background: var(--surface); box-shadow: var(--sh-chip-shadow); font-weight: 600; }
+.cqa-root.gl-theme .cqa-header .cqa-button { border: 0; border-radius: var(--sh-control-r); }
+.cqa-root.gl-theme .cqa-header .cqa-button[aria-pressed='true'] { background: var(--surface); box-shadow: var(--sh-chip-shadow); font-weight: 600; }
+.cqa-root.gl-theme #cqa-mode-switch { color: var(--muted); font-size: var(--t-meta); }
+.cqa-root.gl-theme :is(.gl-icon-button, .gl-rail-button):hover { border-color: transparent; }
+.cqa-root.gl-theme .gl-rail-button:is([aria-pressed='true'], [aria-expanded='true']) { border-color: transparent; background: var(--surface); box-shadow: var(--sh-chip-shadow); }
+/* stage r27 with r17 panels inside */
+.cqa-root.gl-theme .cqa-workspace { padding: var(--sh-gap); }
+.cqa-root.gl-theme .cqa-dialogues-layout { gap: var(--sh-gap); }
+.cqa-root.gl-theme :is(.cqa-list-mount, .cqa-card-mount) { border: 0; border-radius: var(--gl-radius-panel); box-shadow: var(--sh-panel-shadow); }
+.cqa-root.gl-theme :is(.cq-list-heading h2, .cqa-card__title, .gl-popover-title) { font-weight: var(--t-head-weight); letter-spacing: var(--t-head-track); }
+.cqa-root.gl-theme .cqa-card__total strong { letter-spacing: var(--t-num-track); }
+.cqa-root.gl-theme .cqa-run-warning { border-bottom: 0; box-shadow: var(--sh-panel-shadow); }
+.cqa-root.gl-theme .cqa-run-warning button { border: 0; border-radius: var(--sh-control-r); background: var(--surface); font-weight: 600; box-shadow: var(--sh-chip-shadow); }
+@media (min-width: 700px) {
+  /* header spans the first two grid rows; status + checklist version sit inside it as line two */
+  .cqa-root.gl-theme > .cqa-header {
+    grid-row: 1 / span 2; align-self: stretch;
+    flex-wrap: wrap; align-content: flex-start; row-gap: 6px;
+    padding: 10px 20px calc(var(--sh-sub-h) + 12px);
+  }
+  .cqa-root.gl-theme > :is(.cqa-mode-strip, .cqa-navigation) { grid-row: 2; z-index: 1; align-self: end; margin-bottom: 6px; }
+  .cqa-root.gl-theme :is(.cqa-mode-strip, .cqa-navigation .cqa-version) {
+    isolation: auto; border: 0; background: transparent; box-shadow: none;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  .cqa-root.gl-theme :is(.cqa-mode-strip, .cqa-navigation .cqa-version)::before { content: none; }
+  .cqa-root.gl-theme .cqa-mode-strip { min-height: var(--sh-sub-h); padding: 0 0 0 22px; border-radius: 0; font-size: var(--t-meta); color: var(--muted); }
+  .cqa-root.gl-theme .cqa-navigation .cqa-version { min-height: var(--sh-sub-h); padding: 0 8px 0 0; gap: 4px; border-radius: 0; font-size: var(--t-meta); }
+  .cqa-root.gl-theme .cqa-version select { width: min(300px, 26vw); border-radius: var(--sh-control-r); font-size: var(--t-meta); }
+  .cqa-root.gl-theme .cqa-version select:hover { background: var(--ws-hover); border-color: transparent; }
+  /* bottom dock: pill track, white active chip */
+  .cqa-root.gl-theme .cqa-navigation .cqa-tabs { border-radius: var(--sh-pill-r); padding: 5px; gap: 2px; }
+  .cqa-root.gl-theme .cqa-navigation .cqa-tabs button { min-height: 46px; padding-inline: 18px; border-radius: 24px; font-size: var(--t-ui); font-weight: 500; }
+  .cqa-root.gl-theme .cqa-navigation .cqa-tabs button[aria-selected='true'] { background: var(--surface); color: var(--ink); box-shadow: var(--sh-chip-shadow); font-weight: 600; }
+}
+@media (min-width: 1100px) {
+  .cqa-root.gl-theme .cqa-role-group button { padding-inline: 18px; font-size: var(--t-ui); }
+  .cqa-root.gl-theme .cqa-header .cqa-button { padding-inline: 14px; font-size: var(--t-ui); }
+  .cqa-root.gl-theme > .cqa-mode-strip { grid-column: 1 / 3; }
+  .cqa-root.gl-theme .gl-rail { padding: 6px; gap: 6px; border-radius: var(--sh-pill-r); }
+  .cqa-root.gl-theme .gl-rail-button[aria-current='page'] { background: var(--surface); box-shadow: var(--sh-chip-shadow); }
+  .cqa-root.gl-theme .gl-rail-divider { display: none; }
+}
+/* projector: shell text one step larger, still one quiet status line */
+.cqa-root.gl-theme.projector :is(.cqa-mode-strip, .cqa-navigation .cqa-version, .cqa-version select) { font-size: 16px; }
+@media (min-width: 1100px) {
+  .cqa-root.gl-theme.projector :is(.cqa-role-group button, .cqa-header .cqa-button) { font-size: 17px; }
+  .cqa-root.gl-theme.projector .cqa-navigation .cqa-tabs button { font-size: 16px; }
 }

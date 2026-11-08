@@ -96,6 +96,30 @@ def load_reference(path, criteria):
     return out
 
 
+FINAL_REJECTION_PREFIXES = ("ответ модели не прошёл проверку:", "оценка не получена:", "схема criterioneval:")
+
+
+def final_validation_failed(entry):
+    """True when the stored final answer was rejected by validation (strict review M1).
+
+    Slim eval artifacts (scripts/eval_run.py) drop top-level ``errors`` but keep the final
+    ``review_reasons``/``evidence``. Only explicit final-rejection markers count: ordinary
+    review flags (low confidence, keyword-rule disagreement, critical hit, call scales) do not.
+    Reduced to a boolean before the texts are discarded, so no quote/explanation is retained.
+    """
+    if entry.get("errors") or entry.get("final_validation_failed") is True:
+        return True
+    status = entry.get("validation_status")
+    if isinstance(status, str) and status.strip().casefold() in ("rejected", "failed", "invalid"):
+        return True
+    reasons = entry.get("review_reasons") or []
+    if isinstance(reasons, str):
+        reasons = [reasons]
+    if any(isinstance(reason, str) and reason.strip().casefold().startswith(FINAL_REJECTION_PREFIXES) for reason in reasons):
+        return True
+    return any(isinstance(item, dict) and item.get("valid") is False for item in (entry.get("evidence") or []))
+
+
 def load_run(path):
     meta, rows = None, {}
     for row in load_jsonl(path):
@@ -116,6 +140,7 @@ def load_run(path):
             evals[criterion_id] = {key: evaluation.get(key) for key in (
                 "answer", "model", "tokens_in", "tokens_out", "calls", "prompt_version", "errors", "cost_kzt_full", "needs_review"
             )}
+            evals[criterion_id]["final_validation_failed"] = final_validation_failed(evaluation)
         rows[cid] = {key: row.get(key) for key in ("language", "channel", "wall_s", "cost_kzt", "cost_kzt_full")}
         rows[cid]["evals"] = evals
     if meta is None:
@@ -215,7 +240,7 @@ def prediction(run, conv_id, criterion):
     if entry is None:
         return None, "missing"
     answer = normalized(entry.get("answer"))
-    if entry.get("errors") or not valid_answer(answer, criterion):
+    if final_validation_failed(entry) or not valid_answer(answer, criterion):
         return None, "errors"
     return answer, "valid"
 
@@ -779,6 +804,21 @@ def interval(ci):
     return "не измерено" if ci["lower"] is None else f"[{100 * ci['lower']:.1f}; {100 * ci['upper']:.1f}]"
 
 
+def local_note(payload, lookup):
+    """Local Ollama line of the snapshot, computed from the report (no hardcoded quality numbers)."""
+    base = "Локальный Ollama: внешняя API-плата отсутствует по конфигурации; оборудование, электроэнергия и доля ручной проверки не измерены."
+    local = lookup.get(payload.get("profile_catalog", {}).get("local", {}).get("report_id"))
+    if not local:
+        return base
+    c, latency = local["counts"], local.get("latency") or {}
+    labelled = c["total"] - c["unlabelled"]
+    share = pct(c["matched"] / labelled if labelled else None).replace(".", ",")
+    seconds = latency.get("mean_seconds")
+    speed = f", {seconds:.0f} с на диалог в свежем офлайн-прогоне" if isinstance(seconds, (int, float)) else ""
+    return (base + f" Качество и время измерены на holdout: {c['matched']}/{labelled} = {share} принятых валидатором совпадений "
+            f"(ниже константы 83,0%; финально отклонённых ответов {c['errors']}, они остаются в знаменателе){speed} — только офлайн-резерв.")
+
+
 def snapshot(payload):
     lines = ["# Воспроизводимый срез качества W8", "",
              "Сгенерировано `scripts/quality_report.py` из локальных артефактов; платные модели не вызывались.",
@@ -846,7 +886,7 @@ def snapshot(payload):
             lines.append(f"| {profile} / {channel} | {econ['dialogues']} | {price} | {mean} | {econ['p50_seconds']} / {econ['p95_seconds']} | {econ['review_count']}/{econ['review_known_dialogues']} | {pct(econ['review_fraction'])} |")
         usage = report["model_usage"]
         usage_notes.append(f"{profile}: сохранённые model labels показывают Gemini в {usage['gemini_dialogues']}/{usage['known_dialogues']} диалогов, эскалацию в {usage['escalated_dialogues']}, прямой маршрут звонка в {usage['direct_routed_calls']}. Кэш: {report['cache']}. Это не полная телеметрия всех provider calls.")
-    lines += ["", *["- " + note for note in usage_notes], "", "В таблице показано записанное wall time. Для cached/mixed/unknown скорость живого расчёта и её проекция на большой объём остаются неизвестными; калькулятор получает null вместо ложной скорости из кэша.", "", "Локальный Ollama: внешняя API-плата отсутствует по конфигурации; оборудование, электроэнергия и доля ручной проверки не измерены. Качество и время измерены на holdout: 62,3% (ниже константы 83,0%), 341 с на диалог в свежем офлайн-прогоне — только офлайн-резерв."]
+    lines += ["", *["- " + note for note in usage_notes], "", "В таблице показано записанное wall time. Для cached/mixed/unknown скорость живого расчёта и её проекция на большой объём остаются неизвестными; калькулятор получает null вместо ложной скорости из кэша.", "", local_note(payload, lookup)]
     lines += ["", "ДИ групп с менее чем двумя информативными диалогами не выводится. Малые языковые и канальные подвыборки не подтверждают обобщение на новые диалоги. Сценарии/переводы могут зависеть друг от друга: кластеризация по диалогу не устраняет эту зависимость. MAE использует только полные пары всех критериев, N/A перераспределяет веса; критический флаг не добавляет баллы.", "", "## Воспроизведение", "", "```sh", "python scripts/quality_report.py --source-root /path/to/w-int --legacy-root /path/to/w-m1 --references-root /path/to/agents/reports", "python -m pytest -q tests/test_quality_report.py", "```", "", "SHA256 входов записаны в `quality.json`: `methodology.inputs`, `report.source.sha256`, `report.reference.sha256`. Полные JSONL, цитаты и ID реплик в отчёт не попадают. Два запуска при неизменных входах дают одинаковые JSON и Markdown."]
     return "\n".join(lines) + "\n"
 

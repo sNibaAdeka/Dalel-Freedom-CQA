@@ -345,8 +345,9 @@ def test_replaced_criterion_prompt_is_built_from_its_fields():
 
 def test_overlay_applies_only_to_unchanged_organizer_criterion(monkeypatch):
     ov = P.load_overlay()["criteria"]["C7"]
-    c7 = {"id": "C7", "title": ov["title"], "description": ov["description"], "answer_type": "binary", "na_allowed": True,
-          "na_rule": "N/A — чат оборвался до возможности его завершить.", "guidance": [], "hash": ov["hash"]}
+    # CQA-01: the overlay needs the full unchanged official contract (incl. its guidance); a stale hash is not enough.
+    official = json.loads(P.OFFICIAL_CHECKLIST.read_text(encoding="utf-8"))
+    c7 = E.as_criterion(next(c for c in official["criteria"] if c["id"] == "C7"))
     strict = P.criterion_block(c7, {"C7": "strict"})
     lenient = P.criterion_block(c7, {"C7": "lenient"})
     assert ov["variants"]["strict"][0] in strict and ov["variants"]["lenient"][0] in lenient

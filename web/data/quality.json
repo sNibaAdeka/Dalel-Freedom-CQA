@@ -7680,15 +7680,15 @@
       },
       "denominator": "all_cells",
       "counts": {
-        "matched": 99,
+        "matched": 96,
         "total": 168,
         "missing": 0,
-        "errors": 0,
+        "errors": 3,
         "unlabelled": 9
       },
       "agreement_ci": {
-        "lower": 0.56096396,
-        "upper": 0.68789809,
+        "lower": 0.54037267,
+        "upper": 0.67088608,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -7698,8 +7698,8 @@
         "effective_dialogues": 21
       },
       "all_cells_ci": {
-        "lower": 0.52380952,
-        "upper": 0.66071429,
+        "lower": 0.5,
+        "upper": 0.64285714,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -7709,8 +7709,8 @@
         "effective_dialogues": 21
       },
       "score_mae": {
-        "value": 27.205714,
-        "count": 14
+        "value": 28.447692,
+        "count": 13
       },
       "latency": {
         "p50_seconds": 337.75,
@@ -8035,16 +8035,16 @@
           "id": "C5",
           "label": "Эмпатия и клиентоориентированность",
           "counts": {
-            "matched": 15,
+            "matched": 12,
             "total": 21,
             "missing": 0,
-            "errors": 0,
+            "errors": 3,
             "unlabelled": 0
           },
           "dialogues": 21,
           "agreement_ci": {
-            "lower": 0.52380952,
-            "upper": 0.9047619,
+            "lower": 0.38095238,
+            "upper": 0.76190476,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -8054,8 +8054,8 @@
             "effective_dialogues": 21
           },
           "all_cells_ci": {
-            "lower": 0.52380952,
-            "upper": 0.9047619,
+            "lower": 0.38095238,
+            "upper": 0.76190476,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -8172,16 +8172,16 @@
         {
           "id": "EN",
           "counts": {
-            "matched": 36,
+            "matched": 35,
             "total": 64,
             "missing": 0,
-            "errors": 0,
+            "errors": 1,
             "unlabelled": 4
           },
           "dialogues": 8,
           "agreement_ci": {
-            "lower": 0.52542373,
-            "upper": 0.67857143,
+            "lower": 0.52380952,
+            "upper": 0.64288741,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -8191,7 +8191,7 @@
             "effective_dialogues": 8
           },
           "all_cells_ci": {
-            "lower": 0.5,
+            "lower": 0.484375,
             "upper": 0.609375,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
@@ -8240,16 +8240,16 @@
         {
           "id": "RU",
           "counts": {
-            "matched": 61,
+            "matched": 59,
             "total": 96,
             "missing": 0,
-            "errors": 0,
+            "errors": 2,
             "unlabelled": 3
           },
           "dialogues": 12,
           "agreement_ci": {
-            "lower": 0.57142857,
-            "upper": 0.74725275,
+            "lower": 0.54255319,
+            "upper": 0.7311828,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -8259,8 +8259,8 @@
             "effective_dialogues": 12
           },
           "all_cells_ci": {
-            "lower": 0.55208333,
-            "upper": 0.72916667,
+            "lower": 0.52083333,
+            "upper": 0.70833333,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -8275,16 +8275,16 @@
         {
           "id": "agent chat",
           "counts": {
-            "matched": 87,
+            "matched": 84,
             "total": 152,
             "missing": 0,
-            "errors": 0,
+            "errors": 3,
             "unlabelled": 9
           },
           "dialogues": 19,
           "agreement_ci": {
-            "lower": 0.55222594,
-            "upper": 0.66423358,
+            "lower": 0.52816901,
+            "upper": 0.63945578,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -8294,8 +8294,8 @@
             "effective_dialogues": 19
           },
           "all_cells_ci": {
-            "lower": 0.51315789,
-            "upper": 0.625,
+            "lower": 0.48684211,
+            "upper": 0.61184211,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -16019,15 +16019,15 @@
       },
       "denominator": "all_cells",
       "counts": {
-        "matched": 93,
+        "matched": 90,
         "total": 168,
         "missing": 0,
-        "errors": 0,
+        "errors": 3,
         "unlabelled": 20
       },
       "agreement_ci": {
-        "lower": 0.55862069,
-        "upper": 0.7027027,
+        "lower": 0.53378378,
+        "upper": 0.68590686,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -16037,8 +16037,8 @@
         "effective_dialogues": 21
       },
       "all_cells_ci": {
-        "lower": 0.48809524,
-        "upper": 0.625,
+        "lower": 0.4702381,
+        "upper": 0.60714286,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -16048,8 +16048,8 @@
         "effective_dialogues": 21
       },
       "score_mae": {
-        "value": 28.488333,
-        "count": 6
+        "value": 27.594,
+        "count": 5
       },
       "latency": {
         "p50_seconds": 337.75,
@@ -16374,16 +16374,16 @@
           "id": "C5",
           "label": "Эмпатия и клиентоориентированность",
           "counts": {
-            "matched": 15,
+            "matched": 12,
             "total": 21,
             "missing": 0,
-            "errors": 0,
+            "errors": 3,
             "unlabelled": 0
           },
           "dialogues": 21,
           "agreement_ci": {
-            "lower": 0.52380952,
-            "upper": 0.9047619,
+            "lower": 0.38095238,
+            "upper": 0.76190476,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -16393,8 +16393,8 @@
             "effective_dialogues": 21
           },
           "all_cells_ci": {
-            "lower": 0.52380952,
-            "upper": 0.9047619,
+            "lower": 0.38095238,
+            "upper": 0.76190476,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -16511,16 +16511,16 @@
         {
           "id": "EN",
           "counts": {
-            "matched": 33,
+            "matched": 32,
             "total": 64,
             "missing": 0,
-            "errors": 0,
+            "errors": 1,
             "unlabelled": 9
           },
           "dialogues": 8,
           "agreement_ci": {
-            "lower": 0.51851852,
-            "upper": 0.67272727,
+            "lower": 0.5,
+            "upper": 0.65454545,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -16530,7 +16530,7 @@
             "effective_dialogues": 8
           },
           "all_cells_ci": {
-            "lower": 0.453125,
+            "lower": 0.421875,
             "upper": 0.578125,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
@@ -16579,16 +16579,16 @@
         {
           "id": "RU",
           "counts": {
-            "matched": 58,
+            "matched": 56,
             "total": 96,
             "missing": 0,
-            "errors": 0,
+            "errors": 2,
             "unlabelled": 9
           },
           "dialogues": 12,
           "agreement_ci": {
-            "lower": 0.56666667,
-            "upper": 0.77108434,
+            "lower": 0.53333333,
+            "upper": 0.75581395,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -16598,8 +16598,8 @@
             "effective_dialogues": 12
           },
           "all_cells_ci": {
-            "lower": 0.52083333,
-            "upper": 0.69791667,
+            "lower": 0.48958333,
+            "upper": 0.67708333,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -16614,16 +16614,16 @@
         {
           "id": "agent chat",
           "counts": {
-            "matched": 81,
+            "matched": 78,
             "total": 152,
             "missing": 0,
-            "errors": 0,
+            "errors": 3,
             "unlabelled": 20
           },
           "dialogues": 19,
           "agreement_ci": {
-            "lower": 0.54744526,
-            "upper": 0.67910448,
+            "lower": 0.51879699,
+            "upper": 0.65648855,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -16633,8 +16633,8 @@
             "effective_dialogues": 19
           },
           "all_cells_ci": {
-            "lower": 0.47368421,
-            "upper": 0.58552632,
+            "lower": 0.45394737,
+            "upper": 0.56578947,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -24358,15 +24358,15 @@
       },
       "denominator": "all_cells",
       "counts": {
-        "matched": 106,
+        "matched": 103,
         "total": 168,
         "missing": 0,
-        "errors": 0,
+        "errors": 3,
         "unlabelled": 0
       },
       "agreement_ci": {
-        "lower": 0.56532738,
-        "upper": 0.70238095,
+        "lower": 0.54166667,
+        "upper": 0.69047619,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -24376,8 +24376,8 @@
         "effective_dialogues": 21
       },
       "all_cells_ci": {
-        "lower": 0.56532738,
-        "upper": 0.70238095,
+        "lower": 0.54166667,
+        "upper": 0.69047619,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -24387,8 +24387,8 @@
         "effective_dialogues": 21
       },
       "score_mae": {
-        "value": 28.833333,
-        "count": 21
+        "value": 29.065,
+        "count": 18
       },
       "latency": {
         "p50_seconds": 337.75,
@@ -24713,16 +24713,16 @@
           "id": "C5",
           "label": "Эмпатия и клиентоориентированность",
           "counts": {
-            "matched": 15,
+            "matched": 12,
             "total": 21,
             "missing": 0,
-            "errors": 0,
+            "errors": 3,
             "unlabelled": 0
           },
           "dialogues": 21,
           "agreement_ci": {
-            "lower": 0.52380952,
-            "upper": 0.9047619,
+            "lower": 0.38095238,
+            "upper": 0.76190476,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -24732,8 +24732,8 @@
             "effective_dialogues": 21
           },
           "all_cells_ci": {
-            "lower": 0.52380952,
-            "upper": 0.9047619,
+            "lower": 0.38095238,
+            "upper": 0.76190476,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -24850,16 +24850,16 @@
         {
           "id": "EN",
           "counts": {
-            "matched": 39,
+            "matched": 38,
             "total": 64,
             "missing": 0,
-            "errors": 0,
+            "errors": 1,
             "unlabelled": 0
           },
           "dialogues": 8,
           "agreement_ci": {
-            "lower": 0.53125,
-            "upper": 0.6875,
+            "lower": 0.5,
+            "upper": 0.671875,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -24869,8 +24869,8 @@
             "effective_dialogues": 8
           },
           "all_cells_ci": {
-            "lower": 0.53125,
-            "upper": 0.6875,
+            "lower": 0.5,
+            "upper": 0.671875,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -24918,16 +24918,16 @@
         {
           "id": "RU",
           "counts": {
-            "matched": 64,
+            "matched": 62,
             "total": 96,
             "missing": 0,
-            "errors": 0,
+            "errors": 2,
             "unlabelled": 0
           },
           "dialogues": 12,
           "agreement_ci": {
-            "lower": 0.5625,
-            "upper": 0.77083333,
+            "lower": 0.53125,
+            "upper": 0.75,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -24937,8 +24937,8 @@
             "effective_dialogues": 12
           },
           "all_cells_ci": {
-            "lower": 0.5625,
-            "upper": 0.77083333,
+            "lower": 0.53125,
+            "upper": 0.75,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -24953,16 +24953,16 @@
         {
           "id": "agent chat",
           "counts": {
-            "matched": 94,
+            "matched": 91,
             "total": 152,
             "missing": 0,
-            "errors": 0,
+            "errors": 3,
             "unlabelled": 0
           },
           "dialogues": 19,
           "agreement_ci": {
-            "lower": 0.55263158,
-            "upper": 0.68421053,
+            "lower": 0.52631579,
+            "upper": 0.66447368,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -24972,8 +24972,8 @@
             "effective_dialogues": 19
           },
           "all_cells_ci": {
-            "lower": 0.55263158,
-            "upper": 0.68421053,
+            "lower": 0.52631579,
+            "upper": 0.66447368,
             "level": 0.95,
             "method": "dialogue_cluster_percentile",
             "repetitions": 10000,
@@ -25532,13 +25532,13 @@
       "baseline_report_id": "gemini-4-argon-g9-holdout",
       "reference_id": "silver",
       "win": 4,
-      "loss": 57,
+      "loss": 60,
       "compared": 159,
       "dialogues": 21,
-      "delta": -0.33333333,
+      "delta": -0.35220126,
       "delta_ci": {
-        "lower": -0.40880503,
-        "upper": -0.23898661,
+        "lower": -0.43037975,
+        "upper": -0.25324675,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -25552,7 +25552,7 @@
       "conclusion": "difference_detected",
       "exploratory": true,
       "missing_or_error_cells": {
-        "model": 0,
+        "model": 3,
         "baseline": 0
       },
       "caveat": "Unadjusted exact cell-level McNemar assumes independent discordances; dialogue cells are dependent. Cluster CI is primary. Non-significance is not equivalence; repeated DEV comparisons are exploratory."
@@ -25862,13 +25862,13 @@
       "baseline_report_id": "gemini-4-argon-g9-holdout-gold_v2",
       "reference_id": "gold_v2",
       "win": 4,
-      "loss": 52,
+      "loss": 55,
       "compared": 148,
       "dialogues": 21,
-      "delta": -0.32432432,
+      "delta": -0.34459459,
       "delta_ci": {
-        "lower": -0.40689655,
-        "upper": -0.22077922,
+        "lower": -0.43448276,
+        "upper": -0.23648649,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -25882,7 +25882,7 @@
       "conclusion": "difference_detected",
       "exploratory": true,
       "missing_or_error_cells": {
-        "model": 0,
+        "model": 3,
         "baseline": 0
       },
       "caveat": "Unadjusted exact cell-level McNemar assumes independent discordances; dialogue cells are dependent. Cluster CI is primary. Non-significance is not equivalence; repeated DEV comparisons are exploratory."
@@ -26192,13 +26192,13 @@
       "baseline_report_id": "gemini-4-argon-g9-holdout-gold_v2_full",
       "reference_id": "gold_v2_full",
       "win": 15,
-      "loss": 52,
+      "loss": 55,
       "compared": 168,
       "dialogues": 21,
-      "delta": -0.2202381,
+      "delta": -0.23809524,
       "delta_ci": {
-        "lower": -0.30952381,
-        "upper": -0.125,
+        "lower": -0.32738095,
+        "upper": -0.14285714,
         "level": 0.95,
         "method": "dialogue_cluster_percentile",
         "repetitions": 10000,
@@ -26207,12 +26207,12 @@
         "valid_repetitions": 10000,
         "effective_dialogues": 21
       },
-      "p_value": 6.4591e-06,
+      "p_value": 1.6525e-06,
       "significant": true,
       "conclusion": "difference_detected",
       "exploratory": true,
       "missing_or_error_cells": {
-        "model": 0,
+        "model": 3,
         "baseline": 0
       },
       "caveat": "Unadjusted exact cell-level McNemar assumes independent discordances; dialogue cells are dependent. Cluster CI is primary. Non-significance is not equivalence; repeated DEV comparisons are exploratory."
@@ -26289,7 +26289,7 @@
       },
       {
         "artifact": "models.json",
-        "sha256": "236b3c3a2a739891b4fb9ed4324ee85aab747b19582676642227699f54b64951"
+        "sha256": "baf5a7a4d767b4cd5dcca44df64d82bda9198fb2a90a213f8a0455d9dfd90c7e"
       },
       {
         "artifact": "v1.json",

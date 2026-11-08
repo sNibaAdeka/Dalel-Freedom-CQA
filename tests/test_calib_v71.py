@@ -115,3 +115,14 @@ def test_c3_failed_verification_event_is_not_verification():
     assert checks.c3_verification(conv, {"client_specific_disclosure_or_action": True, "first_disclosure_message_id": "1"})[0] == "no"
     conv["messages"][0]["text"] = "Личность клиента подтверждена"
     assert checks.c3_verification(conv, {"client_specific_disclosure_or_action": True, "first_disclosure_message_id": "1"})[0] == "yes"
+
+
+def test_c3_started_or_pending_verification_is_not_verification():
+    from cqa import checks
+    flags = {"client_specific_disclosure_or_action": True, "first_disclosure_message_id": "1"}
+    for text, expected in [("Identity verification started.", "no"), ("Проверка личности запрошена", "no"),
+                           ("Жеке басын растау басталды", "no"), ("Customer identity verified.", "yes"),
+                           ("Личность клиента подтверждена.", "yes"), ("Клиенттің жеке басы расталды.", "yes")]:
+        conv = {"channel": "chat", "messages": [{"idx": 0, "id": "0", "speaker": "system", "text": text},
+                                                {"idx": 1, "id": "1", "speaker": "operator", "text": "Баланс 100."}]}
+        assert checks.c3_verification(conv, flags)[0] == expected, text

@@ -51,7 +51,7 @@
   background: color-mix(in srgb, var(--gl-surface) var(--gl-alpha), transparent);
   -webkit-backdrop-filter: blur(var(--gl-blur)) saturate(var(--gl-sat));
   backdrop-filter: blur(var(--gl-blur)) saturate(var(--gl-sat));
-  border: 1px solid color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent);
+  border: 0;
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent), 0 10px 30px var(--gl-shadow);
 }
 .cqa-root.gl-theme :is(.cqa-header, .cqa-mode-strip, .cqa-workspace, .cqa-tabs, .gl-rail, .gl-popover, .cqa-navigation .cqa-version)::before {
@@ -60,7 +60,7 @@
 }
 /* вложенные панели: мягче, чтобы не копить непрозрачность */
 .cqa-root.gl-theme :is(.cqa-list-mount, .cqa-card-mount) {
-  position: relative; isolation: isolate; border: 1px solid color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent);
+  position: relative; isolation: isolate; border: 0;
   border-radius: var(--gl-radius-panel);
   background: color-mix(in srgb, var(--gl-surface) var(--gl-alpha-inner), transparent);
   -webkit-backdrop-filter: blur(calc(var(--gl-blur) * .6)) saturate(var(--gl-sat));
@@ -92,7 +92,7 @@
 /* ---------- сцена r27 ---------- */
 .cqa-root.gl-theme .cqa-workspace { border-radius: var(--gl-radius-scene); padding: 12px; }
 .cqa-root.gl-theme .cqa-dialogues-layout { gap: 12px; }
-.cqa-root.gl-theme .cqa-list-mount { border-right: 1px solid color-mix(in srgb, var(--gl-hi) var(--gl-edge), transparent); }
+.cqa-root.gl-theme .cqa-list-mount { border-right: 0; }
 .cqa-root.gl-theme .cqa-card-mount { overflow: hidden; }
 .cqa-root.gl-theme .cqa-shell-row { background: color-mix(in srgb, var(--gl-surface) 85%, transparent); }
 .cqa-root.gl-theme .cqa-shell-row[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand-ink); }

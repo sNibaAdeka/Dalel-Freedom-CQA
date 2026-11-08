@@ -21,7 +21,11 @@ router = APIRouter()
 CSV_COLUMNS = (
     "conv_id", "group", "lang", "channel", "checklist_version", "run_id", "run_status",
     "criterion_id", "answer", "original_answer", "total", "critical", "status",
+    "answer_status", "preliminary",
 )
+# CQA-02: acceptance state of a model answer, passed through when the run snapshot recorded it.
+REVIEW_FIELDS = ("needs_review", "validation_status", "evidence_valid")
+VALIDATION_STATES = ("accepted", "needs_review", "rejected", "missing")
 ANSWER_FIELDS = ("criterion_id", "answer", "original_answer", "source", "points", "weight", "critical_hit")
 SCORE_FIELDS = ("checklist_version", "total", "total_raw", "status", "critical", "critical_criteria",
                 "weight_sum", "applicable_weight", "missing")
@@ -74,8 +78,13 @@ def _score_snapshot(row: dict, version: int) -> tuple[dict, list[dict]]:
                 or (item["points"] is not None and not _number(item["points"]))
                 or not _number(item["weight"]) or type(item["critical_hit"]) is not bool):
             _missing_snapshot()
+        if (("needs_review" in item and type(item["needs_review"]) is not bool)
+                or ("evidence_valid" in item and item["evidence_valid"] is not None
+                    and type(item["evidence_valid"]) is not bool)
+                or ("validation_status" in item and item["validation_status"] not in VALIDATION_STATES)):
+            _missing_snapshot()
         seen.add(item["criterion_id"])
-        clean_answers.append({key: item[key] for key in ANSWER_FIELDS})
+        clean_answers.append({key: item[key] for key in ANSWER_FIELDS + REVIEW_FIELDS if key in item})
     # A full score carries its criterion set. Reject a truncated/mismatched answer
     # snapshot instead of silently producing a partial control-results file.
     if "lines" in score:
@@ -93,6 +102,21 @@ def _score_snapshot(row: dict, version: int) -> tuple[dict, list[dict]]:
         if {line["criterion_id"] for line in lines} != seen:
             _missing_snapshot()
     return {key: score[key] for key in SCORE_FIELDS if key in score}, clean_answers
+
+
+def _answer_status(item: dict) -> str:
+    """final | preliminary | unverified (CQA-02). A reviewer decision is final; a model answer is final only when
+    the snapshot recorded that its evidence was accepted; without that record it is unverified, never final."""
+    if item.get("source") == "decision":
+        return "final"
+    state = item.get("validation_status")
+    if state in VALIDATION_STATES:
+        return "final" if state == "accepted" else "preliminary"
+    if item.get("needs_review") is True or item.get("evidence_valid") is False:
+        return "preliminary"
+    if item.get("needs_review") is False:
+        return "final"
+    return "unverified"
 
 
 def _export_snapshot(run: dict) -> dict:
@@ -121,8 +145,16 @@ def _export_snapshot(run: dict) -> dict:
         # Failed conversations have no usable result. In particular, don't use
         # new_total/old_total or expose a partial score as a successful result.
         score, answers = _score_snapshot(row, run["version"]) if row["status"] == "done" else (None, [])
+        states = {item["criterion_id"]: _answer_status(item) for item in answers}
+        not_final = sorted(cid for cid, state in states.items() if state != "final")
         conversations.append({"conv_id": row["id"], "group": row["group_id"], "lang": row["language"],
-                              "channel": row["channel"], "status": row["status"], "score": score, "answers": answers})
+                              "channel": row["channel"], "status": row["status"], "score": score, "answers": answers,
+                              # CQA-02: a total with a rejected/flagged/unverified model answer is NOT final
+                              "preliminary": None if score is None else bool(not_final),
+                              # score.status stays the scoring status; result_status says whether the total is final
+                              "result_status": None if score is None else ("preliminary" if not_final else "final"),
+                              "answer_status": states,
+                              "preliminary_criteria": not_final})
 
     return {
         "schema_version": 1,
@@ -138,7 +170,11 @@ def _export_snapshot(run: dict) -> dict:
             "errors": "Failed conversations have null score, no answers, and one CSV row with blank result cells.",
             "privacy": "Only result fields; no transcripts, evidence, model payloads or free-form diagnostics.",
             "csv": "UTF-8 BOM; formula-like text cells are prefixed with an apostrophe. JSON preserves IDs verbatim.",
+            "review": "answer_status per criterion: final (reviewer decision or accepted evidence), preliminary "
+                      "(evidence rejected or needs review), unverified (the snapshot did not record validation). "
+                      "preliminary=true on a conversation means its total is not a final result.",
         },
+        "preliminary_conversations": [c["conv_id"] for c in conversations if c["preliminary"]],
         "per_conv": conversations,
     }
 
@@ -169,6 +205,8 @@ def _csv_content(export: dict) -> bytes:
                 **{key: export[key] for key in ("checklist_version", "run_id", "run_status")},
                 **{key: answer.get(key) for key in ("criterion_id", "answer", "original_answer")},
                 "total": score.get("total"), "critical": score.get("critical"),
+                "answer_status": (conv.get("answer_status") or {}).get(answer.get("criterion_id")),
+                "preliminary": conv.get("preliminary"),
             }
             writer.writerow([_csv_cell(row[key]) for key in CSV_COLUMNS])
     return stream.getvalue().encode("utf-8-sig")

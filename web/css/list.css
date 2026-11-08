@@ -235,3 +235,48 @@
 .cqa-root .cq-list-diamond svg { display:block; width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; }
 .cqa-root .cq-list-score.is-previous strong { color:var(--muted); font-size:.9375em; }
 .cqa-root.projector .cq-list-score.is-previous strong { font-size:1em; }
+
+/* Minimal glass pass: quiet stats, hairline-separated rows, no outlined boxes. Tokens only. */
+.cqa-root.gl-theme .cq-list { --min-hair: color-mix(in srgb, var(--ink) 11%, transparent); --min-fill: color-mix(in srgb, var(--surface) 55%, transparent); --min-chip: color-mix(in srgb, var(--surface) 88%, transparent); --min-edge: inset 0 1px 0 color-mix(in srgb, var(--surface) 92%, transparent); --min-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 10px 24px -18px color-mix(in srgb, var(--ink) 30%, transparent); }
+.cqa-root.gl-theme .cq-list-heading { padding: 20px 20px 8px; }
+.cqa-root.gl-theme .cq-list-heading h2 { font-size: 22px; font-weight: 500; letter-spacing: -.035em; }
+.cqa-root.gl-theme .cq-list-total { padding: 0; background: transparent; color: var(--muted); font-size: 1em; font-weight: 500; font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme .cq-list-refresh { border: 0; background: var(--min-fill); box-shadow: var(--min-edge); }
+.cqa-root.gl-theme .cq-list .cq-list-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 10px; margin: 4px 20px 14px; padding: 0; border: 0; }
+.cqa-root.gl-theme .cq-list .cq-list-stats > div { flex-direction: column; align-items: flex-start; gap: 2px; padding: 0; border: 0; }
+.cqa-root.gl-theme .cq-list .cq-list-stats span { font-size: 12px; line-height: 1.3; color: var(--muted); }
+.cqa-root.gl-theme .cq-list .cq-list-stats strong { margin: 0; font-size: 22px; font-weight: 500; line-height: 1.15; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.cqa-root.gl-theme .cq-list-filters { padding: 0 20px; }
+.cqa-root.gl-theme .cq-list-search input { border: 0; border-radius: 9px; background: var(--min-fill); box-shadow: var(--min-edge); font-size: 15px; }
+.cqa-root.gl-theme .cq-list-filter-details { border-bottom: 0; }
+.cqa-root.gl-theme .cq-list-filter-details > summary { font-weight: 500; color: var(--muted); }
+.cqa-root.gl-theme .cq-list-filter-row select { border: 0; border-radius: 9px; background-color: var(--min-chip); box-shadow: var(--min-edge); }
+.cqa-root.gl-theme .cq-list-results-heading { min-height: 32px; padding: 0 20px; }
+.cqa-root.gl-theme .cq-list-count { font-size: 13px; }
+.cqa-root.gl-theme .cq-list-notice { border-bottom: 0; }
+.cqa-root.gl-theme .cq-list-action { border: 0; border-radius: 9px; background: var(--min-chip); box-shadow: var(--min-edge); }
+.cqa-root.gl-theme .cq-list-rows { padding: 2px 10px 10px; }
+.cqa-root.gl-theme .cq-list-rows > li + li { border-top: 1px solid var(--min-hair); }
+.cqa-root.gl-theme .cq-list-rows > li:has(.is-selected) + li,
+.cqa-root.gl-theme .cq-list-rows > li:has(.is-selected) { border-top-color: transparent; }
+.cqa-root.gl-theme .cq-list-row { min-height: 72px; margin: 2px 0; padding: 12px 12px; border: 0; border-radius: 12px; background: transparent; }
+.cqa-root.gl-theme .cq-list-row:hover { border: 0; background: var(--min-fill); }
+.cqa-root.gl-theme .cq-list-row.is-selected { background: var(--min-chip); box-shadow: var(--min-edge), var(--min-shadow); }
+.cqa-root.gl-theme .cq-list-row.is-selected::before { left: 0; width: 3px; border-radius: 0 3px 3px 0; }
+.cqa-root.gl-theme .cq-list-id { font-size: 16px; font-weight: 500; letter-spacing: -.02em; }
+.cqa-root.gl-theme .cq-list-score strong { font-size: 20px; font-weight: 500; letter-spacing: -.04em; }
+.cqa-root.gl-theme .cq-list-row-top, .cqa-root.gl-theme .cq-list-status { font-size: 13px; }
+.cqa-root.gl-theme .cq-list-footer { border-top: 0; padding-inline: 20px; }
+.cqa-root.gl-theme .cq-list-shortcuts kbd { border: 0; background: var(--min-fill); box-shadow: var(--min-edge); border-radius: 5px; }
+/* Projector keeps its compact rows; only the minimal surfaces carry over. */
+.cqa-root.gl-theme.projector .cq-list-heading { padding: 8px 14px 4px; }
+.cqa-root.gl-theme.projector .cq-list .cq-list-stats { margin: 0 14px 6px; }
+.cqa-root.gl-theme.projector .cq-list .cq-list-stats span { font-size: 13px; }
+.cqa-root.gl-theme.projector .cq-list .cq-list-stats strong { font-size: 24px; }
+.cqa-root.gl-theme.projector .cq-list-results-heading { min-height: 24px; padding-inline: 14px; }
+.cqa-root.gl-theme.projector .cq-list-row { min-height: 76px; padding: 4px 12px; margin: 2px 0; }
+.cqa-root.gl-theme.projector .cq-list-id { font-size: 17px; }
+.cqa-root.gl-theme.projector .cq-list-score strong { font-size: 26px; }
+.cqa-root.gl-theme.projector .cq-list-row-top, .cqa-root.gl-theme.projector .cq-list-status { font-size: 15px; }
+.cqa-root.gl-theme .cq-list .cq-list-stats { display: flex; justify-content: space-between; gap: 10px; }
+.cqa-root.gl-theme .cq-list .cq-list-stats > div { flex: 0 1 auto; min-width: 0; }

@@ -23,7 +23,7 @@ from typing import Any, Iterable, Iterator, Optional, Union
 from .models import (Appeal, AuditEvent, ChecklistVersion, Conversation, CriterionEval, Decision, LLMCall,
                      now_iso)
 
-__all__ = ["Database", "ConversationConflictError", "get_db", "db_path", "SCHEMA_VERSION"]
+__all__ = ["Database", "ConversationConflictError", "AppealAlreadyDecidedError", "get_db", "db_path", "SCHEMA_VERSION"]
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_VERSION = 1
@@ -84,6 +84,12 @@ def _dump(obj: Any) -> str:
 
 class ConversationConflictError(ValueError):
     """An existing dialogue's evaluation inputs are immutable; API adapters should return HTTP 409."""
+
+    status = 409
+
+
+class AppealAlreadyDecidedError(ValueError):
+    """Another reviewer (or a retried request) already decided this appeal; API adapters return HTTP 409."""
 
     status = 409
 
@@ -372,6 +378,40 @@ class Database:
                       (decision.id, decision.appeal_id, decision.conv_id, decision.criterion_id, _dump(decision),
                        decision.created_at))
         return decision
+
+    def decide_appeal(self, decision: Union[Decision, dict], audit: Optional[dict] = None) -> tuple[Appeal, Decision]:
+        """Atomically record the ONE decision of an open appeal (strict review PROD-02).
+
+        A single BEGIN IMMEDIATE transaction re-reads the appeal, refuses unless it is still ``open``
+        (AppealAlreadyDecidedError, HTTP 409), inserts the decision, closes the appeal with a conditional UPDATE and
+        writes the ``decision.saved`` audit entry. Two reviewers / processes racing on one appeal: exactly one wins;
+        a failure anywhere rolls the whole operation back (no decision without a closed appeal or vice versa).
+        """
+        decision = decision if isinstance(decision, Decision) else Decision.model_validate(decision)
+        if not decision.created_at:
+            decision = decision.model_copy(update={"created_at": now_iso()})
+        with self.connect() as c:
+            c.execute("BEGIN IMMEDIATE")
+            row = c.execute("SELECT status, data FROM appeals WHERE id = ?", (decision.appeal_id,)).fetchone()
+            if row is None:
+                raise KeyError(decision.appeal_id)
+            if row["status"] != "open" or c.execute("SELECT 1 FROM decisions WHERE appeal_id = ? LIMIT 1",
+                                                    (decision.appeal_id,)).fetchone():
+                raise AppealAlreadyDecidedError("Решение по этой апелляции уже сохранено.")
+            appeal = Appeal.model_validate({**Appeal.model_validate_json(row["data"]).model_dump(), "status": "decided",
+                                            "decision_id": decision.id, "decided_at": decision.created_at})
+            c.execute("INSERT INTO decisions(id, appeal_id, conv_id, criterion_id, data, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                      (decision.id, decision.appeal_id, decision.conv_id, decision.criterion_id, _dump(decision),
+                       decision.created_at))
+            cur = c.execute("UPDATE appeals SET status = ?, data = ? WHERE id = ? AND status = 'open'",
+                            (appeal.status, _dump(appeal), appeal.id))
+            if cur.rowcount != 1:  # pragma: no cover - guarded by BEGIN IMMEDIATE above
+                raise AppealAlreadyDecidedError("Решение по этой апелляции уже сохранено.")
+            if audit is not None:
+                c.execute("INSERT INTO audit_log(entity, entity_id, conv_id, event, payload, ts) VALUES (?, ?, ?, ?, ?, ?)",
+                          ("decision", decision.id, decision.conv_id, "decision.saved",
+                           json.dumps(audit, ensure_ascii=False, default=str), decision.created_at))
+        return appeal, decision
 
     def list_decisions(self, conv_id: Optional[str] = None, appeal_id: Optional[str] = None) -> list[Decision]:
         sql, args = "SELECT data FROM decisions WHERE 1=1", []

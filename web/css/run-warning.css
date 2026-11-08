@@ -10,7 +10,7 @@
   min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line);
   border-radius: 6px; background: var(--surface); color: var(--ink); cursor: pointer; flex-shrink: 0;
 }
-.cqa-root .cqa-run-warning button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.cqa-root .cqa-run-warning button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 @media (max-width: 767px) {
   .cqa-root .cqa-run-warning { align-items: flex-start; flex-direction: column; padding: 12px 16px; gap: 8px; }
   .cqa-root .cqa-tabs, .cqa-root.projector .cqa-tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0 4px; }

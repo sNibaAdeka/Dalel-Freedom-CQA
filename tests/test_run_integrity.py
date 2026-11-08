@@ -346,7 +346,8 @@ def test_run_export_snapshot_survives_reruns_decisions_and_restart(ctx):
     assert row["group_id"] == "TEST" and row["language"] == "EN" and row["channel"] == "chat"
     assert row["score"]["total"] == row["new_total"]
     c1 = next(a for a in row["answers"] if a["criterion_id"] == "C1")
-    assert set(c1) == {"criterion_id", "answer", "original_answer", "source", "points", "weight", "critical_hit"}
+    assert set(c1) == {"criterion_id", "answer", "original_answer", "source", "points", "weight", "critical_hit",
+                       "needs_review", "evidence_valid", "validation_status"}   # CQA-02 acceptance state, no payload
     assert c1["answer"] == "no" and c1["original_answer"] == "yes" and c1["source"] == "decision"
     assert "SYNTHETIC_INPUT_MARKER" not in json.dumps(row)
     assert "raw" not in row and "messages" not in row

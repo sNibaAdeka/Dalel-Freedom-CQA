@@ -20,6 +20,7 @@ Deterministic rules (cqa.rules) are prompt hints and disagreement flags only; th
 """
 from __future__ import annotations
 
+import math
 import os
 import re
 import time
@@ -178,6 +179,14 @@ def normalize_answer(raw: Any, criterion: dict) -> tuple[Any, str | None]:
             if not any(abs(val - s) < 1e-9 for s in steps):
                 return None, f"балл {raw} не входит в ступени шкалы {allowed}"
             val = P._num(val)
+    elif criterion.get("answer_type") == "numeric":
+        if val in ("yes", "no"):
+            return None, f"для числового критерия нужно {P.numeric_text(criterion)}, а не «{val}»"
+        if val != "na":
+            lo, hi = P.numeric_range(criterion)
+            if not float(lo) - 1e-9 <= val <= float(hi) + 1e-9:
+                return None, f"число {raw} вне диапазона: нужно {P.numeric_text(criterion)}"
+            val = P._num(min(max(val, float(lo)), float(hi)))
     else:
         if isinstance(val, float):
             return None, f"для критерия да/нет нужен ответ из {allowed}, а не число {raw}"
@@ -192,7 +201,7 @@ def is_top(answer: Any, criterion: dict) -> bool:
     """Best possible answer (action done): yes / max step; for critical criteria: no violation."""
     if criterion.get("critical"):
         return answer != criterion.get("critical_when", "yes")
-    if criterion.get("answer_type") == "scale":
+    if criterion.get("answer_type") in ("scale", "numeric"):
         return isinstance(answer, (int, float)) and float(answer) >= max(float(x) for x in criterion.get("scale") or [0])
     return answer == "yes"
 
@@ -361,6 +370,31 @@ def validate_range(rng: Any, conv: dict) -> tuple[list[str] | None, list[str]]:
 
 
 # ================================================================ one model answer -> validated vote
+def _text_field(item: dict, name: str, errors: list[str] | None, notes: list[str]) -> str:
+    """String field of the model JSON. A non-string value (object, list, number) is a schema error: retryable when
+    `errors` is given (explanation, na_reason), otherwise dropped with a note; never an AttributeError."""
+    v = item.get(name)
+    if v is None:
+        return ""
+    if isinstance(v, str):
+        return v.strip()
+    msg = f"поле {name} должно быть строкой, получено {type(v).__name__}"
+    (errors if errors is not None else notes).append(msg)
+    return ""
+
+
+def parse_confidence(v: Any) -> float | None:
+    """Model self-confidence: only a finite number in [0, 1] (numeric strings allowed). Missing, boolean, NaN/inf or
+    out-of-range values are UNKNOWN (None) and send the answer to review, never a silent 0.5 or a clamped value."""
+    if v is None or isinstance(v, bool):
+        return None
+    try:
+        f = float(v.strip() if isinstance(v, str) else v)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return f if math.isfinite(f) and 0.0 <= f <= 1.0 else None
+
+
 def validate_item(item: dict, conv: dict, criterion: dict, require_evidence: bool = True) -> dict:
     """Validate one criterion object from the model. Returns a vote dict with errors (retryable) and notes.
     require_evidence=False (arbiter): missing/invalid quotes become notes; evidence is then borrowed from an agreeing vote."""
@@ -368,9 +402,12 @@ def validate_item(item: dict, conv: dict, criterion: dict, require_evidence: boo
     if not isinstance(item, dict):
         return {"answer": None, "errors": ["ответ не является JSON-объектом критерия"], "notes": [], "evidence": []}
     answer, err = normalize_answer(item.get("answer"), criterion)
-    na_reason = (item.get("na_reason") or "").strip() or None
-    explanation = (item.get("explanation") or "").strip()
+    na_reason = _text_field(item, "na_reason", errors, notes) or None
+    explanation = _text_field(item, "explanation", errors, notes)
+    analysis = _text_field(item, "analysis", None, notes)
+    suggestion = _text_field(item, "suggestion", None, notes) or None
     spec = P.checks_for(criterion)
+    rule_review = None
     if spec:  # calibration v7.1: the checklist formula is applied in code to the model's sub-checks
         decided = checks_mod.apply(spec.get("rule"), conv, item.get("checks"))
         if decided:
@@ -384,6 +421,9 @@ def validate_item(item: dict, conv: dict, criterion: dict, require_evidence: boo
                 explanation = decided[1] + (f" {explanation}" if explanation else "")
         else:
             notes.append("подпроверки не заполнены — использован ответ модели")
+            if spec.get("rule") == "c3_verification" and answer is not None and is_top(answer, criterion):
+                # strict review CQA-03: an undecided C3 rule must not leave the model's "yes" as a confident answer
+                rule_review = "C3: порядок идентификации и раскрытия не проверен правилом — «Да» модели требует ручной проверки"
     if err:
         errors.append(err)
     evidence, ev_err, ev_notes = validate_evidence(item.get("evidence") or [], conv)
@@ -420,14 +460,11 @@ def validate_item(item: dict, conv: dict, criterion: dict, require_evidence: boo
             rng = operator_span(conv)
         if not explanation:
             notes.append("нет объяснения")
-    try:
-        conf = float(item.get("confidence"))
-        conf = min(max(conf, 0.0), 1.0)
-    except (TypeError, ValueError):
-        conf = None
+    conf = parse_confidence(item.get("confidence"))
     return {"answer": answer, "evidence": evidence, "checked_range": rng, "na_reason": na_reason if answer == "na" else None,
-            "explanation": explanation, "analysis": (item.get("analysis") or "").strip(), "suggestion": (item.get("suggestion") or None),
+            "explanation": explanation, "analysis": analysis, "suggestion": suggestion,
             "self_confidence": conf, "errors": errors, "notes": notes,
+            **({"rule_review": rule_review} if rule_review else {}),
             **({"checks": item.get("checks")} if spec and isinstance(item.get("checks"), dict) else {})}
 
 
@@ -513,7 +550,7 @@ def aggregate(votes: list[dict], criterion: dict) -> tuple[Any, float, dict]:
     if n > len(vals) / 2:
         return top, n / len(vals), dict(dist)
     nums = sorted(x for x in vals if isinstance(x, float))
-    if criterion.get("answer_type") == "scale" and nums:  # no majority on a scale: median, snapped to a step
+    if criterion.get("answer_type") in ("scale", "numeric") and nums:  # no majority on a scale: median, snapped to a step
         med = nums[len(nums) // 2]
         return med, dist[med] / len(vals), dict(dist)
     best = max((v for v in votes if v.get("answer") is not None), key=lambda v: v.get("self_confidence") or 0)
@@ -559,6 +596,8 @@ def _finalize(conv: dict, crit: dict, votes: list[dict], final: dict | None, ans
         reasons.append("ответ модели не прошёл проверку: " + "; ".join(rep["errors"][:3]))
     if mode == "accurate" and len(votes) > 1 and answer is not None and confidence < REVIEW_CONFIDENCE:
         reasons.append(f"голоса разошлись: {', '.join(f'{k}×{n}' for k, n in dist.items())}" + (", решил арбитр" if arb_vote else ""))
+    if mode == "fast" and answer is not None and rep.get("self_confidence") is None:
+        reasons.append("модель не сообщила корректную уверенность (0–1) — нужна ручная проверка")
     if mode == "fast" and answer is not None and rep.get("self_confidence") is not None and rep["self_confidence"] < MODEL_REVIEW_CONFIDENCE:
         reasons.append(f"низкая уверенность модели {rep['self_confidence']:.2f}")
     if mode == "accurate" and answer is not None:
@@ -568,11 +607,16 @@ def _finalize(conv: dict, crit: dict, votes: list[dict], final: dict | None, ans
                       if not v.get("errors") and v.get("answer") is not None
                       and answer_key(v["answer"]) == answer_key(answer)]
         reported = [v["self_confidence"] for v in supporters if v.get("self_confidence") is not None]
+        if len(reported) < len(supporters):
+            reasons.append(f"уверенность не сообщена в {len(supporters) - len(reported)} из {len(supporters)} ответов, "
+                           "поддерживающих итог; согласие голосов её не заменяет — нужна ручная проверка")
         low = [value for value in reported if value < MODEL_REVIEW_CONFIDENCE]
         if low:
             reasons.append(f"низкая заявленная уверенность модели в {len(low)} из {len(reported)} ответов, "
                            f"поддерживающих итог (минимум {min(low):.2f}, порог {MODEL_REVIEW_CONFIDENCE:.2f}); "
                            "согласие голосов не устраняет неопределённость — нужна ручная проверка")
+    if answer is not None and rep.get("rule_review") and answer_key(rep.get("answer")) == answer_key(answer):
+        reasons.append(rep["rule_review"])
     if critical_hit(answer, crit):
         reasons.append("отмечено грубое нарушение — подтвердите вручную")
     expected = rules.rule_check(crit, conv) if answer is not None else None
@@ -584,6 +628,17 @@ def _finalize(conv: dict, crit: dict, votes: list[dict], final: dict | None, ans
         reasons.append("N/A без причины")
     if answer is not None and answer != "na" and not rep.get("evidence") and not rep.get("checked_range"):
         reasons.append("нет доказательства и проверенного участка")
+    # Structural acceptance status (strict review CQA-02), separate from ordinary low confidence: an answer whose
+    # evidence was finally rejected by the validator is kept for the reviewer but is PROVISIONAL, not an accepted grade.
+    if answer is None:
+        validation_status = "failed"
+    elif rep.get("errors") or (answer == "na" and not rep.get("na_reason")) \
+            or (answer != "na" and not rep.get("evidence") and not rep.get("checked_range")):
+        validation_status = "rejected"
+    else:
+        validation_status = "valid"
+    if validation_status == "rejected":
+        reasons.append("предварительная оценка: доказательство не прошло проверку — итог не окончательный до решения проверяющего")
     return {
         "conv_id": conv["id"], "criterion_id": crit["id"], "criterion_hash": crit.get("hash"), "prompt_version": P.prompt_version(crit, readings),
         "title": crit.get("title"), "answer": answer,
@@ -598,6 +653,7 @@ def _finalize(conv: dict, crit: dict, votes: list[dict], final: dict | None, ans
                  + (f" · фолбэк {', '.join(_fallback_models(usages))}" if _fallback_models(usages) else ""), "tokens_in": int(tot["tokens_in"]), "tokens_out": int(tot["tokens_out"]),
         "cost_kzt": round(tot["cost_kzt"], 4), "cost_kzt_full": round(tot["cost_kzt_full"], 4), "latency_ms": int(tot["latency_ms"]),
         "needs_review": bool(reasons), "review_reasons": reasons, "mode": mode, "reading": reading,
+        "validation_status": validation_status, "provisional": validation_status == "rejected",
         "raw": {"votes": [_trace(v) for v in votes], "arbiter": _trace(arb_vote), "distribution": {str(k): n for k, n in dist.items()},
                 "agreement": round(float(confidence), 3) if mode == "accurate" else None,
                 "calls": tot["calls"], "cache_hits": tot["cache_hits"], "notes": (rep.get("notes") or [])[:6],
@@ -609,7 +665,7 @@ def _merge_arbiter(arb: dict, rep: dict) -> dict:
     """Arbiter decided but gave no usable evidence: keep its explanation, borrow the evidence of an agreeing vote."""
     merged = dict(rep)
     merged.update({k: arb[k] for k in ("explanation", "analysis", "suggestion") if arb.get(k)})
-    merged["errors"] = []
+    merged["errors"] = list(rep.get("errors") or [])  # borrowed evidence that failed validation stays rejected
     return merged
 
 
@@ -701,6 +757,11 @@ def _fast_pass(conv: dict, crits: list[dict], facts: list[str], pre: dict, temp:
     return results
 
 
+def _validated(result: dict) -> bool:
+    """Answer present and its evidence passed final validation (structural status from _finalize)."""
+    return result.get("answer") is not None and result.get("validation_status", "valid") == "valid"
+
+
 def _cascade(conv: dict, crits: list[dict], facts: list[str], pre: dict, temp: float, pool: ThreadPoolExecutor,
              first: dict[str, dict], esc: dict, *, readings=None, no_cache=None) -> dict[str, dict]:
     """Cascade (profile "cascade"): a cheap model answers first; if it marks any criterion for review, the whole
@@ -729,12 +790,24 @@ def _cascade(conv: dict, crits: list[dict], facts: list[str], pre: dict, temp: f
     out: dict[str, dict] = {}
     for c in crits:
         a, b = first[c["id"]], second[c["id"]]
-        r = b if b.get("answer") is not None else a  # stronger model failed on this criterion: keep the first answer
+        # Keep the first answer when the stronger model gave none, or when its answer failed final evidence
+        # validation while the first one passed it (CQA-05). Ordinary low confidence of the second model is NOT a
+        # validation failure: its valid answer still replaces the first one.
+        b_failed = b.get("answer") is None
+        b_rejected = not b_failed and _validated(a) and not _validated(b)
+        r = a if (b_failed or b_rejected) else b
+        if r is a:
+            why = "вторая модель не дала ответа" if b_failed else "ответ второй модели не прошёл проверку доказательства"
+            r["review_reasons"] = list(r.get("review_reasons") or []) + [f"каскад: {why} — сохранён ответ первой модели; нужна ручная проверка"]
+            r["needs_review"] = True
+            r.setdefault("raw", {})["cascade_second"] = {"answer": b.get("answer"), "validation_status": b.get("validation_status"),
+                                                         "review_reasons": list(b.get("review_reasons") or [])[:4]}
         for k in ("tokens_in", "tokens_out", "latency_ms"):
             r[k] = int(a.get(k, 0) + b.get(k, 0))
         for k in ("cost_kzt", "cost_kzt_full"):
             r[k] = round(a.get(k, 0.0) + b.get(k, 0.0), 4)
-        r["model"] = f"{a['model']} → {b['model']}" + ("" if r is b else " (ответ первой модели: вторая не ответила)")
+        r["model"] = f"{a['model']} → {b['model']}" + ("" if r is b else (" (ответ первой модели: вторая не ответила)" if b_failed
+                                                                          else " (ответ первой модели: ответ второй не прошёл проверку)"))
         r["raw"]["cascade"] = info
         out[c["id"]] = r
     return out
