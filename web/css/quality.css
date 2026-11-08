@@ -171,3 +171,33 @@
 .cqa-root.gl-theme .cqa-quality__details { border-block-start-color: color-mix(in srgb, var(--ink) 12%, transparent); }
 .cqa-root.gl-theme .cqa-quality__details summary { border-radius: 9px; font-weight: 500; }
 .cqa-root.gl-theme :is(.cqa-quality__all-reports, .cqa-quality__economics) { margin-top: 16px; }
+
+/* Bento stats: headline measurements, all read from quality.json. Brand fill + brand ink keep ≥4.5:1 in every theme. */
+.cqa-quality {
+  --bento-radius: 24px;
+  --bento-gap: 16px;
+  --bento-tile: var(--surface);
+  --bento-line: color-mix(in srgb, var(--ink) 12%, transparent);
+  --bento-primary: var(--brand);
+  --bento-primary-ink: var(--brand-ink);
+  --bento-pill: color-mix(in srgb, var(--brand-ink) 16%, transparent);
+}
+.cqa-quality__bento { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--bento-gap); margin: 0 0 24px; font-variant-numeric: tabular-nums; }
+.cqa-quality__bento-tile { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; min-height: 148px; padding: 24px 28px; border: 1px solid var(--bento-line); border-radius: var(--bento-radius); background: var(--bento-tile); color: var(--ink); animation: cqa-bento-in 280ms cubic-bezier(.22, 1, .36, 1) both; }
+.cqa-quality__bento-tile p { margin: 0; }
+.cqa-quality__bento-label { color: var(--muted); font-weight: 600; font-size: 1rem; }
+.cqa-quality__bento-value { font-size: clamp(3rem, 4.2vw, 3.75rem); line-height: 1; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.cqa-quality__bento-tile--primary { justify-content: flex-start; gap: 20px; padding: 32px; background: var(--bento-primary); color: var(--bento-primary-ink); border-color: var(--bento-primary); }
+.cqa-quality__bento-tile--primary .cqa-quality__bento-value { font-size: clamp(4.5rem, 8vw, 7.5rem); margin-top: auto; }
+.cqa-quality__bento-pill { align-self: flex-start; padding: 6px 12px; border-radius: 999px; background: var(--bento-pill); color: var(--bento-primary-ink); font-size: .8125rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.cqa-quality__bento-note { color: var(--bento-primary-ink); font-size: 1rem; }
+.cqa-quality__bento-tile:nth-child(2) { animation-delay: 40ms; }
+.cqa-quality__bento-tile:nth-child(3) { animation-delay: 80ms; }
+.cqa-quality__bento-tile:nth-child(4) { animation-delay: 120ms; }
+.cqa-quality__bento-tile:nth-child(5) { animation-delay: 160ms; }
+@keyframes cqa-bento-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (min-width: 768px) {
+  .cqa-quality__bento { grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(148px, auto); }
+  .cqa-quality__bento-tile--primary { grid-row: span 2; }
+}
+@media (prefers-reduced-motion: reduce) { .cqa-quality__bento-tile { animation: none; } }

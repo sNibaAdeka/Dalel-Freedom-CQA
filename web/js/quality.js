@@ -535,7 +535,57 @@ function recommendation(result, cloud, cascade) {
   else message += ' Стоимость каскада не восстановлена: полная сопоставимая разбивка по этапам отсутствует.';
   return message;
 }
-function renderAnalyst(doc, result) {
+const pct1 = ratio => `${(ratio * 100).toLocaleString('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+const usd3 = value => `$${value.toLocaleString('ru-RU', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
+const perDialogueUsd = r => {
+  const value = r?.economics?.cost_per_dialogue_usd ?? (r?.cost?.currency === 'USD' && r.cost.count > 0 ? r.cost.amount / r.cost.count : null);
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+};
+function heldOutPhrase(n, split) {
+  const last = n % 10, lastTwo = n % 100, one = last === 1 && lastTwo !== 11, few = last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14);
+  const adjective = split === 'holdout' ? (one ? 'отложенный ' : 'отложенных ') : '';
+  return `${number(n, 0)} ${adjective}${one ? 'диалог' : few ? 'диалога' : 'диалогов'}`;
+}
+/** Bento headline numbers, read from the published quality payload only; an absent value drops its tile. */
+export function bentoStats(payload, referenceId = 'silver') {
+  const reports = Array.isArray(payload?.reports) ? payload.reports : [], catalog = payload?.profile_catalog ?? {};
+  const pick = key => {
+    const anchor = reports.find(r => r.id === catalog[key]?.report_id);
+    return anchor ? reports.find(r => r.run_id === anchor.run_id && r.reference?.id === referenceId) ?? null : null;
+  };
+  const ratio = c => c && c.total - c.unlabelled > 0 ? c.matched / (c.total - c.unlabelled) : null;
+  const cloud = pick('cloud'), cascade = pick('cascade');
+  const primaryRatio = ratio(cloud?.counts);
+  const primary = primaryRatio == null ? null : {
+    value: pct1(primaryRatio), label: 'Совпадение с эталоном',
+    note: `верхняя оценка, ${heldOutPhrase(cloud.sample.dialogues, cloud.sample.split)} ${cloud.sample.dataset}`,
+  };
+  const tiles = [];
+  const constant = payload?.baselines?.constant;
+  const constantRatio = typeof constant?.agreement === 'number' ? constant.agreement : ratio(constant?.counts);
+  if (constantRatio != null) tiles.push({ id: 'constant', label: 'Константа', value: pct1(constantRatio) });
+  const kz = (payload?.subsamples ?? []).find(row => row.id === 'kz-all')?.references?.[referenceId];
+  if (kz && kz.labelled > 0) tiles.push({ id: 'kz', label: 'Казахские чаты', value: pct1(kz.matched / kz.labelled) });
+  const cloudCost = perDialogueUsd(cloud), cascadeCost = perDialogueUsd(cascade);
+  if (cloudCost != null) tiles.push({ id: 'price', label: 'Цена диалога', value: usd3(cloudCost) });
+  if (cascadeCost != null) tiles.push({ id: 'cascade', label: 'Каскад', value: usd3(cascadeCost) });
+  return { primary, tiles };
+}
+function renderBento(doc, stats) {
+  const grid = node(doc, 'section', 'cqa-quality__bento'); grid.setAttribute('aria-label', 'Ключевые замеры');
+  if (stats.primary) {
+    const main = node(doc, 'article', 'cqa-quality__bento-tile cqa-quality__bento-tile--primary');
+    main.append(node(doc, 'p', 'cqa-quality__bento-pill', stats.primary.label), node(doc, 'p', 'cqa-quality__bento-value', stats.primary.value), node(doc, 'p', 'cqa-quality__bento-note', stats.primary.note));
+    grid.append(main);
+  }
+  for (const tile of stats.tiles) {
+    const el = node(doc, 'article', 'cqa-quality__bento-tile'); el.setAttribute('data-bento', tile.id);
+    el.append(node(doc, 'p', 'cqa-quality__bento-label', tile.label), node(doc, 'p', 'cqa-quality__bento-value', tile.value));
+    grid.append(el);
+  }
+  return grid;
+}
+function renderAnalyst(doc, result, payload = null) {
   const section = node(doc, 'section', 'cqa-quality__analyst');
   const refs = [...new Set(result.reports.map(r => r.reference.id))];
   const reference = selectControl(doc, 'Эталон', refs.map(value => ({ value, label: value })), refs.includes('silver') ? 'silver' : refs[0], 'cqa-quality-reference');
@@ -550,6 +600,8 @@ function renderAnalyst(doc, result) {
     const rows = result.reports.filter(r => r.reference.id === reference.select.value);
     const cloud = findProfile('cloud', rows) ?? rows[0], cascade = findProfile('cascade', rows), routing = findProfile('routing', rows);
     body.replaceChildren();
+    const bento = bentoStats(payload, reference.select.value);
+    if (bento.primary || bento.tiles.length) body.append(renderBento(doc, bento));
     provenanceNote.textContent = [referenceLabels[cloud.reference.type], cloud.sample.dev_reused ? 'DEV использован повторно' : splitLabels[cloud.sample.split], cloud.reference.type === 'human' ? 'независимость разметки требует проверки' : 'независимая человеческая точность не измерена · Gemini 95,6% — верхняя оценка; константа 83,0%'].join(' · ');
     const cards = node(doc, 'div', 'cqa-quality__cards');
     if (cloud) cards.append(metricCard(doc, cloud, modelLabel(cloud)));
@@ -640,7 +692,7 @@ export function mount(CQA = globalThis.window?.CQA) {
         content.append(node(doc, 'p', 'cqa-quality__empty', 'Источник не передал измерения. Это не означает 0% качества: сравнение с эталоном ещё не опубликовано.'));
       } else {
         status.textContent = `Замеров: ${number(result.reports.length)}. Выборки и условия указаны отдельно.`;
-        if (result.reports.some(r => r.agreement_ci)) { host.classList.add('cqa-quality--analyst'); content.append(renderAnalyst(doc, result)); }
+        if (result.reports.some(r => r.agreement_ci)) { host.classList.add('cqa-quality--analyst'); content.append(renderAnalyst(doc, result, payload)); }
         else for (const r of result.reports) content.append(renderReport(doc, r));
         if (typeof CQA.economics?.mountCalculator === 'function') {
           const calculator = node(doc, 'div', 'cqa-quality__economics'); content.append(calculator);

@@ -9,6 +9,39 @@ const finite = value => typeof value === 'number' && Number.isFinite(value);
 const number = (value, digits = 2) => finite(value) ? value.toLocaleString('ru-RU', { maximumFractionDigits: digits }) : '—';
 const errorText = error => error?.message || 'Не удалось получить ответ сервера.';
 
+/** Per-stage split of a forecast total. Two-stage profiles weight each stage by its stored single-model
+ * cost per dialogue × share of dialogues reaching it (model_usage); missing data collapses to one segment. */
+export function stageCosts({ quality, profile, total }) {
+  const catalog = quality?.profile_catalog?.[profile], reports = quality?.reports ?? [];
+  if (!catalog || !finite(total)) return [];
+  const report = reports.find(r => r.id === catalog.report_id);
+  const perDialogue = r => r?.economics?.cost_per_dialogue_usd ?? (r?.cost?.currency === 'USD' && r.cost.count > 0 ? r.cost.amount / r.cost.count : null);
+  if (!catalog.first_label) return [{ name: catalog.label ?? profile, cost: total }];
+  const single = label => reports.find(r => r.reference?.id === report?.reference?.id && !/cascade|routing/.test(r.run_id) && (r.source?.label ?? '').split(' ')[0] === label.split(' ')[0]);
+  const usage = report?.model_usage, first = perDialogue(single(catalog.first_label)), second = perDialogue(single(catalog.escalate_label));
+  const reach = usage?.known_dialogues > 0 ? usage.gemini_dialogues / usage.known_dialogues : null;
+  const combined = [{ name: `${catalog.first_label} → ${catalog.escalate_label}`, cost: total }];
+  if (!finite(first) || !finite(second) || !finite(reach)) return combined;
+  const a = first, b = second * reach;
+  if (!(a + b > 0)) return combined;
+  return [{ name: catalog.first_label, cost: total * a / (a + b) }, { name: catalog.escalate_label, cost: total * b / (a + b) }];
+}
+/** Cost meter view model. Shares are whole percents (largest remainder) and always sum to 100. */
+export function costMeter({ total, stages = [], budgetKzt = null, usdKzt = null, actual = false }) {
+  if (!finite(total) || total < 0) return null;
+  const sum = stages.reduce((acc, s) => acc + (finite(s.cost) ? s.cost : 0), 0);
+  const raw = stages.map(s => sum > 0 ? 100 * s.cost / sum : 100 / stages.length);
+  const shares = raw.map(Math.floor);
+  let rest = stages.length ? 100 - shares.reduce((x, y) => x + y, 0) : 0;
+  for (const i of raw.map((v, i) => [v - Math.floor(v), i]).sort((x, y) => y[0] - x[0]).map(([, i]) => i)) { if (rest <= 0) break; shares[i] += 1; rest -= 1; }
+  const money = (v, digits) => `$${v.toLocaleString('ru-RU', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+  const budget = Number(budgetKzt), rate = Number(usdKzt);
+  const budgetUsd = budgetKzt !== null && budgetKzt !== '' && Number.isFinite(budget) && budget > 0 && Number.isFinite(rate) && rate > 0 ? budget / rate : null;
+  return { total, value: money(total, 4), label: actual ? 'Факт прогона' : 'Прогноз прогона',
+    budgetText: budgetUsd == null ? '' : `из ${money(budgetUsd, 2)} бюджета`,
+    segments: stages.map((s, i) => ({ name: s.name, cost: s.cost, costText: money(s.cost, 4), share: shares[i] })) };
+}
+
 /** Independently testable run lifecycle. stop() stops observation, never the server run. */
 export function createRunController(api, { onChange = () => {}, onProgress = () => {}, onFinish = () => {},
   schedule = setTimeout, unschedule = clearTimeout, interval = 500, restorePollLimit = 6, restoreStallLimit = 3 } = {}) {
@@ -230,7 +263,13 @@ export function mount(CQA = globalThis.window?.CQA) {
   const plan = node('div', 'cqa-board__plan');
   const planPolicy = node('p', 'cqa-board__plan-policy'); planPolicy.id = 'cqa-board-plan-policy';
   const planHint = node('p', 'cqa-board__hint cqa-board__plan-hint');
-  plan.append(node('h2', '', 'Перед запуском'), planPolicy, planHint);
+  const meter = node('section', 'cqa-board__meter'); meter.setAttribute('aria-label', 'Стоимость прогона'); meter.hidden = true;
+  const meterLabel = node('p', 'cqa-board__meter-label'), meterValue = node('p', 'cqa-board__meter-value'), meterBudget = node('span', 'cqa-board__meter-budget');
+  const meterBar = node('div', 'cqa-board__meter-bar'), meterLegend = node('ul', 'cqa-board__meter-legend');
+  meterBar.setAttribute('aria-hidden', 'true');
+  const meterFigure = node('div', 'cqa-board__meter-figure'); meterFigure.append(meterValue, meterBudget);
+  meter.append(meterLabel, meterFigure, meterBar, meterLegend);
+  plan.append(node('h2', '', 'Перед запуском'), planPolicy, planHint, meter);
   live.setAttribute('aria-describedby', planPolicy.id);
   const rerun = node('details', 'cqa-board__rerun'); rerun.append(node('summary', '', 'Полный повторный расчёт'));
   const rerunHint = node('p', 'cqa-board__hint', 'Все критерии выбранных диалогов будут оценены заново, включая неизменённые. Сохранённые ответы и LLM-кэш не используются. Это может увеличить время и стоимость.');
@@ -276,6 +315,7 @@ export function mount(CQA = globalThis.window?.CQA) {
   results.append(runHead, runPlan, progress, stats, resultNotice, exports, plot, grid);
   const empty = node('div', 'cqa-board__empty'); empty.append(node('h2', '', 'Новая оценка начнётся здесь'), node('p', '', 'После запуска появятся результаты каждого диалога, время и стоимость. Смена только весов позволяет использовать сохранённые ответы.'));
   host.append(head, demo, notice, form, importer, results, empty);
+  budgetHost.addEventListener?.('input', () => { if (!destroyed) drawMeter(conversationSelection(rows, group.value, scope.value, CQA.state.activeConversationId).length); });
 
   function message(text, failed = false) {
     notice.textContent = text || ''; notice.hidden = !text; notice.dataset.tone = failed ? 'error' : 'info';
@@ -289,6 +329,7 @@ export function mount(CQA = globalThis.window?.CQA) {
     planPolicy.textContent = `${fresh ? 'Новые диалоги считаются моделью сейчас, не из кэша. Недостающие ответы также запрашиваются без LLM-кэша. ' : ''}` +
       'Неизменённые критерии с совместимыми сохранёнными ответами переиспользуются. При наличии таких ответов смена только весов не вызывает модель; замена одного критерия оценивает его и ранее недостающие ответы. Смена модели, режима или промпта может потребовать дополнительные оценки.';
     planHint.textContent = forecastText(currentForecast(ids.length));
+    drawMeter(ids.length);
     selection.textContent = `${ids.length} ${ids.length === 1 ? 'диалог выбран' : 'диалогов выбрано'}`;
     startButton.disabled = busy || loading || !ids.length || !version.value;
     rerunButton.disabled = startButton.disabled;
@@ -311,6 +352,29 @@ export function mount(CQA = globalThis.window?.CQA) {
     exportHint.textContent = CQA.config.mock !== false || CQA.config.offline === true ? 'Экспорт прогона доступен только при подключении к серверу.' :
       canExport ? `${exportRequest ? 'Готовим файл' : 'Сохранённый снимок'}: ${run.run_id}${run.version != null ? ` · чек-лист v${run.version}` : ''} · ${failedStatuses.has(run.status) || runSummary(run).errors ? 'с ошибками; нерассчитанные оценки отсутствуют' : 'завершён'}.` :
       'Экспорт появится после завершения прогона.';
+  }
+  function drawMeter(count) {
+    const profile = location.value === 'configured' ? serverConfig?.profile : location.value;
+    const anchor = qualityData?.reports?.find(r => r.id === qualityData?.profile_catalog?.[profile]?.report_id);
+    const usdKzt = anchor?.economics?.currency_fx?.usd_kzt ?? null;
+    const run = controller.state.run;
+    const actual = controller.state.phase === 'finished' && !controller.state.restored && finite(run?.cost_kzt) && finite(usdKzt) && usdKzt > 0;
+    const total = actual ? run.cost_kzt / usdKzt : currentForecast(count).cost;
+    const budgetInput = typeof budgetHost.querySelector === 'function' ? budgetHost.querySelector('input[id$="monthly_budget_kzt"]') : null;
+    const view = costMeter({ total, stages: stageCosts({ quality: qualityData, profile, total }), budgetKzt: budgetInput?.value ?? null, usdKzt, actual });
+    meter.hidden = !view;
+    if (!view) return;
+    meterLabel.textContent = view.label; meterValue.textContent = view.value;
+    meterBudget.textContent = view.budgetText; meterBudget.hidden = !view.budgetText;
+    meterBar.replaceChildren(); meterLegend.replaceChildren();
+    view.segments.forEach((segment, index) => {
+      const part = node('span', `cqa-board__meter-segment cqa-board__meter-segment--${index % 3}`);
+      part.style?.setProperty?.('--meter-share', String(Math.max(segment.share, 1))); meterBar.append(part);
+      const item = node('li'), dot = node('span', `cqa-board__meter-dot cqa-board__meter-segment--${index % 3}`);
+      dot.setAttribute('aria-hidden', 'true');
+      item.append(dot, node('span', 'cqa-board__meter-name', segment.name), node('span', 'cqa-board__meter-cost', segment.costText), node('span', 'cqa-board__meter-share', `${segment.share}%`));
+      meterLegend.append(item);
+    });
   }
   function currentForecast(count) {
     return runForecast({ quality: qualityData, profile: location.value === 'configured' ? serverConfig?.profile : location.value,

@@ -207,3 +207,35 @@
 @media (min-width: 1024px) and (min-height: 650px) {
   .cqa-root.projector .cqa-board { --bd-sink: 10px; }
 }
+
+/* Run cost meter: forecast / actual, budget, per-stage segments. Colours are theme tokens only. */
+.cqa-root .cqa-board {
+  --meter-radius: 16px;
+  --meter-stage-0: var(--brand);
+  --meter-stage-1: var(--yes);
+  --meter-stage-2: var(--partial);
+}
+.cqa-root .cqa-board .cqa-board__meter { max-width: 520px; margin-top: 14px; padding: 18px 20px; border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); border-radius: var(--meter-radius); background: var(--surface); color: var(--ink); font-variant-numeric: tabular-nums; animation: cqa-meter-in 280ms cubic-bezier(.22, 1, .36, 1) both; }
+.cqa-root .cqa-board .cqa-board__meter[hidden] { display: none; }
+.cqa-root .cqa-board .cqa-board__meter p { margin: 0; }
+.cqa-root .cqa-board .cqa-board__meter-label { color: var(--muted); font-size: .8125rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.cqa-root .cqa-board .cqa-board__meter-figure { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 6px 0 14px; }
+.cqa-root .cqa-board .cqa-board__meter-value { font-size: clamp(2.25rem, 3.4vw, 3rem); line-height: 1.05; font-weight: 700; letter-spacing: -.02em; }
+.cqa-root .cqa-board .cqa-board__meter-budget { color: var(--muted); font-size: 1rem; }
+.cqa-root .cqa-board .cqa-board__meter-budget[hidden] { display: none; }
+.cqa-root .cqa-board .cqa-board__meter-bar { display: flex; gap: 3px; height: 8px; border-radius: 999px; overflow: hidden; background: var(--surface-subtle); }
+.cqa-root .cqa-board .cqa-board__meter-segment { flex: var(--meter-share, 1) 1 0; min-width: 4px; }
+.cqa-root .cqa-board .cqa-board__meter-segment--0 { background: var(--meter-stage-0); }
+.cqa-root .cqa-board .cqa-board__meter-segment--1 { background: var(--meter-stage-1); }
+.cqa-root .cqa-board .cqa-board__meter-segment--2 { background: var(--meter-stage-2); }
+.cqa-root .cqa-board .cqa-board__meter-bar .cqa-board__meter-segment { transform-origin: left center; animation: cqa-meter-grow 320ms cubic-bezier(.22, 1, .36, 1) both; }
+.cqa-root .cqa-board .cqa-board__meter-legend { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+.cqa-root .cqa-board .cqa-board__meter-legend li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 3.5em; align-items: center; gap: 10px; font-size: .95rem; }
+.cqa-root .cqa-board .cqa-board__meter-dot { width: 10px; height: 10px; border-radius: 50%; min-width: 0; }
+.cqa-root .cqa-board .cqa-board__meter-cost, .cqa-root .cqa-board .cqa-board__meter-share { text-align: end; }
+.cqa-root .cqa-board .cqa-board__meter-share { color: var(--muted); }
+@keyframes cqa-meter-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes cqa-meter-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .cqa-root .cqa-board .cqa-board__meter, .cqa-root .cqa-board .cqa-board__meter-bar .cqa-board__meter-segment { animation: none; }
+}

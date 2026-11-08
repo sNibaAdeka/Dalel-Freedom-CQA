@@ -345,3 +345,10 @@
 .cqa-root.cqa-root.gl-theme .gl-rail .gl-rail-button:is([aria-current='page'], [aria-pressed='true'], [aria-expanded='true']) { background: var(--ws-rail-active); color: var(--ws-rail-ink); box-shadow: none; }
 .cqa-root.cqa-root.gl-theme .gl-rail .gl-rail-divider { background: color-mix(in srgb, var(--ws-rail-ink) 28%, transparent); }
 .cqa-root.cqa-root.gl-theme .gl-rail .gl-rail-button:focus-visible { outline-color: var(--ws-rail-ink); box-shadow: none; }
+
+/* Simplest look for the pitch (11:25): no brand check mark, no curved evidence line, no demo-mode link, fewer secondary lines. Controls stay. */
+.cqa-root .cqa-brand-mark { display: none; }
+.cqa-root .cqa-card__thread { display: none !important; }
+.cqa-root #cqa-mode-switch { display: none; }
+.cqa-root .cqa-card__handoff { display: none; }
+.cqa-root .cqa-review-impact { display: none; }
