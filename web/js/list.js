@@ -40,17 +40,19 @@ export function evaluationState(row) {
   return "approved";
 }
 /** Read-only fallback: each row keeps the version that actually supplied its score. */
-export async function withPreviousScores(rows, versions, api) {
+export async function withPreviousScores(rows, versions, api, isStale = () => false) {
   const previous = versions.map(v => Number(v.version)).filter(Number.isInteger).sort((a, b) => b - a);
   let cursor = 0;
   const result = rows.map(row => ({ ...row }));
   await Promise.all(Array.from({ length: Math.min(6, rows.length) }, async () => {
-    while (cursor < rows.length) {
+    while (!isStale() && cursor < rows.length) {
       const index = cursor++, row = rows[index];
       if (finite(row.total) || !['pending', 'incomplete'].includes(row.status)) continue;
       for (const version of previous.filter(v => v < Number(row.checklist_version))) {
+        if (isStale()) return;
         try {
           const detail = await api.conversation(row.id, version);
+          if (isStale()) return;
           if (!finite(detail.score?.total) || detail.score?.status === 'incomplete') continue;
           result[index] = { ...row, total: detail.score.total, critical: Boolean(detail.score.critical),
             needs_review: Boolean(detail.needs_review), status: detail.status,
@@ -202,13 +204,6 @@ export function mount(CQA = window.CQA) {
       button?.focus({ preventScroll: true });
       button?.scrollIntoView({ block: "nearest", behavior: "auto" });
     }
-    const row = state.rows.find(item => item.id === id);
-    if (row?.checklist_version != null) {
-      CQA.state.checklistVersion = Number(row.checklist_version);
-      const selector = document.getElementById('cqa-version-select');
-      if (selector) selector.value = String(row.checklist_version);
-      CQA.bus.emit('checklist:selected', Number(row.checklist_version));
-    }
     CQA.bus.emit("conv:open", id);
   }
   function chooseFirstOnce() {
@@ -348,6 +343,8 @@ export function mount(CQA = window.CQA) {
   }
   async function reload() {
     const request = ++state.request;
+    CQA.state.listScoreVersions = {};
+    const isStale = () => request !== state.request || controller.signal.aborted;
     state.loading = true;
     state.error = false;
     refreshButton.disabled = true;
@@ -364,9 +361,14 @@ export function mount(CQA = window.CQA) {
     }
     try {
       const activeRows = await CQA.api.conversations();
-      const versions = typeof CQA.api.checklists === 'function' ? await CQA.api.checklists() : CQA.state.checklists || [];
-      const result = await withPreviousScores(activeRows, versions, CQA.api);
-      if (request !== state.request || controller.signal.aborted) return;
+      if (isStale()) return;
+      // Checklist failure must not discard a successful authoritative queue response.
+      let versions = CQA.state.checklists || [];
+      try { if (typeof CQA.api.checklists === 'function') versions = await CQA.api.checklists(); }
+      catch { versions = []; }
+      if (isStale()) return;
+      const result = await withPreviousScores(activeRows, versions, CQA.api, isStale);
+      if (isStale()) return;
       if (!Array.isArray(result)) throw new Error("Expected a conversation summary array.");
       const ids = new Set();
       state.rows = result.filter(row => row && typeof row.id === "string" && !ids.has(row.id) && ids.add(row.id)).map(row => ({
@@ -374,7 +376,7 @@ export function mount(CQA = window.CQA) {
         channel: row.channel === "call" ? "call" : "chat",
         cells: Array.isArray(row.cells) ? row.cells : [],
       }));
-      CQA.state.listScoreVersions = Object.fromEntries(state.rows.map(row => [row.id, row.checklist_version]));
+      CQA.state.listScoreVersions = Object.fromEntries(state.rows.filter(row => row.previous_score).map(row => [row.id, row.checklist_version]));
       state.loaded = true;
       state.loading = false;
       summary();
@@ -444,12 +446,14 @@ export function mount(CQA = window.CQA) {
   });
   subscribe("score:updated", payload => {
     const id = payload?.conv_id || payload?.id || payload?.score?.conv_id;
+    if (CQA.state.listScoreVersions) delete CQA.state.listScoreVersions[id];
     const row = state.rows.find(item => item.id === id);
     if (!row) return;
     // A different version must first be reconciled with the server's active list.
     // Do not turn a labelled historical score into an unlabelled optimistic result.
-    if (payload.checklist?.version != null && Number(payload.checklist.version) !== Number(row.checklist_version)) {
-      void reload();
+    const version = payload.checklist?.version ?? payload.score?.checklist_version;
+    if ((version == null && row.previous_score) || (version != null && Number(version) !== Number(row.checklist_version))) {
+      if (!state.loading) void reload();
       return;
     }
     const score = payload.score || payload;
@@ -458,6 +462,7 @@ export function mount(CQA = window.CQA) {
     if ("needs_review" in payload) row.needs_review = Boolean(payload.needs_review);
     if (score.status) row.status = score.status;
     if (payload.checklist?.version) row.checklist_version = payload.checklist.version;
+    if (payload.checklist?.active === true || (version != null && Number(version) === Number(CQA.state.activeChecklistVersion))) row.previous_score = false;
     if (Array.isArray(payload.appeals)) row.appealed = payload.appeals.some(item => item.status === "open");
     const cells = Array.isArray(score.lines) ? score.lines : payload.evals;
     if (Array.isArray(cells)) row.cells = cells.map(item => {
@@ -469,6 +474,7 @@ export function mount(CQA = window.CQA) {
   });
   subscribe("conversations:updated", reload);
   subscribe("conversations:refresh", reload);
+  subscribe("checklist:activated", reload);
   const api = {
     reload,
     getVisibleIds: () => state.visible.map(row => row.id),

@@ -111,7 +111,7 @@
       }
     },
     "cascade": {
-      "_doc": "Cheap model first, stronger model only when needed (cqa/evaluator.py _cascade). Haiku 5.5 evaluates the dialogue; if any criterion needs review (low confidence, failed validation, critical flag, keyword-rule disagreement), Gemini 4 Argon re-evaluates the whole dialogue and its answers are used. Measured live on the 21 holdout dialogues with guidance m1-g9 (2026-11-07, run or-hold-cascade-g9): 95.6% vs silver and 95.3% vs gold_v2, the same as Gemini alone; 9 of 21 dialogues escalated; $0.021 per dialogue instead of $0.046. For volume; the control run uses profile cloud.",
+      "_doc": "Cheap model first, stronger model only when needed (cqa/evaluator.py _cascade). Haiku 5.5 evaluates the dialogue; if any criterion needs review (low confidence, failed validation, critical flag, keyword-rule disagreement), Gemini 4 Argon re-evaluates the whole dialogue and its answers are used. Measured live on the 21 holdout dialogues with guidance m1-g9 (2026-11-07, run or-hold-cascade-g9): 95.6% vs silver and 95.3% vs gold_v2, the same as Gemini alone; 9 of 21 dialogues escalated; $0.025 per dialogue instead of $0.046 (1.8x cheaper; the Gemini stage priced by tokens x config prices, including cache replays). For volume; the control run uses profile cloud.",
       "fast": {
         "model": "openai:anthropic/claude-haiku-5.5",
         "votes": 1,

@@ -563,6 +563,7 @@ def _finalize(conv: dict, crit: dict, votes: list[dict], final: dict | None, ans
     if expected is not None and answer_key(expected) != answer_key(answer):
         reasons.append(f"правило по ключевым словам ожидает «{expected}»")
     reasons.extend(rules.recording_review_reasons(conv, crit, answer))
+    reasons.extend(rules.call_scale_review_reasons(conv, crit, answer))
     if answer == "na" and not rep.get("na_reason"):
         reasons.append("N/A без причины")
     if answer is not None and answer != "na" and not rep.get("evidence") and not rep.get("checked_range"):

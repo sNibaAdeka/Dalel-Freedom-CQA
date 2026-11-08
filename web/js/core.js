@@ -96,10 +96,11 @@ async function initialize() {
   }
   function setTab(tab, { focus = false, updateHash = true } = {}) {
     if (!TAB_NAMES.includes(tab)) return;
+    const changed = CQA.state.tab !== tab;
     CQA.state.tab = tab;
     root.querySelectorAll('[data-tab]').forEach(button => { const active = button.dataset.tab === tab; button.setAttribute('aria-selected', String(active)); button.tabIndex = active ? 0 : -1; if (active && focus) button.focus(); });
     TAB_NAMES.forEach(name => { byId(`cqa-panel-${name}`).hidden = name !== tab; });
-    resetPanelScroll(root, byId(`cqa-panel-${tab}`));
+    if (changed) resetPanelScroll(root, byId(`cqa-panel-${tab}`));
     if (updateHash) history.replaceState(null, '', `#${tab}`);
     CQA.bus.emit('tab:changed', tab);
     announce(`${byId(`cqa-tab-${tab}`).textContent.trim()}: раздел открыт`);
@@ -163,7 +164,7 @@ async function initialize() {
     if (failedRun?.run_id) CQA.bus.emit('run:started', failedRun);
   });
   CQA.bus.on('api:fallback', () => toast('Сервер недоступен. Включена демонстрация с условными оценками.'));
-  CQA.bus.on('conv:open', id => { CQA.state.activeConversationId = id; setTab('dialogues'); });
+  CQA.bus.on('conv:open', request => { CQA.state.activeConversationId = typeof request === 'string' ? request : request?.id; setTab('dialogues'); });
   CQA.bus.on('nav:open', tab => setTab(tab));
   CQA.bus.on('appeal:start', () => {
     if (CQA.state.modules.review) return;
@@ -276,13 +277,14 @@ function installShellList(CQA, root) {
     }
     if (!rows.length) container.textContent = 'Диалогов пока нет.';
   });
-  CQA.bus.on('conv:open', id => root.querySelectorAll('.cqa-shell-row').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.id === id))));
+  CQA.bus.on('conv:open', request => root.querySelectorAll('.cqa-shell-row').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.id === (typeof request === 'string' ? request : request?.id)))));
 }
 
 function installShellCard(CQA, root) {
   let request = 0;
-  CQA.bus.on('conv:open', async id => {
-    const token = ++request; const detail = await CQA.api.conversation(id); if (token !== request) return;
+  CQA.bus.on('conv:open', async payload => {
+    const id = typeof payload === 'string' ? payload : payload?.id;
+    const token = ++request; const detail = await CQA.api.conversation(id, payload?.version); if (token !== request) return;
     CQA.state.conversation = detail; CQA.state.currentConversation = detail;
     const container = root.querySelector('#cqa-card'); container.replaceChildren();
     const section = document.createElement('section'); section.className = 'cqa-preview';

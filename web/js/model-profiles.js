@@ -84,7 +84,7 @@ export function runForecast({ quality, profile, mode = 'fast', dialogues, criter
 }
 export function forecastText(forecast) {
   return `Диалогов: ${forecast.dialogues}. Вызовов модели: ${forecast.calls == null ? 'прогноза нет' : `до ${forecast.calls} без повторов`}. ` +
-    `Прогноз этого прогона: ${forecast.cost == null ? 'стоимость — прогноза нет' : `≈ ${number(forecast.cost, 4)} $`}; ` +
+    `Прогноз этого прогона по средней цене диалога: ${forecast.cost == null ? 'стоимость — прогноза нет' : `≈ ${number(forecast.cost, 4)} $`}; ` +
     `${forecast.seconds == null ? 'время — прогноза нет' : `≈ ${number(forecast.seconds, 0)} с последовательно`}. ` +
     'Сценарий полной оценки; кэш и сохранённые ответы могут уменьшить расход, повторы — увеличить. Это не лимит расходов.';
 }

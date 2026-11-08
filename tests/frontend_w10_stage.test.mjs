@@ -155,7 +155,7 @@ test('U2: cross-version score events reload the authoritative list instead of mi
   const body = source.slice(source.indexOf('  subscribe("score:updated",'), source.indexOf('  subscribe("conversations:updated",'));
   const row = {id:'a',checklist_version:1,total:76.47,previous_score:true};
   let callback,reloads=0;
-  runInNewContext(body,{subscribe:(_name,fn)=>{callback=fn;},state:{rows:[row]},reload:()=>{reloads++;}});
+  runInNewContext(body,{subscribe:(_name,fn)=>{callback=fn;},CQA:{state:{listScoreVersions:{a:1}}},state:{rows:[row]},reload:()=>{reloads++;}});
   callback({id:'a',checklist:{version:2},score:{total:64.71}});
   assert.equal(reloads,1);assert.equal(row.total,76.47);assert.equal(row.checklist_version,1);
 });

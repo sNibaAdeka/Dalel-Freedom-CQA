@@ -1933,7 +1933,8 @@ export function mount(CQA = globalThis.window?.CQA) {
   document.addEventListener('keydown', onKeydown);
   on('appeal:start', payload => { const opener = document.activeElement; openAppeal(payload, opener).catch(fail); });
   on('criterion:focus', payload => { if (payload?.conv_id && payload?.criterion_id) state.focusedCriterion = payload; });
-  on('conv:open', id => {
+  on('conv:open', request => {
+    const id = typeof request === 'string' ? request : request?.id;
     guards.history.invalidate();
     if (state.pendingRoll && state.pendingRoll.convId !== id) state.pendingRoll = null;
   });

@@ -516,7 +516,7 @@ export function mount(CQA = window.CQA) {
     const unresolvedFailure = ['failed', 'error', 'incomplete', 'cancelled'].includes(knownRun?.status) && !attemptResolved(detail, knownRun);
     const scoreBox = element('div', 'cqa-card__score-summary');
     const scoreHeading = element('div', 'cqa-card__score-heading');
-    scoreHeading.append(element('h3', '', 'Итоговая оценка'), element('span', 'cqa-card__version', `Чек-лист v${detail.checklist?.version ?? score.checklist_version ?? '—'}`));
+    scoreHeading.append(element('h3', '', 'Итоговая оценка'), element('span', 'cqa-card__version', `Чек-лист v${detail.checklist?.version ?? score.checklist_version ?? '—'}${detail.checklist?.active === false ? ' · не активна' : ''}`));
     const digits = Number.isInteger(detail.checklist?.rounding?.total) ? Math.max(0, Math.min(6, detail.checklist.rounding.total)) : 2;
     const total = element('div', `cqa-card__total${answers.incomplete ? ' cqa-card__total--incomplete' : ''}`);
     if (answers.incomplete) total.append(element('strong', '', 'Не рассчитан'));
@@ -589,7 +589,8 @@ export function mount(CQA = window.CQA) {
     CQA.bus.emit('conv:loaded', current);
   }
 
-  async function open(id) {
+  async function open(request) {
+    const id = typeof request === 'string' ? request : request?.id;
     if (typeof id !== 'string' || !id) return;
     const token = ++generation;
     CQA.state.activeConversationId = id;
@@ -597,7 +598,7 @@ export function mount(CQA = window.CQA) {
     empty('Открываем диалог', 'Загружаем разговор и результаты оценки.');
     host.setAttribute('aria-busy', 'true');
     try {
-      const rowVersion = CQA.state.listScoreVersions?.[id];
+      const rowVersion = request?.version ?? CQA.state.listScoreVersions?.[id];
       const detail = await CQA.api.conversation(id, { ...(rowVersion != null ? { version: rowVersion } : {}), trace: true });
       if (destroyed || token !== generation) return;
       if (!detail || detail.id !== id || !Array.isArray(detail.messages)) throw new Error('Invalid conversation response');
@@ -619,7 +620,7 @@ export function mount(CQA = window.CQA) {
       if (token !== generation) return;
       current = null;
       host.removeAttribute('aria-busy');
-      empty('Диалог не открылся', 'Не удалось получить разговор. Повторите загрузку.', () => open(id));
+      empty('Диалог не открылся', 'Не удалось получить разговор. Повторите загрузку.', () => open(request));
     }
   }
 
@@ -649,7 +650,10 @@ export function mount(CQA = window.CQA) {
   on('score:updated', value => {
     if (!current || !value) return;
     const version = value.checklist?.version ?? value.score?.checklist_version;
-    if (version != null && version !== current.checklist?.version) return;
+    const sameVersion = version == null || Number(version) === Number(current.checklist?.version);
+    const activeDetail = value.checklist?.active === true && value.id === current.id && Array.isArray(value.messages);
+    if (!sameVersion && !activeDetail) return;
+    if (!sameVersion) recoveryScope = null; // A browser-local retry pointer belongs to the old version.
     if (value.id === current.id && Array.isArray(value.messages)) { generation++; render(value); }
     else if (value.conv_id === current.id && value.score) { generation++; render({ ...current, score: value.score }); }
   });

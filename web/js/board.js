@@ -11,9 +11,13 @@ const errorText = error => error?.message || 'Не удалось получит
 
 /** Independently testable run lifecycle. stop() stops observation, never the server run. */
 export function createRunController(api, { onChange = () => {}, onProgress = () => {}, onFinish = () => {},
-  schedule = setTimeout, unschedule = clearTimeout, interval = 500 } = {}) {
+  schedule = setTimeout, unschedule = clearTimeout, interval = 500, restorePollLimit = 6, restoreStallLimit = 3 } = {}) {
   let epoch = 0, timer = null, destroyed = false;
-  let state = { phase: 'idle', run: null, error: null };
+  let state = { phase: 'idle', run: null, error: null, restored: false };
+  let recovery = null;
+  // Live API snapshots advance elapsed even while a single model call is pending.
+  // Persisted running snapshots have no explicit alive flag and remain unchanged.
+  const heartbeat = run => JSON.stringify([run.status, run.elapsed, run.done, run.evaluated, run.llm_calls, run.per_conv]);
   const announced = new Set();
   const emit = update => { state = { ...state, ...update }; if (!destroyed) onChange(state); };
   function clear() { if (timer !== null) unschedule(timer); timer = null; }
@@ -24,25 +28,34 @@ export function createRunController(api, { onChange = () => {}, onProgress = () 
     const run = { ...fallback, ...snapshot };
     if (typeof run.run_id !== 'string' || !run.run_id) throw new Error('Сервер не вернул номер прогона.');
     const finished = finishedStatuses.has(run.status);
-    emit({ phase: finished ? 'finished' : 'running', run, error: null });
-    onProgress(run);
+    let phase = finished ? 'finished' : 'running';
+    if (recovery && !finished) {
+      const next = heartbeat(run);
+      recovery.polls++;
+      recovery.stalls = next === recovery.last ? recovery.stalls + 1 : 0;
+      recovery.last = next;
+      phase = recovery.stalls >= restoreStallLimit ? 'interrupted' : recovery.polls >= restorePollLimit ? 'paused' : 'restoring';
+    }
+    emit({ phase, run, error: null });
+    if (!state.restored) onProgress(run);
     if (finished) {
       clear();
-      if (!announced.has(run.run_id)) { announced.add(run.run_id); onFinish(run); }
-    } else timer = schedule(() => { timer = null; void poll(token); }, interval);
+      if (!announced.has(run.run_id)) { announced.add(run.run_id); if (!state.restored) onFinish(run); }
+    } else if (phase === 'running' || phase === 'restoring') timer = schedule(() => { timer = null; void poll(token); }, interval);
   }
   async function poll(token) {
     if (!active(token) || !state.run?.run_id) return;
     const previous = state.run;
     try { accept(await api.run(previous.run_id), token, previous); }
-    catch (error) { if (active(token)) emit({ phase: 'paused', error }); }
+    catch (error) { if (active(token)) emit({ phase: recovery && error?.status === 404 ? 'interrupted' : 'paused', error: recovery && error?.status === 404 ? null : error }); }
   }
   return {
     get state() { return state; },
     async start(body) {
       if (destroyed || ['starting', 'running'].includes(state.phase)) return null;
       clear(); const token = ++epoch;
-      emit({ phase: 'starting', run: null, error: null });
+      recovery = null;
+      emit({ phase: 'starting', run: null, error: null, restored: false });
       try {
         const response = await api.createRun(body);
         if (!active(token)) return null;
@@ -56,11 +69,12 @@ export function createRunController(api, { onChange = () => {}, onProgress = () 
       if (!snapshot?.run_id) return;
       if (restore && finishedStatuses.has(snapshot.status)) announced.add(snapshot.run_id);
       clear(); const token = ++epoch;
-      emit({ phase: 'running', run: { ...snapshot }, error: null });
+      recovery = restore ? { polls: 0, stalls: 0, last: heartbeat(snapshot) } : null;
+      emit({ phase: restore ? 'restoring' : 'running', run: { ...snapshot }, error: null, restored: restore });
       void poll(token);
     },
     stop() { if (destroyed) return; clear(); ++epoch; emit({ phase: state.run ? 'paused' : 'idle', error: null }); },
-    reset() { if (destroyed) return; clear(); ++epoch; announced.clear(); emit({ phase: 'idle', run: null, error: null }); },
+    reset() { if (destroyed) return; clear(); ++epoch; recovery = null; announced.clear(); emit({ phase: 'idle', run: null, error: null, restored: false }); },
     destroy() { destroyed = true; clear(); ++epoch; },
   };
 }
@@ -206,8 +220,10 @@ export function mount(CQA = globalThis.window?.CQA) {
   const liveLabel = node('label', 'cqa-board__check'); liveLabel.append(live, node('span', '', 'Не использовать LLM-кэш для недостающих оценок'));
   const activate = node('input'); activate.type = 'checkbox'; activate.checked = scope.value !== 'active'; activate.dataset.boardActivate = '';
   const activateLabel = node('label', 'cqa-board__check'); activateLabel.append(activate, node('span', '', 'Сделать эту версию активной после расчёта'));
+  const activationHint = node('p', 'cqa-board__hint'); activationHint.id = 'cqa-board-activation-hint';
   const selection = node('p', 'cqa-board__selection');
   const startButton = node('button', 'cqa-board__button cqa-board__button--primary', 'Оценить диалоги'); startButton.type = 'submit';
+  startButton.setAttribute('aria-describedby', activationHint.id);
   const fields = node('div', 'cqa-board__fields');
   fields.append(field('Набор', group), field('Диалоги', scope), field('Чек-лист', version), field('Режим оценки', mode), field('Модель', location));
   const actions = node('div', 'cqa-board__actions'); actions.append(selection, startButton);
@@ -222,7 +238,7 @@ export function mount(CQA = globalThis.window?.CQA) {
   const rerunButton = button('Пересчитать всё заново', event => void start(event, true));
   rerunButton.setAttribute('aria-describedby', rerunHint.id); rerun.append(rerunHint, rerunButton);
   const databaseSpend = node('p', 'cqa-board__hint', 'Всего потрачено в этой базе: нет данных.');
-  form.append(fields, model, guide, liveLabel, plan, activateLabel, budgetHost, databaseSpend, actions, rerun);
+  form.append(fields, model, guide, liveLabel, plan, activateLabel, activationHint, budgetHost, databaseSpend, actions, rerun);
 
   const importer = node('details', 'cqa-board__import'); importer.append(node('summary', '', 'Загрузить новые диалоги'));
   const importForm = node('div', 'cqa-board__import-form');
@@ -237,7 +253,7 @@ export function mount(CQA = globalThis.window?.CQA) {
 
   const results = node('section', 'cqa-board__results'); results.hidden = true; results.setAttribute('aria-label', 'Ход оценки');
   const runHead = node('div', 'cqa-board__run-head'), runTitle = node('h2'), runId = node('p', 'cqa-board__hint');
-  const monitorButton = button('Приостановить обновление', () => controller.state.phase === 'paused' ? controller.watch(controller.state.run) : controller.stop());
+  const monitorButton = button('Приостановить обновление', () => controller.state.phase === 'paused' ? controller.watch(controller.state.run, { restore: controller.state.restored }) : controller.stop());
   const runIdentity = node('div'); runIdentity.append(runTitle, runId); runHead.append(runIdentity, monitorButton);
   const progress = node('progress'); progress.max = 1; progress.value = 0; progress.setAttribute('aria-label', 'Оценённые диалоги');
   const stats = node('dl', 'cqa-board__stats');
@@ -276,7 +292,11 @@ export function mount(CQA = globalThis.window?.CQA) {
     selection.textContent = `${ids.length} ${ids.length === 1 ? 'диалог выбран' : 'диалогов выбрано'}`;
     startButton.disabled = busy || loading || !ids.length || !version.value;
     rerunButton.disabled = startButton.disabled;
-    startButton.textContent = preparing || controller.state.phase === 'starting' ? 'Запускаем…' : activate.checked ? 'Оценить и применить' : 'Оценить диалоги';
+    startButton.textContent = preparing || controller.state.phase === 'starting' ? 'Запускаем…' : activate.checked ? 'Оценить и применить' : `Оценить по v${version.value || '—'}`;
+    const official = versions.find(item => item.active === true)?.version;
+    activationHint.textContent = activate.checked ? `v${version.value || '—'} станет активной после успешного расчёта.` :
+      Number(official) === Number(version.value) ? `v${official} уже активна и остаётся официальной.` :
+      `v${version.value || '—'} не станет активной; ${official != null ? `v${official} остаётся официальной` : 'официальная версия не изменится'}.`;
     for (const control of [group, scope, version, mode, live, activate]) control.disabled = busy || loading;
     mode.disabled = busy || loading || ['cascade', 'routing'].includes(location.value);
     live.disabled = busy || loading || descendant || fresh;
@@ -446,7 +466,7 @@ export function mount(CQA = globalThis.window?.CQA) {
   function renderTile(row) {
     let tile = tiles.get(row.id);
     if (!tile) {
-      const root = button('', () => CQA.bus.emit('conv:open', row.id), 'cqa-board__tile'); root.dataset.convId = row.id;
+      const root = button('', () => CQA.bus.emit('conv:open', { id: row.id, version: controller.state.run?.version }), 'cqa-board__tile'); root.dataset.convId = row.id;
       const title = node('strong', 'cqa-board__tile-id', row.id), status = node('span', 'cqa-board__tile-status');
       const scores = node('span', 'cqa-board__tile-scores'), before = node('span'), arrow = node('span', 'cqa-board__arrow', '→'), after = node('strong');
       arrow.setAttribute('aria-hidden', 'true'); scores.append(before, arrow, after);
@@ -489,10 +509,10 @@ export function mount(CQA = globalThis.window?.CQA) {
     if (!run) { results.hidden = true; empty.hidden = false; return; }
     results.hidden = false; empty.hidden = true;
     const summary = runSummary(run), terminal = state.phase === 'finished';
-    runTitle.textContent = terminal ? failedStatuses.has(run.status) ? 'Прогон завершился с ошибкой' : summary.errors ? 'Оценка завершена с ошибками' : 'Оценка завершена' : state.phase === 'paused' ? 'Обновление приостановлено' : 'Идёт оценка';
-    runId.textContent = `Прогон ${run.run_id}${run.version ? ` · чек-лист v${run.version}` : ''}`;
+    runTitle.textContent = state.phase === 'interrupted' ? 'Прогон прерван (сервер перезапускался) — можно запустить заново' : state.phase === 'restoring' ? 'Проверяем сохранённый прогон' : terminal ? failedStatuses.has(run.status) ? 'Прогон завершился с ошибкой' : summary.errors ? 'Оценка завершена с ошибками' : 'Оценка завершена' : state.phase === 'paused' ? 'Обновление приостановлено' : 'Идёт оценка';
+    runId.textContent = `${state.restored ? 'Сохранённый прогон' : 'Прогон'} ${run.run_id}${run.version ? ` · чек-лист v${run.version}` : ''}`;
     runPlan.textContent = serverPlanText(run);
-    monitorButton.hidden = terminal; monitorButton.textContent = state.phase === 'paused' ? 'Возобновить обновление' : 'Приостановить обновление';
+    monitorButton.hidden = terminal || state.phase === 'interrupted'; monitorButton.textContent = state.phase === 'paused' ? 'Возобновить обновление' : 'Приостановить обновление';
     progress.max = finite(run.total) && run.total > 0 ? run.total : 1; progress.value = finite(run.done) ? Math.min(run.done, progress.max) : 0;
     statNodes.done.textContent = `${number(run.done, 0)} / ${number(run.total, 0)}`;
     statNodes.errors.textContent = number(summary.errors, 0);
@@ -500,9 +520,12 @@ export function mount(CQA = globalThis.window?.CQA) {
     statNodes.cost_kzt.textContent = finite(run.cost_kzt) ? `${number(run.cost_kzt, 4)} ₸` : 'Не измерено';
     statNodes.from_cache.textContent = finite(run.from_cache) ? `${number(run.from_cache, 0)}${finite(run.cache_total) ? ` / ${number(run.cache_total, 0)}` : ''}` : 'Нет данных';
     statNodes.llm_calls.textContent = number(run.llm_calls, 0);
-    resultNotice.textContent = state.phase === 'paused' ? 'Остановлено только обновление экрана. Серверный прогон не отменён.' :
+    resultNotice.textContent = state.phase === 'interrupted' ? 'Сервер не подтвердил живой прогон. Сохранённые результаты доступны; форма нового запуска разблокирована.' : state.phase === 'restoring' ? 'Проверяем состояние ограниченным числом запросов. Форма нового запуска доступна.' : state.phase === 'paused' ? 'Остановлено только обновление экрана. Серверный прогон не отменён.' :
       run.error ? run.error : summary.errors ? `Не удалось оценить: ${summary.errors}. Откройте диалог, проверьте ошибку и повторите запуск для нужных диалогов.` :
       terminal ? `Изменились оценки: ${summary.changed} из ${summary.compared} сравнимых. ${CQA.config.mock !== false ? 'Это демонстрационные результаты.' : ''}` : 'Результаты появляются по мере готовности.';
+    if (state.restored && terminal && run.llm_calls === 0 && run.cost_kzt === 0 && CQA.config.mock === false) {
+      resultNotice.textContent += ' Результаты из кэша/базы, без вызовов модели: расход этого прогона — 0 ₸. Стоимость сохранённых оценок указана отдельно.';
+    }
     resultNotice.dataset.tone = run.error || summary.errors ? 'error' : 'info';
     const currentIds = new Set(summary.rows.map(row => row.id));
     for (const [id, tile] of tiles) if (!currentIds.has(id)) { tile.root.remove(); tiles.delete(id); }

@@ -114,6 +114,17 @@ def recording_review_reasons(conv: dict, criterion: dict, answer: object) -> lis
               "— нужна ручная проверка."]
 
 
+def call_scale_review_reasons(conv: dict, criterion: dict, answer: object) -> list[str]:
+    """Calls: every scale answer goes to a human. On DEV calls the model overrated the C4/C6 scales
+    (29/37 cells vs the machine reference) and its own confidence did not flag those errors.
+    This adds review routing only; the answer, evidence and score are unchanged."""
+    if conv.get("channel") != "call" or criterion.get("answer_type") != "scale":
+        return []
+    if answer is None or answer == "na":
+        return []
+    return ["звонок: шкальную оценку проверяет человек — на звонках DEV модель завышала шкалы (C4/C6)"]
+
+
 def _ops(conv: dict) -> list[dict]:
     return [m for m in conv["messages"] if m["speaker"] == "operator"]
 
